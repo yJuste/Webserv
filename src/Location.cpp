@@ -1,24 +1,23 @@
 // ************************************************************************** //
 //                                                                            //
-//                main.cpp                                                    //
+//                Location.cpp                                                //
 //                Created on  : xxx Jul xx xx:xx:xx 2025                      //
 //                Last update : xxx Jul xx xx:xx:xx 2025                      //
 //                Made by     :                                               //
 //                                                                            //
 // ************************************************************************** //
 
-# include "main.hpp"
+# include "Location.hpp"
 # include "Exceptions.hpp"
 
-int	main(int argc, char **argv)
-{
-	(void)argc;
-	try
-	{
-		std::list<Server>	servers;
+Location::Location() {}
+Location::~Location() {}
 
-		servers = configFile(argv[1]);
-	}
-	catch (std::exception & e) { std::cout << e.what() << std::endl; }
-	return 0;
+Location::Location( const Location & l ) { *this = l; }
+
+Location	&Location::operator = ( const Location & l )
+{
+	if (this != &l)
+		;
+	return *this;
 }

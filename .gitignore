@@ -1,4 +1,4 @@
 webserv
 *.DS_Store
-.*.sw*
+*.sw*
 obj/*

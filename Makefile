@@ -10,7 +10,11 @@ INC_DIR = inc
 OBJ_DIR = obj
 
 # Files
-SRC =	main.cpp		\
+SRC =	main.cpp			\
+	Server.cpp			\
+	Location.cpp			\
+	parsing/configFile.cpp		\
+	parsing/utils.cpp		\
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 
