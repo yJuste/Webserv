@@ -13,10 +13,9 @@
 // Standard Libraries
 
 # include <iostream>
-# include <list>
+# include <vector>
 # include <map>
 # include <unistd.h>
-# include <netinet/in.h>
 # include <netdb.h>
 # include <fstream>
 
@@ -37,11 +36,11 @@ class	Server
 
 		std::string			_host;
 		int				_port;
+		std::string			_root;
 		bool				_default;
 		std::vector<std::string>	_names;
 		std::map<int, std::string>	_errorPages;
 		size_t				_maxSize;
-		std::string			_root;
 		std::vector<Location>		_locations;
 
 	public:
@@ -78,6 +77,7 @@ class	Server
 		// Setter
 
 		void setHost( std::string & );
+		void setRoot( std::string & );
 		void setPort( int );
 
 		class Exception;

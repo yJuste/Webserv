@@ -10,7 +10,7 @@
 # include "Server.hpp"
 # include "Exceptions.hpp"
 
-Server::Server() : _socket(-1), _host("0.0.0.0"), _port(80), _default(false), _maxSize(0), _root("") {}
+Server::Server() : _socket(-1), _host("0.0.0.0"), _port(80), _root(""), _default(false), _maxSize(0) {}
 Server::~Server() {}
 
 Server::Server( const Server & server ) { *this = server; }
@@ -23,11 +23,11 @@ Server	&Server::operator = ( const Server & s )
 		_address = s.getAddress();
 		_host = s.getHost();
 		_port = s.getPort();
+		_root = s.getRoot();
 		_default = s.getDefault();
 		_names = s.getNames();
 		_errorPages = s.getErrorPages();
 		_maxSize = s.getMaxSize();
-		_root = s.getRoot();
 		_locations = s.getLocations();
 	}
 	return *this;
@@ -81,11 +81,11 @@ struct sockaddr_in	Server::getAddress() const { return _address; }
 
 std::string	Server::getHost() const { return _host; }
 int	Server::getPort() const { return _port; }
+std::string	Server::getRoot() const { return _root; }
 bool	Server::getDefault() const { return _default; }
 std::vector<std::string>	Server::getNames() const { return _names; }
 std::map<int, std::string>	Server::getErrorPages() const { return _errorPages; }
 size_t	Server::getMaxSize() const { return _maxSize; }
-std::string	Server::getRoot() const { return _root; }
 std::vector<Location>	Server::getLocations() const { return _locations; }
 
 std::string	Server::getNameX( int idx ) const
@@ -120,3 +120,4 @@ Location	Server::getLocationX( int idx ) const
 
 void	Server::setHost( std::string & host ) { _host = host; }
 void	Server::setPort( int port ) { _port = port; }
+void	Server::setRoot( std::string & root ) { _root = root; }

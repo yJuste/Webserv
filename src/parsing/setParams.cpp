@@ -12,12 +12,15 @@
 
 // -----------------------------------------------------------------------------
 void	setListen( std::vector<std::string>::iterator & it, Server & server );
+void	setRoot( std::vector<std::string>::iterator & it, Server & server );
 // -----------------------------------------------------------------------------
 
 void	setParameters( std::vector<std::string>::iterator & it, Server & server )
 {
 	if (*it == "listen")
 		setListen(++it, server);
+	if (*it == "root")
+		setRoot(++it, server);
 }
 
 void	setListen( std::vector<std::string>::iterator & it, Server & server )
@@ -37,8 +40,19 @@ void	setListen( std::vector<std::string>::iterator & it, Server & server )
 		std::string	port = str.substr(sep + 1);
 
 		server.setHost(host);
-		server.setPort(std::atoi(str.c_str()));
+		server.setPort(std::atoi(port.c_str()));
 	}
 	else
 		server.setPort(std::atoi(str.c_str()));
+}
+
+void	setRoot( std::vector<std::string>::iterator & it, Server & server )
+{
+	std::string	str;
+
+	str = *it;
+	if (!str.empty() && str.back() == ';')
+		str.pop_back();
+
+	server.setRoot(str);
 }

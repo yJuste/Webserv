@@ -13,8 +13,8 @@
 // Standard Libraries
 
 # include <iostream>
+# include <vector>
 # include <map>
-# include <list>
 
 // ************************************************************************** //
 //                                Location Class                              //
