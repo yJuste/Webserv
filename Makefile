@@ -14,6 +14,7 @@ SRC =	main.cpp			\
 	Server.cpp			\
 	Location.cpp			\
 	parsing/configFile.cpp		\
+	parsing/setParams.cpp		\
 	parsing/utils.cpp		\
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)

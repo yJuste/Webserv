@@ -17,6 +17,7 @@
 # include <map>
 # include <unistd.h>
 # include <netinet/in.h>
+# include <netdb.h>
 # include <fstream>
 
 // Dependences
@@ -37,11 +38,11 @@ class	Server
 		std::string			_host;
 		int				_port;
 		bool				_default;
-		std::list<std::string>		_names;
+		std::vector<std::string>	_names;
 		std::map<int, std::string>	_errorPages;
 		size_t				_maxSize;
 		std::string			_root;
-		std::list<Location>		_locations;
+		std::vector<Location>		_locations;
 
 	public:
 
@@ -56,7 +57,7 @@ class	Server
 		void startup();
 		void shutdown() const;
 
-		// ~etter
+		// Getter
 
 		int getSocket() const;
 		struct sockaddr_in getAddress() const;
@@ -64,12 +65,19 @@ class	Server
 		std::string getHost() const;
 		int getPort() const;
 		bool getDefault() const;
-		std::string getNames( int ) const;
-		std::string getErrorPages( int ) const;
+		std::vector<std::string> getNames() const;
+		std::map<int, std::string> getErrorPages() const;
 		size_t getMaxSize() const;
 		std::string getRoot() const;
-		Location getLocation( int ) const;
+		std::vector<Location> getLocations() const;
 
+		std::string getNameX( int ) const;
+		std::string getErrorPageX( int ) const;
+		Location getLocationX( int ) const;
+
+		// Setter
+
+		void setHost( std::string & );
 		void setPort( int );
 
 		class Exception;

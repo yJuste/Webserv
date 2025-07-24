@@ -20,6 +20,8 @@ class	FailedSocket : public std::exception { public : const char * what() const 
 
 class	FailedSetsockopt : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: setsockopt() failed."; } };
 
+class	FailedGetaddrinfo : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: getaddrinfo() failed."; } };
+
 class	FailedBind : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: bind() failed."; } };
 
 class	FailedListen : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: listen() failed."; } };
@@ -29,6 +31,8 @@ class	FailedOpen : public std::exception { public : const char * what() const th
 // Parsing
 
 class	BracketsNotClosed : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Brackets are not closed."; } };
+
+class	ValueNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for one parameter."; } };
 
 class	ListenNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'listen'."; } };
 

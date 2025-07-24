@@ -34,11 +34,11 @@ bool	is_commentary( const std::string & line )
 }
 
 // split a string.
-std::list<std::string>	split( std::string & s )
+std::vector<std::string>	split( std::string & s )
 {
 	std::stringstream		ss(s);
 	std::string			word;
-	std::list<std::string>	words;
+	std::vector<std::string>	words;
 
 	while (ss >> word)
 		words.push_back(word);

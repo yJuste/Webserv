@@ -15,9 +15,10 @@ int	main(int argc, char **argv)
 	(void)argc;
 	try
 	{
-		std::list<Server>	servers;
+		std::vector<Server>	servers;
 
 		servers = configFile(argv[1]);
+		std::cout << "Host: " << servers[0].getPort() << std::endl;
 	}
 	catch (std::exception & e) { std::cout << e.what() << std::endl; }
 	return 0;

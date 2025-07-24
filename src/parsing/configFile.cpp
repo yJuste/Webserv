@@ -11,10 +11,11 @@
 # include "Exceptions.hpp"
 
 // -----------------------------------------------------------------------------
-std::list<Server>	createServers( std::list<std::string> & words );
+std::vector<Server>	createServers( std::vector<std::string> & words );
+void	setParameters( std::vector<std::string>::iterator & it, Server & server );
 // -----------------------------------------------------------------------------
 
-std::list<Server>	configFile( const char * s )
+std::vector<Server>	configFile( const char * s )
 {
 	std::ifstream		file;
 
@@ -23,29 +24,32 @@ std::list<Server>	configFile( const char * s )
 		throw FailedOpen();
 
 	std::string		line;
-	std::list<std::string>	words;
+	std::vector<std::string>	words;
 
 	while (getline(file, line))
 	{
 		line = trim(line);
 		if (is_commentary(line))
 			continue ;
-		std::list<std::string>	words_splice = split(line);
-		words.splice(words.end(), words_splice);
+		std::vector<std::string>	words_splice = split(line);
+		words.insert(words.end(), words_splice.begin(), words_splice.end());
 	}
 
-	std::list<Server>	servers;
+	std::vector<Server>	servers;
 
 	servers = createServers(words);
+
+	for (std::vector<std::string>::const_iterator it = words.begin(); it != words.end(); ++it)
+		std::cout << *it << std::endl;
 
 	file.close();
 	return servers;
 }
 
-std::list<Server>	createServers( std::list<std::string> & words )
+std::vector<Server>	createServers( std::vector<std::string> & words )
 {
-	std::list<Server>	servers;
-	std::list<std::string>::iterator	it = words.begin();
+	std::vector<Server>	servers;
+	std::vector<std::string>::iterator	it = words.begin();
 
 	while (it != words.end())
 	{
@@ -67,12 +71,9 @@ std::list<Server>	createServers( std::list<std::string> & words )
 					--depth;
 				else if (depth == 1)
 				{
-					if (*it == "listen")
-					{
-						if (++it == words.end())
-							throw ListenNotGiven();
-						server.setPort(std::atoi(it->c_str()));
-					}
+					if (++it == words.end())
+						throw ValueNotGiven();
+					setParameters(--it, server);
 				}
 				++it;
 			}

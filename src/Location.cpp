@@ -10,7 +10,7 @@
 # include "Location.hpp"
 # include "Exceptions.hpp"
 
-Location::Location() {}
+Location::Location() : _path(""), _redirect(false), _autoindex(false), _default(""), _upload("") {}
 Location::~Location() {}
 
 Location::Location( const Location & l ) { *this = l; }
@@ -18,6 +18,42 @@ Location::Location( const Location & l ) { *this = l; }
 Location	&Location::operator = ( const Location & l )
 {
 	if (this != &l)
-		;
+	{
+		_path = l.getPath();
+		_methods = l.getMethods();
+		_redirect = l.getRedirect();
+		_autoindex = l.getAutoindex();
+		_default = l.getDefault();
+		_cgi = l.getCgi();
+		_upload = l.getUpload();
+	}
 	return *this;
+}
+
+// ~etter
+
+std::string	Location::getPath() const { return _path; }
+std::vector<std::string>	Location::getMethods() const { return _methods; }
+bool	Location::getRedirect() const { return _redirect; }
+bool	Location::getAutoindex() const { return _autoindex; }
+std::string	Location::getDefault() const { return _default; }
+std::map<std::string, std::string>	Location::getCgi() const { return _cgi; }
+std::string	Location::getUpload() const { return _upload; }
+
+std::string	Location::getMethodX( int idx ) const
+{
+	if (idx < 0 || idx >= static_cast<int>(_methods.size()))
+		throw std::out_of_range("Invalid index: Server::getNames()");
+
+	std::vector<std::string>::const_iterator	it = _methods.begin();
+	std::advance(it, idx);
+	return *it;
+}
+
+std::string	Location::getCgiX( std::string & s ) const
+{
+	std::map<std::string, std::string>::const_iterator it = _cgi.find(s);
+	if (it == _cgi.end())
+		throw std::out_of_range("Invalid index: Server::getErrorPages()");
+	return it->second;
 }

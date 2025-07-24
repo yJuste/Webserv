@@ -28,10 +28,10 @@
 
 // parsing
 
-std::list<Server>	configFile( const char * s );
+std::vector<Server>	configFile( const char * s );
 
 std::string	trim( const std::string & );
 bool	is_commentary( const std::string & );
-std::list<std::string>	split( std::string & s );
+std::vector<std::string>	split( std::string & s );
 
 #endif
