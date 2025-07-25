@@ -28,10 +28,15 @@
 
 // parsing
 
+// configFile.cpp
 std::vector<Server>	configFile( const char * s );
 
+// setParams.cpp
+void	setParameters( std::vector<std::string>::iterator & it, Server & server );
+
+// utils.cpp
 std::string	trim( const std::string & );
 bool	is_commentary( const std::string & );
-std::vector<std::string>	split( std::string & s );
+std::vector<std::string>	split( const std::string & s );
 
 #endif

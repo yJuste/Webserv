@@ -32,8 +32,17 @@ class	FailedOpen : public std::exception { public : const char * what() const th
 
 class	BracketsNotClosed : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Brackets are not closed."; } };
 
+class	NoEndingSemicolon : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Missing a semicolon at the end of a line."; } };
+
 class	ValueNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for one parameter."; } };
 
+class	InvalidParameter : public std::exception { private: char _msg[256]; public: InvalidParameter( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: Invalid parameter is given.", s); } const char * what() const throw() { return _msg; } };
+
 class	ListenNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'listen'."; } };
+
+class	HostNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'host'."; } };
+
+class	RootNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'root'."; } };
+
 
 #endif

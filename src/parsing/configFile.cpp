@@ -12,7 +12,6 @@
 
 // -----------------------------------------------------------------------------
 std::vector<Server>	createServers( std::vector<std::string> & words );
-void	setParameters( std::vector<std::string>::iterator & it, Server & server );
 // -----------------------------------------------------------------------------
 
 std::vector<Server>	configFile( const char * s )

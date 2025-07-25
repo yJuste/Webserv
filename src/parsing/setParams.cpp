@@ -12,6 +12,7 @@
 
 // -----------------------------------------------------------------------------
 void	setListen( std::vector<std::string>::iterator & it, Server & server );
+void	setHost( std::vector<std::string>::iterator & it, Server & server );
 void	setRoot( std::vector<std::string>::iterator & it, Server & server );
 // -----------------------------------------------------------------------------
 
@@ -19,8 +20,14 @@ void	setParameters( std::vector<std::string>::iterator & it, Server & server )
 {
 	if (*it == "listen")
 		setListen(++it, server);
-	if (*it == "root")
+	else if (*it == "host")
+		setHost(++it, server);
+	else if (*it == "root")
 		setRoot(++it, server);
+	if (*it == "location")
+		;
+	else if (it->find_first_of(";") == std::string::npos)
+		throw InvalidParameter(it->c_str());
 }
 
 void	setListen( std::vector<std::string>::iterator & it, Server & server )
@@ -28,8 +35,11 @@ void	setListen( std::vector<std::string>::iterator & it, Server & server )
 	std::string	str;
 
 	str = *it;
-	if (!str.empty() && str.back() == ';')
-		str.pop_back();
+	if (str.empty())
+		throw ListenNotGiven();
+	if (str.find_first_of(";") == std::string::npos)
+		throw NoEndingSemicolon();
+	str.pop_back();
 
 	size_t		sep;
 
@@ -46,13 +56,30 @@ void	setListen( std::vector<std::string>::iterator & it, Server & server )
 		server.setPort(std::atoi(str.c_str()));
 }
 
+void	setHost( std::vector<std::string>::iterator & it, Server & server )
+{
+	std::string	str;
+
+	str = *it;
+	if (str.empty())
+		throw HostNotGiven();
+	if (str.find_first_of(";") == std::string::npos)
+		throw NoEndingSemicolon();
+	str.pop_back();
+
+	server.setHost(str);
+}
+
 void	setRoot( std::vector<std::string>::iterator & it, Server & server )
 {
 	std::string	str;
 
 	str = *it;
-	if (!str.empty() && str.back() == ';')
-		str.pop_back();
+	if (str.empty())
+		throw RootNotGiven();
+	if (str.find_first_of(";") == std::string::npos)
+		throw NoEndingSemicolon();
+	str.pop_back();
 
 	server.setRoot(str);
 }

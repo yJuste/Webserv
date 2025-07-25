@@ -18,8 +18,9 @@ int	main(int argc, char **argv)
 		std::vector<Server>	servers;
 
 		servers = configFile(argv[1]);
-		std::cout << "Port: " << servers[0].getPort() << std::endl;
 		std::cout << "Host: " << servers[0].getHost() << std::endl;
+		std::cout << "Port: " << servers[0].getPort() << std::endl;
+		std::cout << "Root: " << servers[0].getRoot() << std::endl;
 	}
 	catch (std::exception & e) { std::cout << e.what() << std::endl; }
 	return 0;
