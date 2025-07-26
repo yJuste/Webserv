@@ -77,8 +77,11 @@ class	Server
 		// Setter
 
 		void setHost( std::string & );
-		void setRoot( std::string & );
 		void setPort( int );
+		void setRoot( std::string & );
+		void setDefault( bool );
+		void setNames( std::vector<std::string> & );
+		void setErrorPages( std::map<int, std::string> & );
 
 		class Exception;
 };

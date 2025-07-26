@@ -63,7 +63,7 @@ std::vector<Server>	createServers( std::vector<std::string> & words )
 
 			Server		server;
 
-			while (it != words.end() && *it != "}")
+			while (*it != "}")
 			{
 				if (*it == "{")
 					throw BracketsNotClosed();
@@ -72,6 +72,8 @@ std::vector<Server>	createServers( std::vector<std::string> & words )
 				init_server(words, it, server);
 				++it;
 			}
+			if (servers.empty())
+				server.setDefault(true);
 			servers.push_back(server);
 		}
 		else

@@ -121,3 +121,6 @@ Location	Server::getLocationX( int idx ) const
 void	Server::setHost( std::string & host ) { _host = host; }
 void	Server::setPort( int port ) { _port = port; }
 void	Server::setRoot( std::string & root ) { _root = root; }
+void	Server::setDefault( bool def ) { _default = def; }
+void	Server::setNames( std::vector<std::string> & names ) { _names = names; }
+void	Server::setErrorPages( std::map<int, std::string> & errorPages ) { _errorPages = errorPages; }

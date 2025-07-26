@@ -10,32 +10,37 @@
 # include "main.hpp"
 # include "Exceptions.hpp"
 
-// -----------------------------------------------------------------------------
-void	setListen( std::vector<std::string>::iterator & it, Server & server );
-void	setHost( std::vector<std::string>::iterator & it, Server & server );
-void	setRoot( std::vector<std::string>::iterator & it, Server & server );
-// -----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+void	init_listen( std::string & str, Server & server );
+void	init_host( std::string & str, Server & server );
+void	init_root( std::string & str, Server & server );
+void	init_names( std::vector<std::string> & words, std::vector<std::string>::iterator & it, Server & server );
+void	init_error_pages( std::vector<std::string> & words, std::vector<std::string>::iterator & it, Server & server );
+// ----------------------------------------------------------------------------
 
 void	init_server( std::vector<std::string> & words, std::vector<std::string>::iterator & it, Server & server )
 {
 	if (*it == "listen")
-		setListen(++it, server);
+		init_listen(*(++it), server);
 	else if (*it == "host")
-		setHost(++it, server);
+		init_host(*(++it), server);
 	else if (*it == "root")
-		setRoot(++it, server);
+		init_root(*(++it), server);
+	else if (*it == "server_name" || *it == "server_names")
+		init_names(words, ++it, server);
+	else if (*it == "error_page")
+		init_error_pages(words, ++it, server);
 	else if (*it == "location")
 		init_location(words, ++it, server);
 	else
 		throw InvalidParameter(it->c_str());
 }
 
-void	setListen( std::vector<std::string>::iterator & it, Server & server )
+void	init_listen( std::string & str, Server & server )
 {
-	std::string	str;
+	size_t		pos = str.find_last_of(';');
 
-	str = *it;
-	if (str.find_first_of(";") == std::string::npos)
+	if (pos == std::string::npos || pos != str.size() - 1)
 		throw NoEndingSemicolon();
 	str.pop_back();
 
@@ -54,26 +59,77 @@ void	setListen( std::vector<std::string>::iterator & it, Server & server )
 		server.setPort(std::atoi(str.c_str()));
 }
 
-void	setHost( std::vector<std::string>::iterator & it, Server & server )
+void	init_host( std::string & str, Server & server )
 {
-	std::string	str;
+	size_t		pos = str.find_last_of(';');
 
-	str = *it;
-	if (str.find_first_of(";") == std::string::npos)
+	if (pos == std::string::npos || pos != str.size() - 1)
 		throw NoEndingSemicolon();
 	str.pop_back();
 
 	server.setHost(str);
 }
 
-void	setRoot( std::vector<std::string>::iterator & it, Server & server )
+void	init_root( std::string & str, Server & server )
 {
-	std::string	str;
+	size_t		pos = str.find_last_of(';');
 
-	str = *it;
-	if (str.find_first_of(";") == std::string::npos)
+	if (pos == std::string::npos || pos != str.size() - 1)
 		throw NoEndingSemicolon();
 	str.pop_back();
 
 	server.setRoot(str);
+}
+
+void	init_names( std::vector<std::string> & words, std::vector<std::string>::iterator & it, Server & server )
+{
+	std::vector<std::string>	names;
+
+	while (it != words.end())
+	{
+		std::string	name = *it;
+		size_t		pos = name.find_last_of(';');
+
+		if (pos != std::string::npos || pos == name.size() - 1)
+		{
+			name.pop_back();
+			names.push_back(name);
+			break ;
+		}
+		else
+			names.push_back(name);
+		++it;
+
+	}
+	if (names.empty())
+		throw NoEndingSemicolon();
+	server.setNames(names);
+}
+
+void	init_error_pages( std::vector<std::string> & words, std::vector<std::string>::iterator & it, Server & server )
+{
+	std::map<int, std::string>	errors;
+
+	while (it != words.end())
+	{
+		std::stringstream	ss(*it);
+		int			n;
+
+		if (!(ss >> n) || !ss.eof())
+			throw FailedErrorPage();
+		if (++it == words.end())
+			throw ValueNotGiven();
+
+		std::string	path = *it;
+
+		if (!path.empty() && path.back() == ';')
+		{
+			path.pop_back();
+			errors[n] = path;
+			break ;
+		}
+		errors[n] = path;
+		++it;
+	}
+	server.setErrorPages(errors);
 }
