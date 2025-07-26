@@ -1,6 +1,6 @@
 // ************************************************************************** //
 //                                                                            //
-//                main.cpp                                                    //
+//                init_location.cpp                                           //
 //                Created on  : xxx Jul xx xx:xx:xx 2025                      //
 //                Last update : xxx Jul xx xx:xx:xx 2025                      //
 //                Made by     :                                               //
@@ -10,18 +10,27 @@
 # include "main.hpp"
 # include "Exceptions.hpp"
 
-int	main(int argc, char **argv)
+void	init_location( std::vector<std::string> & words, std::vector<std::string>::iterator & it, Server & server )
 {
-	(void)argc;
-	try
-	{
-		std::vector<Server>	servers;
+	std::string	str;
 
-		servers = configure_file(argv[1]);
-		std::cout << "Host: " << servers[0].getHost() << std::endl;
-		std::cout << "Port: " << servers[0].getPort() << std::endl;
-		std::cout << "Root: " << servers[0].getRoot() << std::endl;
+	str = *it;
+	++it;
+	if (it == words.end() || *it != "{")
+		throw LocationNotGiven();
+	++it;
+
+	Location	location;
+
+	while (*it != "}")
+	{
+		if (*it == "{")
+			throw BracketsNotClosed();
+		if ((++it)-- == words.end())
+			throw ValueNotGiven();
+		// setLocationParams
+		++it;
 	}
-	catch (std::exception & e) { std::cout << e.what() << std::endl; }
-	return 0;
+	(void)server;
+	// server.setLocation();
 }

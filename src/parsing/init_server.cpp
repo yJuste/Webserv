@@ -1,6 +1,6 @@
 // ************************************************************************** //
 //                                                                            //
-//                setParams.cpp                                               //
+//                init_server.cpp                                             //
 //                Created on  : xxx Jul xx xx:xx:xx 2025                      //
 //                Last update : xxx Jul xx xx:xx:xx 2025                      //
 //                Made by     :                                               //
@@ -16,7 +16,7 @@ void	setHost( std::vector<std::string>::iterator & it, Server & server );
 void	setRoot( std::vector<std::string>::iterator & it, Server & server );
 // -----------------------------------------------------------------------------
 
-void	setParameters( std::vector<std::string>::iterator & it, Server & server )
+void	init_server( std::vector<std::string> & words, std::vector<std::string>::iterator & it, Server & server )
 {
 	if (*it == "listen")
 		setListen(++it, server);
@@ -24,9 +24,9 @@ void	setParameters( std::vector<std::string>::iterator & it, Server & server )
 		setHost(++it, server);
 	else if (*it == "root")
 		setRoot(++it, server);
-	if (*it == "location")
-		;
-	else if (it->find_first_of(";") == std::string::npos)
+	else if (*it == "location")
+		init_location(words, ++it, server);
+	else
 		throw InvalidParameter(it->c_str());
 }
 
@@ -35,8 +35,6 @@ void	setListen( std::vector<std::string>::iterator & it, Server & server )
 	std::string	str;
 
 	str = *it;
-	if (str.empty())
-		throw ListenNotGiven();
 	if (str.find_first_of(";") == std::string::npos)
 		throw NoEndingSemicolon();
 	str.pop_back();
@@ -61,8 +59,6 @@ void	setHost( std::vector<std::string>::iterator & it, Server & server )
 	std::string	str;
 
 	str = *it;
-	if (str.empty())
-		throw HostNotGiven();
 	if (str.find_first_of(";") == std::string::npos)
 		throw NoEndingSemicolon();
 	str.pop_back();
@@ -75,8 +71,6 @@ void	setRoot( std::vector<std::string>::iterator & it, Server & server )
 	std::string	str;
 
 	str = *it;
-	if (str.empty())
-		throw RootNotGiven();
 	if (str.find_first_of(";") == std::string::npos)
 		throw NoEndingSemicolon();
 	str.pop_back();

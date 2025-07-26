@@ -28,11 +28,14 @@
 
 // parsing
 
-// configFile.cpp
-std::vector<Server>	configFile( const char * s );
+// configure_file.cpp
+std::vector<Server>	configure_file( const char * s );
 
-// setParams.cpp
-void	setParameters( std::vector<std::string>::iterator & it, Server & server );
+// init_server.cpp
+void	init_server( std::vector<std::string> & words, std::vector<std::string>::iterator & it, Server & server );
+
+// init_location.cpp
+void	init_location( std::vector<std::string> & words, std::vector<std::string>::iterator & it, Server & server );
 
 // utils.cpp
 std::string	trim( const std::string & );

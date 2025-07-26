@@ -44,5 +44,6 @@ class	HostNotGiven : public std::exception { public : const char * what() const 
 
 class	RootNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'root'."; } };
 
+class	LocationNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'location'."; } };
 
 #endif

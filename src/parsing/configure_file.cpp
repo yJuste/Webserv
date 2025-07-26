@@ -1,6 +1,6 @@
 // ************************************************************************** //
 //                                                                            //
-//                configFile.cpp                                              //
+//                configure_file.cpp                                          //
 //                Created on  : xxx Jul xx xx:xx:xx 2025                      //
 //                Last update : xxx Jul xx xx:xx:xx 2025                      //
 //                Made by     :                                               //
@@ -14,7 +14,7 @@
 std::vector<Server>	createServers( std::vector<std::string> & words );
 // -----------------------------------------------------------------------------
 
-std::vector<Server>	configFile( const char * s )
+std::vector<Server>	configure_file( const char * s )
 {
 	std::ifstream		file;
 
@@ -22,16 +22,17 @@ std::vector<Server>	configFile( const char * s )
 	if (!file.is_open())
 		throw FailedOpen();
 
-	std::string		line;
+	std::string			line;
 	std::vector<std::string>	words;
 
-	while (getline(file, line))
+	while (std::getline(file, line))
 	{
 		line = trim(line);
-		if (is_commentary(line))
-			continue ;
-		std::vector<std::string>	words_splice = split(line);
-		words.insert(words.end(), words_splice.begin(), words_splice.end());
+		if (!is_commentary(line))
+		{
+			std::vector<std::string>	words_splice = split(line);
+			words.insert(words.end(), words_splice.begin(), words_splice.end());
+		}
 	}
 
 	std::vector<Server>	servers;
@@ -47,9 +48,10 @@ std::vector<Server>	configFile( const char * s )
 
 std::vector<Server>	createServers( std::vector<std::string> & words )
 {
-	std::vector<Server>	servers;
-	std::vector<std::string>::iterator	it = words.begin();
+	std::vector<Server>			servers;
+	std::vector<std::string>::iterator	it;
 
+	it = words.begin();
 	while (it != words.end())
 	{
 		if (*it == "server")
@@ -60,24 +62,16 @@ std::vector<Server>	createServers( std::vector<std::string> & words )
 			++it;
 
 			Server		server;
-			int		depth = 1;
 
-			while (it != words.end() && depth > 0)
+			while (it != words.end() && *it != "}")
 			{
 				if (*it == "{")
-					++depth;
-				else if (*it == "}")
-					--depth;
-				else if (depth == 1)
-				{
-					if (++it == words.end())
-						throw ValueNotGiven();
-					setParameters(--it, server);
-				}
+					throw BracketsNotClosed();
+				if ((++it)-- == words.end())
+					throw ValueNotGiven();
+				init_server(words, it, server);
 				++it;
 			}
-			if (depth)
-				throw BracketsNotClosed();
 			servers.push_back(server);
 		}
 		else
