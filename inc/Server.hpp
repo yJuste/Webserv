@@ -59,29 +59,30 @@ class	Server
 		// Getter
 
 		int getSocket() const;
-		struct sockaddr_in getAddress() const;
+		const struct sockaddr_in & getAddress() const;
 
-		std::string getHost() const;
+		const std::string & getHost() const;
 		int getPort() const;
 		bool getDefault() const;
-		std::vector<std::string> getNames() const;
-		std::map<int, std::string> getErrorPages() const;
+		const std::vector<std::string> & getNames() const;
+		const std::map<int, std::string> & getErrorPages() const;
 		size_t getMaxSize() const;
-		std::string getRoot() const;
-		std::vector<Location> getLocations() const;
+		const std::string & getRoot() const;
+		const std::vector<Location> & getLocations() const;
 
-		std::string getNameX( int ) const;
-		std::string getErrorPageX( int ) const;
-		Location getLocationX( int ) const;
+		const std::string & getNameX( int ) const;
+		const std::string & getErrorPageX( int ) const;
+		const Location & getLocationX( int ) const;
 
 		// Setter
 
-		void setHost( std::string & );
+		void setHost( const std::string & );
 		void setPort( int );
-		void setRoot( std::string & );
+		void setRoot( const std::string & );
 		void setDefault( bool );
-		void setNames( std::vector<std::string> & );
-		void setErrorPages( std::map<int, std::string> & );
+		void setNames( const std::vector<std::string> & );
+		void setErrorPages( const std::map<int, std::string> & );
+		void setMaxSize( int );
 
 		class FailedGetNameX;
 		class FailedGetErrorPageX;

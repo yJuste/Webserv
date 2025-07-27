@@ -35,16 +35,16 @@
 std::vector<Server>	configure_file( const char * );
 
 // init_server.cpp
-void	init_server( std::vector<std::string> &, std::vector<std::string>::iterator &, Server & );
+void	init_server( const std::vector<std::string> &, std::vector<std::string>::const_iterator &, Server & );
 
 // init_location.cpp
-void	init_location( std::vector<std::string> &, std::vector<std::string>::iterator &, Server & );
+void	init_location( const std::vector<std::string> &, std::vector<std::string>::const_iterator &, Server & );
 
 // utils.cpp
-std::string	trim( const std::string & );
-bool	is_commentary( const std::string & );
+std::string			trim( const std::string & );
+bool				is_commentary( const std::string & );
 std::vector<std::string>	split( const std::string & );
-int	acstat( const char * path, int mode );
+int				acstat( const char * path, int mode );
 
 // debug.cpp
 

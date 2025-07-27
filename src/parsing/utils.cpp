@@ -53,7 +53,7 @@ std::vector<std::string>	split( const std::string & s )
 	return words;
 }
 
-// handle only file/folder accessibilty.
+// handle file/folder accessibilty.
 int	acstat( const char * path, int mode )
 {
 	struct stat	buf;

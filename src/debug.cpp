@@ -11,7 +11,7 @@
 # include "Exceptions.hpp"
 
 // str_to_ascii
-void stoa(const std::string& path)
+void	stoa( const std::string& path )
 {
 	std::cout << std::endl;
 	std::cout << "\033[91mDEBUG MODE:\033[0m stoa(): '\033[93m" << path << "\033[0m'.\n";

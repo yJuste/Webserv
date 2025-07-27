@@ -41,16 +41,16 @@ class	Location
 
 		// ~etter
 
-		std::string getPath() const;
-		std::vector<std::string> getMethods() const;
+		const std::string & getPath() const;
+		const std::vector<std::string> & getMethods() const;
 		bool getRedirect() const;
 		bool getAutoindex() const;
-		std::string getDefault() const;
-		std::map<std::string, std::string> getCgi() const;
-		std::string getUpload() const;
+		const std::string & getDefault() const;
+		const std::map<std::string, std::string> & getCgi() const;
+		const std::string & getUpload() const;
 
-		std::string getMethodX( int ) const;
-		std::string getCgiX( std::string & ) const;
+		const std::string & getMethodX( int ) const;
+		const std::string & getCgiX( const std::string & ) const;
 
 		class Exception;
 };

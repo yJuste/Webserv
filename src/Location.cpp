@@ -32,15 +32,15 @@ Location	&Location::operator = ( const Location & l )
 
 // ~etter
 
-std::string	Location::getPath() const { return _path; }
-std::vector<std::string>	Location::getMethods() const { return _methods; }
-bool	Location::getRedirect() const { return _redirect; }
-bool	Location::getAutoindex() const { return _autoindex; }
-std::string	Location::getDefault() const { return _default; }
-std::map<std::string, std::string>	Location::getCgi() const { return _cgi; }
-std::string	Location::getUpload() const { return _upload; }
+const std::string				&Location::getPath() const { return _path; }
+const std::vector<std::string>			&Location::getMethods() const { return _methods; }
+bool						Location::getRedirect() const { return _redirect; }
+bool						Location::getAutoindex() const { return _autoindex; }
+const std::string				&Location::getDefault() const { return _default; }
+const std::map<std::string, std::string>	&Location::getCgi() const { return _cgi; }
+const std::string				&Location::getUpload() const { return _upload; }
 
-std::string	Location::getMethodX( int idx ) const
+const std::string				&Location::getMethodX( int idx ) const
 {
 	if (idx < 0 || idx >= static_cast<int>(_methods.size()))
 		throw std::out_of_range("Invalid index: Server::getNames()");
@@ -50,7 +50,7 @@ std::string	Location::getMethodX( int idx ) const
 	return *it;
 }
 
-std::string	Location::getCgiX( std::string & s ) const
+const std::string				&Location::getCgiX( const std::string & s ) const
 {
 	std::map<std::string, std::string>::const_iterator it = _cgi.find(s);
 	if (it == _cgi.end())

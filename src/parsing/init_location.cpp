@@ -10,7 +10,7 @@
 # include "main.hpp"
 # include "Exceptions.hpp"
 
-void	init_location( std::vector<std::string> & words, std::vector<std::string>::iterator & it, Server & server )
+void	init_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
 	std::string	str;
 

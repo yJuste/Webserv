@@ -28,6 +28,7 @@ int	main(int argc, char **argv)
 		std::map<int, std::string>	errors = servers[0].getErrorPages();
 		for ( std::map<int, std::string>::iterator it = errors.begin(); it != errors.end(); ++it )
     		std::cout << "Code: " << it->first << ", Path: " << it->second << std::endl;
+    		std::cout << "Max Body Size: " << servers[0].getMaxSize() << std::endl;
 	}
 	catch (std::exception & e) { std::cout << e.what() << std::endl; }
 	return 0;
