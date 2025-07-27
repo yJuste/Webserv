@@ -26,7 +26,7 @@ void	init_server( std::vector<std::string> & words, std::vector<std::string>::it
 		init_host(*(++it), server);
 	else if (*it == "root")
 		init_root(*(++it), server);
-	else if (*it == "server_name" || *it == "server_names")
+	else if (*it == "server_name")
 		init_names(words, ++it, server);
 	else if (*it == "error_page")
 		init_error_pages(words, ++it, server);
@@ -38,9 +38,7 @@ void	init_server( std::vector<std::string> & words, std::vector<std::string>::it
 
 void	init_listen( std::string & str, Server & server )
 {
-	size_t		pos = str.find_last_of(';');
-
-	if (pos == std::string::npos || pos != str.size() - 1)
+	if (str.empty() || str.back() != ';')
 		throw NoEndingSemicolon();
 	str.pop_back();
 
@@ -61,9 +59,7 @@ void	init_listen( std::string & str, Server & server )
 
 void	init_host( std::string & str, Server & server )
 {
-	size_t		pos = str.find_last_of(';');
-
-	if (pos == std::string::npos || pos != str.size() - 1)
+	if (str.empty() || str.back() != ';')
 		throw NoEndingSemicolon();
 	str.pop_back();
 
@@ -72,9 +68,7 @@ void	init_host( std::string & str, Server & server )
 
 void	init_root( std::string & str, Server & server )
 {
-	size_t		pos = str.find_last_of(';');
-
-	if (pos == std::string::npos || pos != str.size() - 1)
+	if (str.empty() || str.back() != ';')
 		throw NoEndingSemicolon();
 	str.pop_back();
 
@@ -88,9 +82,8 @@ void	init_names( std::vector<std::string> & words, std::vector<std::string>::ite
 	while (it != words.end())
 	{
 		std::string	name = *it;
-		size_t		pos = name.find_last_of(';');
 
-		if (pos != std::string::npos || pos == name.size() - 1)
+		if (!name.empty() && name.back() == ';')
 		{
 			name.pop_back();
 			names.push_back(name);
@@ -121,14 +114,15 @@ void	init_error_pages( std::vector<std::string> & words, std::vector<std::string
 			throw ValueNotGiven();
 
 		std::string	path = *it;
+		bool		semicolon = !path.empty() && path.back() == ';';
 
-		if (!path.empty() && path.back() == ';')
-		{
+		if (semicolon)
 			path.pop_back();
-			errors[n] = path;
-			break ;
-		}
+		if (acstat(path.c_str(), F_OK | R_OK) == -1)
+			throw FailedAcstat(path.c_str());
 		errors[n] = path;
+		if (semicolon)
+			break ;
 		++it;
 	}
 	server.setErrorPages(errors);

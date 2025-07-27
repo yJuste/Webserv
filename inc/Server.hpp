@@ -83,12 +83,15 @@ class	Server
 		void setNames( std::vector<std::string> & );
 		void setErrorPages( std::map<int, std::string> & );
 
-		class Exception;
+		class FailedGetNameX;
+		class FailedGetErrorPageX;
+		class FailedGetLocationX;
 };
 
-class	Server::Exception : public std::exception
-{
-	public : const char * what() const throw() { return "\033[31merror\033[0m: Server Error"; }
-};
+class	Server::FailedGetNameX : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Server: getNameX(): Invalid Index."; } };
+
+class	Server::FailedGetErrorPageX : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Server: getErrorPageX(): Invalid Index."; } };
+
+class	Server::FailedGetLocationX : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Server: getLocationX(): Invalid Index."; } };
 
 #endif

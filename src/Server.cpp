@@ -91,7 +91,7 @@ std::vector<Location>	Server::getLocations() const { return _locations; }
 std::string	Server::getNameX( int idx ) const
 {
 	if (idx < 0 || idx >= static_cast<int>(_names.size()))
-		throw std::out_of_range("Invalid index: Server::getNames()");
+		throw FailedGetNameX();
 
 	std::vector<std::string>::const_iterator	it = _names.begin();
 	std::advance(it, idx);
@@ -102,14 +102,14 @@ std::string	Server::getErrorPageX( int idx ) const
 {
 	std::map<int, std::string>::const_iterator it = _errorPages.find(idx);
 	if (it == _errorPages.end())
-		throw std::out_of_range("Invalid index: Server::getErrorPages()");
+		throw FailedGetErrorPageX();
 	return it->second;
 }
 
 Location	Server::getLocationX( int idx ) const
 {
 	if (idx < 0 || idx >= static_cast<int>(_locations.size()))
-		throw std::out_of_range("Invalid index: Server::getLocation()");
+		throw FailedGetLocationX();
 
 	std::vector<Location>::const_iterator	it = _locations.begin();
 	std::advance(it, idx);

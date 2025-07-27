@@ -28,6 +28,8 @@ class	FailedListen : public std::exception { public : const char * what() const 
 
 class	FailedOpen : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: open() failed."; } };
 
+class	FailedAcstat : public std::exception { private: char _msg[256]; public: FailedAcstat( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: acstat() failed.", s); } const char * what() const throw() { return _msg; } };
+
 // Parsing
 
 class	BracketsNotClosed : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Brackets are not closed."; } };

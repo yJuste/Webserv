@@ -25,7 +25,9 @@ int	main(int argc, char **argv)
 		std::vector<std::string>	names = servers[0].getNames();
 		for ( std::vector<std::string>::iterator it = names.begin(); it != names.end(); ++it )
 			std::cout << "Names: " << *it << std::endl;
-		std::cout << "Error Pages: " << servers[0].getErrorPageX(1) << std::endl;
+		std::map<int, std::string>	errors = servers[0].getErrorPages();
+		for ( std::map<int, std::string>::iterator it = errors.begin(); it != errors.end(); ++it )
+    		std::cout << "Code: " << it->first << ", Path: " << it->second << std::endl;
 	}
 	catch (std::exception & e) { std::cout << e.what() << std::endl; }
 	return 0;

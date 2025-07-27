@@ -59,7 +59,8 @@ std::vector<Server>	createServers( std::vector<std::string> & words )
 			++it;
 			if (it == words.end() || *it != "{")
 				throw BracketsNotClosed();
-			++it;
+			if (++it == words.end())
+				throw ValueNotGiven();
 
 			Server		server;
 

@@ -41,6 +41,38 @@ std::vector<std::string>	split( const std::string & s )
 	std::vector<std::string>	words;
 
 	while (ss >> word)
-		words.push_back(word);
+	{
+		if (word == "{}")
+		{
+			words.push_back("{");
+			words.push_back("}");
+		}
+		else
+			words.push_back(word);
+	}
 	return words;
+}
+
+// handle only file/folder accessibilty.
+int	acstat( const char * path, int mode )
+{
+	struct stat	buf;
+
+	if (stat(path, &buf) == -1)
+		return -1;
+	if (access(path, mode) == -1)
+		return -1;
+
+	if (S_ISREG(buf.st_mode))
+		return 1;
+	else if (S_ISDIR(buf.st_mode))
+	{
+		DIR *dir = opendir(path);
+		if (!dir)
+			return -1;
+		closedir(dir);
+		return 2;
+	}
+	else
+		return -1;
 }
