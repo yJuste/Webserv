@@ -41,6 +41,8 @@ void	init_max_size( std::string str, Server & server )
 
 	if (!(ss >> nb) || !ss.eof())
 		throw MaxSizeNotGiven();
+	if (nb > SIZE_MAX / mult)
+		throw Overflow();
 
 	server.setMaxSize(nb * mult);
 }
@@ -88,8 +90,7 @@ void	init_names( const std::vector<std::string> & words, std::vector<std::string
 			names.push_back(name);
 			break ;
 		}
-		else
-			names.push_back(name);
+		names.push_back(name);
 		++it;
 
 	}
@@ -103,6 +104,9 @@ void	init_root( std::string str, Server & server )
 	if (str.empty() || str.back() != ';')
 		throw NoEndingSemicolon();
 	str.pop_back();
+
+	if (acstat(str.c_str(), F_OK | R_OK) != 2)
+		throw FailedAcstat(str.c_str());
 
 	server.setRoot(str);
 }
@@ -148,10 +152,47 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 		init_names(words, ++it, server);
 	else if (*it == "error_page")
 		init_error_pages(words, ++it, server);
-	else if (*it == "location")
-		init_location(words, ++it, server);
 	else if (*it == "client_max_body_size")
 		init_max_size(*(++it), server);
+	else if (*it == "location")
+		create_location(words, ++it, server);
 	else
 		throw InvalidParameter(it->c_str());
+}
+
+std::vector<Server>	create_servers( const std::vector<std::string> & words )
+{
+	std::vector<Server>				servers;
+	std::vector<std::string>::const_iterator	it;
+
+	it = words.begin();
+	while (it != words.end())
+	{
+		if (*it == "server")
+		{
+			++it;
+			if (it == words.end() || *it != "{")
+				throw BracketsNotClosed();
+			if (++it == words.end())
+				throw ValueNotGiven();
+
+			servers.emplace_back();
+			Server & server = servers.back();
+
+			while (*it != "}")
+			{
+				if (*it == "{")
+					throw BracketsNotClosed();
+				if ((++it)-- == words.end())
+					throw ValueNotGiven();
+				init_server(words, it, server);
+				++it;
+			}
+			if (servers.empty())
+				server.setDefault(true);
+		}
+		else
+			++it;
+	}
+	return servers;
 }

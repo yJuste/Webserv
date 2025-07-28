@@ -28,7 +28,16 @@ int	main(int argc, char **argv)
 		std::map<int, std::string>	errors = servers[0].getErrorPages();
 		for ( std::map<int, std::string>::iterator it = errors.begin(); it != errors.end(); ++it )
     		std::cout << "Code: " << it->first << ", Path: " << it->second << std::endl;
-    		std::cout << "Max Body Size: " << servers[0].getMaxSize() << std::endl;
+		std::cout << "Max Body Size: " << servers[0].getMaxSize() << std::endl;
+
+		std::vector<Location>	locations = servers[0].getLocations();
+		std::cout << "Location : " << locations[0].getPath() << std::endl;
+		std::vector<std::string>	methods = locations[0].getMethods();
+		for ( std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it )
+			std::cout << "Methods: " << *it << std::endl;
+		std::cout << "Redirect: " << locations[0].getRedirect() << std::endl;
+		std::cout << "Default: " << locations[0].getDefault() << std::endl;
+		std::cout << "Autoindex: " << locations[0].getAutoindex() << std::endl;
 	}
 	catch (std::exception & e) { std::cout << e.what() << std::endl; }
 	return 0;

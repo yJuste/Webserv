@@ -39,7 +39,7 @@ class	Location
 		Location( const Location & );
 		Location & operator = ( const Location & );
 
-		// ~etter
+		// Getter
 
 		const std::string & getPath() const;
 		const std::vector<std::string> & getMethods() const;
@@ -51,6 +51,14 @@ class	Location
 
 		const std::string & getMethodX( int ) const;
 		const std::string & getCgiX( const std::string & ) const;
+
+		// Setter
+
+		void setPath( const std::string & );
+		void setMethods( const std::vector<std::string> & );
+		void setRedirect( bool );
+		void setDefault( const std::string & );
+		void setAutoindex( bool );
 
 		class Exception;
 };

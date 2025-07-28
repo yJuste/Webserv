@@ -83,6 +83,7 @@ class	Server
 		void setNames( const std::vector<std::string> & );
 		void setErrorPages( const std::map<int, std::string> & );
 		void setMaxSize( int );
+		void addLocation( const Location & );
 
 		class FailedGetNameX;
 		class FailedGetErrorPageX;

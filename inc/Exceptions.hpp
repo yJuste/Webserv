@@ -34,22 +34,28 @@ class	FailedAcstat : public std::exception { private: char _msg[256]; public: Fa
 
 class	BracketsNotClosed : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Brackets are not closed."; } };
 
-class	NoEndingSemicolon : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Missing a semicolon at the end of a line."; } };
+class	NoEndingSemicolon : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Missing/Left with a semicolon at the end of a line."; } };
 
 class	ValueNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for one parameter."; } };
 
 class	InvalidParameter : public std::exception { private: char _msg[256]; public: InvalidParameter( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: Invalid parameter is given.", s); } const char * what() const throw() { return _msg; } };
-
-class	ListenNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'listen'."; } };
-
-class	HostNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'host'."; } };
-
-class	RootNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'root'."; } };
 
 class	LocationNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'location'."; } };
 
 class	ErrorPageNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Error_page has to be in the format : [nb dir] [nb dir] ..."; } };
 
 class	MaxSizeNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Client max body size has to be a number."; } };
+
+class	Overflow : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: A number has overflowed, please be careful."; } };
+
+class	MethodErrors : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: A method does not exist or is duplicated."; } };
+
+class	RedirXDefault : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Redirect is enabled but no target is defined."; } };
+
+class	DefaultNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'default'."; } };
+
+class	InvalidRedirect : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Invalid boolean value for the parameter 'redirect'."; } };
+
+class	InvalidAutoindex : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Invalid boolean value for the parameter 'autoindex'."; } };
 
 #endif

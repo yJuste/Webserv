@@ -10,43 +10,6 @@
 # include "main.hpp"
 # include "Exceptions.hpp"
 
-std::vector<Server>	createServers( const std::vector<std::string> & words )
-{
-	std::vector<Server>				servers;
-	std::vector<std::string>::const_iterator	it;
-
-	it = words.begin();
-	while (it != words.end())
-	{
-		if (*it == "server")
-		{
-			++it;
-			if (it == words.end() || *it != "{")
-				throw BracketsNotClosed();
-			if (++it == words.end())
-				throw ValueNotGiven();
-
-			servers.emplace_back();
-			Server	&server = servers.back();
-
-			while (*it != "}")
-			{
-				if (*it == "{")
-					throw BracketsNotClosed();
-				if ((++it)-- == words.end())
-					throw ValueNotGiven();
-				init_server(words, it, server);
-				++it;
-			}
-			if (servers.empty())
-				server.setDefault(true);
-		}
-		else
-			++it;
-	}
-	return servers;
-}
-
 std::vector<Server>	configure_file( const char * s )
 {
 	std::ifstream		file;
@@ -72,7 +35,7 @@ std::vector<Server>	configure_file( const char * s )
 
 	std::vector<Server>	servers;
 
-	servers = createServers(words);
+	servers = create_servers(words);
 
 	for (std::vector<std::string>::const_iterator it = words.begin(); it != words.end(); ++it)
 		std::cout << *it << std::endl;

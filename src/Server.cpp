@@ -76,19 +76,19 @@ void	Server::shutdown( void ) const
 
 // Getter
 
-int					Server::getSocket() const { return _socket; }
-const struct sockaddr_in		&Server::getAddress() const { return _address; }
+int	Server::getSocket() const { return _socket; }
+const struct sockaddr_in	&Server::getAddress() const { return _address; }
 
-const std::string			&Server::getHost() const { return _host; }
-int					Server::getPort() const { return _port; }
-const std::string			&Server::getRoot() const { return _root; }
-bool					Server::getDefault() const { return _default; }
-const std::vector<std::string>		&Server::getNames() const { return _names; }
+const std::string	&Server::getHost() const { return _host; }
+int	Server::getPort() const { return _port; }
+const std::string	&Server::getRoot() const { return _root; }
+bool	Server::getDefault() const { return _default; }
+const std::vector<std::string>	&Server::getNames() const { return _names; }
 const std::map<int, std::string>	&Server::getErrorPages() const { return _errorPages; }
-size_t					Server::getMaxSize() const { return _maxSize; }
-const std::vector<Location>		&Server::getLocations() const { return _locations; }
+size_t	Server::getMaxSize() const { return _maxSize; }
+const std::vector<Location>	&Server::getLocations() const { return _locations; }
 
-const std::string			&Server::getNameX( int idx ) const
+const std::string	&Server::getNameX( int idx ) const
 {
 	if (idx < 0 || idx >= static_cast<int>(_names.size()))
 		throw FailedGetNameX();
@@ -98,7 +98,7 @@ const std::string			&Server::getNameX( int idx ) const
 	return *it;
 }
 
-const std::string			&Server::getErrorPageX( int idx ) const
+const std::string	&Server::getErrorPageX( int idx ) const
 {
 	std::map<int, std::string>::const_iterator it = _errorPages.find(idx);
 	if (it == _errorPages.end())
@@ -106,7 +106,7 @@ const std::string			&Server::getErrorPageX( int idx ) const
 	return it->second;
 }
 
-const Location				&Server::getLocationX( int idx ) const
+const Location		&Server::getLocationX( int idx ) const
 {
 	if (idx < 0 || idx >= static_cast<int>(_locations.size()))
 		throw FailedGetLocationX();
@@ -125,3 +125,4 @@ void	Server::setDefault( bool def ) { _default = def; }
 void	Server::setNames( const std::vector<std::string> & names ) { _names = names; }
 void	Server::setErrorPages( const std::map<int, std::string> & errorPages ) { _errorPages = errorPages; }
 void	Server::setMaxSize( int size ) { _maxSize = size; }
+void	Server::addLocation( const Location & location ) { _locations.push_back(location); }

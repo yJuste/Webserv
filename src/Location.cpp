@@ -30,17 +30,17 @@ Location	&Location::operator = ( const Location & l )
 	return *this;
 }
 
-// ~etter
+// Getter
 
-const std::string				&Location::getPath() const { return _path; }
-const std::vector<std::string>			&Location::getMethods() const { return _methods; }
-bool						Location::getRedirect() const { return _redirect; }
-bool						Location::getAutoindex() const { return _autoindex; }
-const std::string				&Location::getDefault() const { return _default; }
+const std::string	&Location::getPath() const { return _path; }
+const std::vector<std::string>	&Location::getMethods() const { return _methods; }
+bool	Location::getRedirect() const { return _redirect; }
+bool	Location::getAutoindex() const { return _autoindex; }
+const std::string	&Location::getDefault() const { return _default; }
 const std::map<std::string, std::string>	&Location::getCgi() const { return _cgi; }
-const std::string				&Location::getUpload() const { return _upload; }
+const std::string	&Location::getUpload() const { return _upload; }
 
-const std::string				&Location::getMethodX( int idx ) const
+const std::string	&Location::getMethodX( int idx ) const
 {
 	if (idx < 0 || idx >= static_cast<int>(_methods.size()))
 		throw std::out_of_range("Invalid index: Server::getNames()");
@@ -50,10 +50,18 @@ const std::string				&Location::getMethodX( int idx ) const
 	return *it;
 }
 
-const std::string				&Location::getCgiX( const std::string & s ) const
+const std::string	&Location::getCgiX( const std::string & s ) const
 {
 	std::map<std::string, std::string>::const_iterator it = _cgi.find(s);
 	if (it == _cgi.end())
 		throw std::out_of_range("Invalid index: Server::getErrorPages()");
 	return it->second;
 }
+
+// Setter
+
+void	Location::setPath( const std::string & path ) { _path = path; }
+void	Location::setMethods( const std::vector<std::string> & methods ) { _methods = methods; }
+void	Location::setRedirect( bool redirect ) { _redirect = redirect; }
+void	Location::setDefault( const std::string & def ) { _default = def; }
+void	Location::setAutoindex( bool autoindex ) { _autoindex = autoindex; }
