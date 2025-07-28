@@ -11,7 +11,7 @@
 # include "Exceptions.hpp"
 
 Server::Server() : _socket(-1), _host("0.0.0.0"), _port(80), _root(""), _default(false), _maxSize(0) {}
-Server::~Server() {}
+Server::~Server() { shutdown(); }
 
 Server::Server( const Server & server ) { *this = server; }
 
@@ -71,7 +71,8 @@ void	Server::startup( void )
 
 void	Server::shutdown( void ) const
 {
-	close(_socket);
+	if (_socket != -1)
+		close(_socket);
 }
 
 // Getter
@@ -87,34 +88,6 @@ const std::vector<std::string>	&Server::getNames() const { return _names; }
 const std::map<int, std::string>	&Server::getErrorPages() const { return _errorPages; }
 size_t	Server::getMaxSize() const { return _maxSize; }
 const std::vector<Location>	&Server::getLocations() const { return _locations; }
-
-const std::string	&Server::getNameX( int idx ) const
-{
-	if (idx < 0 || idx >= static_cast<int>(_names.size()))
-		throw FailedGetNameX();
-
-	std::vector<std::string>::const_iterator	it = _names.begin();
-	std::advance(it, idx);
-	return *it;
-}
-
-const std::string	&Server::getErrorPageX( int idx ) const
-{
-	std::map<int, std::string>::const_iterator it = _errorPages.find(idx);
-	if (it == _errorPages.end())
-		throw FailedGetErrorPageX();
-	return it->second;
-}
-
-const Location		&Server::getLocationX( int idx ) const
-{
-	if (idx < 0 || idx >= static_cast<int>(_locations.size()))
-		throw FailedGetLocationX();
-
-	std::vector<Location>::const_iterator	it = _locations.begin();
-	std::advance(it, idx);
-	return *it;
-}
 
 // Setter
 

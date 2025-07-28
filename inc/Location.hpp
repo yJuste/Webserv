@@ -23,13 +23,14 @@
 class	Location
 {
 	private:
-			std::string				_path;
-			std::vector<std::string>		_methods;
-			bool					_redirect;
-			bool					_autoindex;
-			std::string				_default;
-			std::map<std::string, std::string>	_cgi;
-			std::string				_upload;
+
+		std::string				_path;
+		std::vector<std::string>		_methods;
+		bool					_redirect;
+		bool					_autoindex;
+		std::string				_default;
+		std::map<std::string, std::string>	_cgi;
+		std::string				_upload;
 
 	public:
 
@@ -49,9 +50,6 @@ class	Location
 		const std::map<std::string, std::string> & getCgi() const;
 		const std::string & getUpload() const;
 
-		const std::string & getMethodX( int ) const;
-		const std::string & getCgiX( const std::string & ) const;
-
 		// Setter
 
 		void setPath( const std::string & );
@@ -59,13 +57,6 @@ class	Location
 		void setRedirect( bool );
 		void setDefault( const std::string & );
 		void setAutoindex( bool );
-
-		class Exception;
-};
-
-class	Location::Exception : public std::exception
-{
-	public : const char * what() const throw() { return "\033[31merror\033[0m: Location Error"; }
 };
 
 #endif

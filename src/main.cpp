@@ -18,6 +18,7 @@ int	main(int argc, char **argv)
 		std::vector<Server>	servers;
 
 		servers = configure_file(argv[1]);
+		servers[0].startup();
 		std::cout << "Host: " << servers[0].getHost() << std::endl;
 		std::cout << "Port: " << servers[0].getPort() << std::endl;
 		std::cout << "Root: " << servers[0].getRoot() << std::endl;
@@ -38,6 +39,7 @@ int	main(int argc, char **argv)
 		std::cout << "Redirect: " << locations[0].getRedirect() << std::endl;
 		std::cout << "Default: " << locations[0].getDefault() << std::endl;
 		std::cout << "Autoindex: " << locations[0].getAutoindex() << std::endl;
+		servers[0].shutdown();
 	}
 	catch (std::exception & e) { std::cout << e.what() << std::endl; }
 	return 0;

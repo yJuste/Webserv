@@ -127,25 +127,33 @@ void	init_listen( std::string str, Server & server )
 	str.pop_back();
 
 	size_t		sep = str.find(':');
+	std::string	host;
+	std::string	port;
 
 	if (sep != std::string::npos)
 	{
-		std::string	host = str.substr(0, sep);
-		std::string	port = str.substr(sep + 1);
+		host = str.substr(0, sep);
+		port = str.substr(sep + 1);
 
 		server.setHost(host);
-		server.setPort(std::atoi(port.c_str()));
 	}
 	else
-		server.setPort(std::atoi(str.c_str()));
+		port = str;
+
+	std::stringstream	ss(port);
+	int			nb;
+
+	if (!(ss >> nb) || !ss.eof())
+		throw InvalidListen();
+	server.setPort(nb);
 }
 
 void	init_server( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
-	if (*it == "listen")
-		init_listen(*(++it), server);
-	else if (*it == "host")
+	if (*it == "host")
 		init_host(*(++it), server);
+	else if (*it == "listen")
+		init_listen(*(++it), server);
 	else if (*it == "root")
 		init_root(*(++it), server);
 	else if (*it == "server_name")

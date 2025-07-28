@@ -40,6 +40,8 @@ class	ValueNotGiven : public std::exception { public : const char * what() const
 
 class	InvalidParameter : public std::exception { private: char _msg[256]; public: InvalidParameter( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: Invalid parameter is given.", s); } const char * what() const throw() { return _msg; } };
 
+class	InvalidListen : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: The 'port' has to be a number."; } };
+
 class	LocationNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'location'."; } };
 
 class	ErrorPageNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Error_page has to be in the format : [nb dir] [nb dir] ..."; } };

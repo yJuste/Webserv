@@ -70,10 +70,6 @@ class	Server
 		const std::string & getRoot() const;
 		const std::vector<Location> & getLocations() const;
 
-		const std::string & getNameX( int ) const;
-		const std::string & getErrorPageX( int ) const;
-		const Location & getLocationX( int ) const;
-
 		// Setter
 
 		void setHost( const std::string & );
@@ -84,16 +80,6 @@ class	Server
 		void setErrorPages( const std::map<int, std::string> & );
 		void setMaxSize( int );
 		void addLocation( const Location & );
-
-		class FailedGetNameX;
-		class FailedGetErrorPageX;
-		class FailedGetLocationX;
 };
-
-class	Server::FailedGetNameX : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Server: getNameX(): Invalid Index."; } };
-
-class	Server::FailedGetErrorPageX : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Server: getErrorPageX(): Invalid Index."; } };
-
-class	Server::FailedGetLocationX : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Server: getLocationX(): Invalid Index."; } };
 
 #endif
