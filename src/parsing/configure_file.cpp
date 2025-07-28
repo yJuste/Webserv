@@ -76,9 +76,6 @@ std::vector<Server>	configure_file( const char * s )
 
 	std::vector<Server>	servers = create_servers(words);
 
-	for (std::vector<std::string>::const_iterator it = words.begin(); it != words.end(); ++it)
-		std::cout << *it << std::endl;
-
 	file.close();
 	return servers;
 }

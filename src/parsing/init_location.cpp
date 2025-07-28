@@ -124,10 +124,10 @@ void	init_upload( std::string str, Location & location )
 	location.setOverwritten("upload");
 }
 
-void	init_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
+void	init_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server, Location & location )
 {
 	try { if (location.getOverwritten(*it)) throw OverwrittenParameter(it->c_str()); }
-	catch ( std::exception & e ) { std::cout << e.what() << std::endl; }
+	catch ( std::exception & e ) { std::cerr << e.what() << std::endl; }
 
 	if (location.getDuplicate(*it))
 		throw DuplicateParameter(it->c_str());
@@ -143,6 +143,8 @@ void	init_location( const std::vector<std::string> & words, std::vector<std::str
 		init_cgi(++it, location);
 	else if (*it == "upload")
 		init_upload(*(++it), location);
+	else if (*it == "root")
+		init_root(*(++it), server);
 	else
 		throw InvalidParameter(it->c_str());
 }
@@ -177,7 +179,7 @@ void	create_location( const std::vector<std::string> & words, std::vector<std::s
 			throw BracketsNotClosed();
 		if ((++it)-- == words.end())
 			throw ValueNotGiven();
-		init_location(words, it, location);
+		init_location(words, it, server, location);
 		++it;
 	}
 	if (location.getRedirect() && location.getDefault().empty())

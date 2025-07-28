@@ -50,15 +50,20 @@ void	init_max_size( std::string str, Server & server )
 
 void	init_error_pages( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
+	std::vector<int>	codes;
+
 	while (it != words.end())
 	{
 		std::stringstream	ss(*it);
 		int			code;
 
-		if (!(ss >> code) || !ss.eof())
-			throw ErrorPageNotGiven();
-		if (++it == words.end())
-			throw ValueNotGiven();
+		if (ss >> code && ss.eof())
+		{
+			codes.push_back(code);
+			if (++it == words.end())
+				throw ValueNotGiven();
+			continue ;
+		}
 
 		std::string	path = *it;
 		bool		semicolon = !path.empty() && path.back() == ';';
@@ -69,7 +74,8 @@ void	init_error_pages( const std::vector<std::string> & words, std::vector<std::
 			throw NoEndingSemicolon();
 		if (acstat(path.c_str(), F_OK | R_OK) == -1)
 			throw FailedAcstat(path.c_str());
-		server.addErrorPage(code, actpath(path.c_str()));
+		for ( std::vector<int>::const_iterator it = codes.begin(); it != codes.end(); ++it )
+			server.addErrorPage(*it, actpath(path.c_str()));
 		if (semicolon)
 			break ;
 		++it;
@@ -109,8 +115,10 @@ void	init_root( std::string str, Server & server )
 	if (acstat(str.c_str(), F_OK | R_OK) != 2)
 		throw FailedAcstat(str.c_str());
 
+	try { if (!server.getRoot().empty()) throw OverwrittenParameter("root"); }
+	catch ( std::exception & e ) { std::cerr << e.what() << std::endl; }
+
 	server.setRoot(actpath(str.c_str()));
-	server.setDuplicate("root");
 }
 
 void	init_host( std::string str, Server & server )
@@ -157,7 +165,7 @@ void	init_listen( std::string str, Server & server )
 void	init_server( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
 	try { if (server.getOverwritten(*it)) throw OverwrittenParameter(it->c_str()); }
-	catch ( std::exception & e ) { std::cout << e.what() << std::endl; }
+	catch ( std::exception & e ) { std::cerr << e.what() << std::endl; }
 
 	if (server.getDuplicate(*it))
 		throw DuplicateParameter(it->c_str());
@@ -206,8 +214,10 @@ std::vector<Server>	create_servers( const std::vector<std::string> & words )
 				init_server(words, it, server);
 				++it;
 			}
-			if (servers.empty())
-				server.setDefault(true);
+			server.setDefault(true);
+			for ( std::vector<Server>::const_iterator cit = servers.begin(); cit != servers.end(); ++cit)
+				if (cit != servers.end() - 1 && cit->getHost() == server.getHost() && cit->getPort() == server.getPort())
+					server.setDefault(false);
 		}
 		else
 			++it;

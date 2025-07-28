@@ -12,11 +12,11 @@
 
 int	main(int argc, char **argv)
 {
-	(void)argc;
 	try
 	{
 		std::vector<Server>	servers;
 
+		(void)argc;
 		servers = configure_file(argv[1]);
 		servers[0].startup();
 		std::cout << "Host: " << servers[0].getHost() << std::endl;
@@ -49,6 +49,6 @@ int	main(int argc, char **argv)
 		std::cout << "Upload Folder: " << locations[0].getUpload() << std::endl;
 		servers[0].shutdown();
 	}
-	catch (std::exception & e) { std::cout << e.what() << std::endl; }
+	catch (std::exception & e) { std::cerr << e.what() << std::endl; }
 	return 0;
 }
