@@ -10,6 +10,10 @@
 #ifndef EXCEPTIONS_HPP
 # define EXCEPTIONS_HPP
 
+# ifndef MSG_SIZE
+#  define MSG_SIZE 256
+# endif
+
 // ************************************************************************** //
 //                                  Exceptions                                //
 // ************************************************************************** //
@@ -28,7 +32,7 @@ class	FailedListen : public std::exception { public : const char * what() const 
 
 class	FailedOpen : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: open() failed."; } };
 
-class	FailedAcstat : public std::exception { private: char _msg[256]; public: FailedAcstat( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: acstat() failed.", s); } const char * what() const throw() { return _msg; } };
+class	FailedAcstat : public std::exception { private: char _msg[MSG_SIZE]; public: FailedAcstat( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: acstat() failed.", s); } const char * what() const throw() { return _msg; } };
 
 // Parsing
 
@@ -38,7 +42,7 @@ class	NoEndingSemicolon : public std::exception { public : const char * what() c
 
 class	ValueNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for one parameter."; } };
 
-class	InvalidParameter : public std::exception { private: char _msg[256]; public: InvalidParameter( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: Invalid parameter is given.", s); } const char * what() const throw() { return _msg; } };
+class	InvalidParameter : public std::exception { private: char _msg[MSG_SIZE]; public: InvalidParameter( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: Invalid parameter is given.", s); } const char * what() const throw() { return _msg; } };
 
 class	InvalidListen : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: The 'port' has to be a number."; } };
 
@@ -59,5 +63,11 @@ class	DefaultNotGiven : public std::exception { public : const char * what() con
 class	InvalidRedirect : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Invalid boolean value for the parameter 'redirect'."; } };
 
 class	InvalidAutoindex : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Invalid boolean value for the parameter 'autoindex'."; } };
+
+class	ExtensionCgi : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Invalid extension given for the parameter 'cgi' (should be [\033[91m.py\033[0m, \033[91m.php\033[0m])."; } };
+
+class	ProgramCgi : public std::exception { private: char _msg[MSG_SIZE]; public: ProgramCgi( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: Invalid program path for the parameter 'cgi'.", s); } const char * what() const throw() { return _msg; } };
+
+class	DuplicateCgi : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: The extension for the parameter 'cgi' already exists."; } };
 
 #endif

@@ -127,8 +127,8 @@ void	init_listen( std::string str, Server & server )
 	str.pop_back();
 
 	size_t		sep = str.find(':');
-	std::string	host;
-	std::string	port;
+	std::string	host = "";
+	std::string	port = "";
 
 	if (sep != std::string::npos)
 	{
@@ -168,12 +168,13 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 		throw InvalidParameter(it->c_str());
 }
 
+// duplicate root, path etc..
+// default duplicate port server.
 std::vector<Server>	create_servers( const std::vector<std::string> & words )
 {
 	std::vector<Server>				servers;
-	std::vector<std::string>::const_iterator	it;
+	std::vector<std::string>::const_iterator	it = words.begin();
 
-	it = words.begin();
 	while (it != words.end())
 	{
 		if (*it == "server")

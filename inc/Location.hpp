@@ -57,6 +57,8 @@ class	Location
 		void setRedirect( bool );
 		void setDefault( const std::string & );
 		void setAutoindex( bool );
+		void addCgi( const std::string &, const std::string & );
+		void setUpload( const std::string & str );
 };
 
 #endif

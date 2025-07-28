@@ -47,3 +47,5 @@ void	Location::setMethods( const std::vector<std::string> & methods ) { _methods
 void	Location::setRedirect( bool redirect ) { _redirect = redirect; }
 void	Location::setDefault( const std::string & def ) { _default = def; }
 void	Location::setAutoindex( bool autoindex ) { _autoindex = autoindex; }
+void	Location::addCgi( const std::string & extension, const std::string & program ) { _cgi[extension] = program; }
+void	Location::setUpload( const std::string & upload ) { _upload = upload; }

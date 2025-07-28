@@ -10,49 +10,6 @@
 # include "main.hpp"
 # include "Exceptions.hpp"
 
-// trim whitespaces at beginning and end.
-std::string	trim( const std::string & s )
-{
-	size_t	begin = s.find_first_not_of(" \t\r\n");
-	size_t	end = s.find_last_not_of(" \t\r\n");
-
-	if (begin == std::string::npos)
-		return "";
-	return s.substr(begin, end - begin + 1);
-}
-
-// skip empty line & commentaries.
-bool	is_commentary( const std::string & line )
-{
-	if (line.empty())
-		return true;
-	if (line[0] == '#')
-		return true;
-	if (line[0] == '/' && line[1] == '/')
-		return true;
-	return false;
-}
-
-// split a string.
-std::vector<std::string>	split( const std::string & s )
-{
-	std::stringstream		ss(s);
-	std::string			word;
-	std::vector<std::string>	words;
-
-	while (ss >> word)
-	{
-		if (word == "{}")
-		{
-			words.push_back("{");
-			words.push_back("}");
-		}
-		else
-			words.push_back(word);
-	}
-	return words;
-}
-
 // handle file/folder accessibilty.
 int	acstat( const char * path, int mode )
 {
@@ -75,4 +32,22 @@ int	acstat( const char * path, int mode )
 	}
 	else
 		return -1;
+}
+
+// DEBUG FUNCTION: str_to_ascii
+void	stoa( const std::string& path )
+{
+	std::cout << std::endl;
+	std::cout << "\033[91mDEBUG MODE:\033[0m stoa(): '\033[93m" << path << "\033[0m'.\n";
+
+	for (size_t i = 0; i < path.size(); ++i)
+	{
+		std::cout << std::setw(10) << "[\033[93m" << std::setw(2) << i << "\033[0m]"
+		<< " = '\033[91m" << path[i] << "\033[0m'"
+		<< " (" << std::setw(3) << static_cast<int>(path[i]) << ")   ";
+
+		if ((i + 1) % 3 == 0)
+			std::cout << "\n";
+	}
+	std::cout << std::endl << std::endl;
 }

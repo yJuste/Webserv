@@ -10,6 +10,30 @@
 # include "main.hpp"
 # include "Exceptions.hpp"
 
+void	init_cgi( std::vector<std::string>::const_iterator & it, Location & location )
+{
+	if (*it != ".py" && *it != ".php")
+		throw ExtensionCgi();
+
+	std::string	extension = *it;
+	it++;
+	std::string	program = *it;
+
+	if (program.empty() || program.back() != ';')
+		throw NoEndingSemicolon();
+	program.pop_back();
+
+	if (acstat(program.c_str(), F_OK | X_OK) != 1)
+		throw ProgramCgi(program.c_str());
+
+	std::map<std::string, std::string>	cgi = location.getCgi();
+
+	if (cgi.find(extension) != cgi.end())
+		throw DuplicateCgi();
+
+	location.addCgi(extension, program);
+}
+
 void	init_autoindex( std::string str, Location & location )
 {
 	if (str.empty() || str.back() != ';')
@@ -62,8 +86,8 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 	while (it != words.end())
 	{
 		std::string	method = *it;
+		bool		semicolon = false;
 
-		bool	semicolon = false;
 		if (!method.empty() && method.back() == ';')
 		{
 			method.pop_back();
@@ -83,6 +107,18 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 	location.setMethods(methods);
 }
 
+void	init_upload( std::string str, Location & location )
+{
+	if (str.empty() || str.back() != ';')
+		throw NoEndingSemicolon();
+	str.pop_back();
+
+	if (acstat(str.c_str(), F_OK | R_OK) != 2)
+		throw FailedAcstat(str.c_str());
+
+	location.setUpload(str);
+}
+
 void	init_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
 {
 	if (*it == "methods")
@@ -93,10 +129,15 @@ void	init_location( const std::vector<std::string> & words, std::vector<std::str
 		init_default(*(++it), location);
 	else if (*it == "autoindex")
 		init_autoindex(*(++it), location);
+	else if (*it == "cgi")
+		init_cgi(++it, location);
+	else if (*it == "upload")
+		init_upload(*(++it), location);
 	else
 		throw InvalidParameter(it->c_str());
 }
 
+// add root
 void	create_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
 	if (acstat(it->c_str(), F_OK | R_OK) != 2)

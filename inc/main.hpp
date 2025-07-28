@@ -39,12 +39,7 @@ std::vector<Server>	create_servers( const std::vector<std::string> & );
 void	create_location( const std::vector<std::string> &, std::vector<std::string>::const_iterator &, Server & );
 
 // utils.cpp
-std::string	trim( const std::string & );
-bool	is_commentary( const std::string & );
-std::vector<std::string>	split( const std::string & );
 int	acstat( const char *, int );
-
-// debug.cpp
 void	stoa( const std::string & );
 
 #endif
