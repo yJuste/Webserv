@@ -18,10 +18,17 @@
 # include <iomanip>
 # include <sys/stat.h>
 # include <dirent.h>
+# include <cstdlib>
 
 // Dependences
 
 # include "Server.hpp"
+
+// Defines
+
+# ifndef PATH_SIZE
+#  define PATH_SIZE 256
+# endif
 
 // ************************************************************************** //
 //                                  Prototypes                                //
@@ -40,6 +47,7 @@ void	create_location( const std::vector<std::string> &, std::vector<std::string>
 
 // utils.cpp
 int	acstat( const char *, int );
+std::string	actpath( const char * );
 void	stoa( const std::string & );
 
 #endif

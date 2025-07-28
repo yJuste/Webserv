@@ -32,6 +32,9 @@ class	Location
 		std::map<std::string, std::string>	_cgi;
 		std::string				_upload;
 
+		std::map<std::string, bool>		_duplicate;
+		std::map<std::string, bool>		_overwritten;
+
 	public:
 
 		Location();
@@ -49,6 +52,8 @@ class	Location
 		const std::string & getDefault() const;
 		const std::map<std::string, std::string> & getCgi() const;
 		const std::string & getUpload() const;
+		bool getDuplicate( const std::string & ) const;
+		bool getOverwritten( const std::string & ) const;
 
 		// Setter
 
@@ -59,6 +64,8 @@ class	Location
 		void setAutoindex( bool );
 		void addCgi( const std::string &, const std::string & );
 		void setUpload( const std::string & str );
+		void setDuplicate( const std::string & );
+		void setOverwritten( const std::string & );
 };
 
 #endif

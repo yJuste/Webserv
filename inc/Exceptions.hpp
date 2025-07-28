@@ -34,6 +34,10 @@ class	FailedOpen : public std::exception { public : const char * what() const th
 
 class	FailedAcstat : public std::exception { private: char _msg[MSG_SIZE]; public: FailedAcstat( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: acstat() failed.", s); } const char * what() const throw() { return _msg; } };
 
+class	FailedRealpath : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: realpath() failed."; } };
+
+class	FailedGetcwd : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: getcwd() failed."; } };
+
 // Parsing
 
 class	BracketsNotClosed : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Brackets are not closed."; } };
@@ -68,6 +72,12 @@ class	ExtensionCgi : public std::exception { public : const char * what() const 
 
 class	ProgramCgi : public std::exception { private: char _msg[MSG_SIZE]; public: ProgramCgi( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: Invalid program path for the parameter 'cgi'.", s); } const char * what() const throw() { return _msg; } };
 
-class	DuplicateCgi : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: The extension for the parameter 'cgi' already exists."; } };
+class	DuplicateCgi : public std::exception { private: char _msg[MSG_SIZE]; public: DuplicateCgi( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: This extension already exists.", s); } const char * what() const throw() { return _msg; } };
+
+class	DuplicateParameter : public std::exception { private: char _msg[MSG_SIZE]; public: DuplicateParameter( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: This parameter cannot be duplicated.", s); } const char * what() const throw() { return _msg; } };
+
+class	OverwrittenParameter : public std::exception { private: char _msg[MSG_SIZE]; public: OverwrittenParameter( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[93mwarning\033[0m: `%s`: Value(s) may be overwritten.", s); } const char * what() const throw() { return _msg; } };
+
+class	DuplicateLocation : public std::exception { private: char _msg[MSG_SIZE]; public: DuplicateLocation( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: The location with this path already exists.", s); } const char * what() const throw() { return _msg; } };
 
 #endif

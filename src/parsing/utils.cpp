@@ -10,7 +10,7 @@
 # include "main.hpp"
 # include "Exceptions.hpp"
 
-// handle file/folder accessibilty.
+// handle file/folder accessibilty. (access + stat)
 int	acstat( const char * path, int mode )
 {
 	struct stat	buf;
@@ -32,6 +32,27 @@ int	acstat( const char * path, int mode )
 	}
 	else
 		return -1;
+}
+
+// normalize path (actual + realpath)
+std::string	actpath( const char * path )
+{
+	char	new_path[PATH_SIZE];
+
+	if (!realpath(path, new_path))
+		throw FailedRealpath();
+
+	char	cwd[PATH_SIZE];
+
+	if (!getcwd(cwd, sizeof(cwd)))
+		throw FailedGetcwd();
+
+	std::string	rpath(new_path);
+	std::string	cpath(cwd);
+
+	if (rpath.find(cpath) == 0)
+		return "." + rpath.substr(cpath.size());
+	return rpath;
 }
 
 // DEBUG FUNCTION: str_to_ascii

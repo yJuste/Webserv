@@ -10,7 +10,15 @@
 # include "Server.hpp"
 # include "Exceptions.hpp"
 
-Server::Server() : _socket(-1), _host("0.0.0.0"), _port(80), _root(""), _default(false), _maxSize(0) {}
+Server::Server() : _socket(-1), _host("0.0.0.0"), _port(0), _root(""), _default(false), _maxSize(0)
+{
+	_duplicate["host"] = false;
+	_duplicate["listen"] = false;
+	_duplicate["root"] = false;
+	_duplicate["client_max_body_size"] = false;
+
+	_overwritten["error_page"] = false;
+}
 Server::~Server() { shutdown(); }
 
 Server::Server( const Server & server ) { *this = server; }
@@ -88,6 +96,8 @@ const std::vector<std::string>	&Server::getNames() const { return _names; }
 const std::map<int, std::string>	&Server::getErrorPages() const { return _errorPages; }
 size_t	Server::getMaxSize() const { return _maxSize; }
 const std::vector<Location>	&Server::getLocations() const { return _locations; }
+bool	Server::getDuplicate( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _duplicate.find(parameter); return it != _duplicate.end() && it->second; }
+bool	Server::getOverwritten( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _overwritten.find(parameter); return it != _overwritten.end() && it->second; }
 
 // Setter
 
@@ -95,7 +105,9 @@ void	Server::setHost( const std::string & host ) { _host = host; }
 void	Server::setPort( int port ) { _port = port; }
 void	Server::setRoot( const std::string & root ) { _root = root; }
 void	Server::setDefault( bool def ) { _default = def; }
-void	Server::setNames( const std::vector<std::string> & names ) { _names = names; }
-void	Server::setErrorPages( const std::map<int, std::string> & errorPages ) { _errorPages = errorPages; }
+void	Server::addName( const std::string & name ) { _names.push_back(name); }
+void	Server::addErrorPage( int code, const std::string & path ) { _errorPages[code] = path; }
 void	Server::setMaxSize( int size ) { _maxSize = size; }
 void	Server::addLocation( const Location & location ) { _locations.push_back(location); }
+void	Server::setDuplicate( const std::string & parameter ) { _duplicate[parameter] = true; }
+void	Server::setOverwritten( const std::string & parameter ) { _overwritten[parameter] = true; }

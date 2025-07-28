@@ -45,18 +45,17 @@ void	init_max_size( std::string str, Server & server )
 		throw Overflow();
 
 	server.setMaxSize(nb * mult);
+	server.setDuplicate("client_max_body_size");
 }
 
 void	init_error_pages( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
-	std::map<int, std::string>	errors;
-
 	while (it != words.end())
 	{
 		std::stringstream	ss(*it);
-		int			n;
+		int			code;
 
-		if (!(ss >> n) || !ss.eof())
+		if (!(ss >> code) || !ss.eof())
 			throw ErrorPageNotGiven();
 		if (++it == words.end())
 			throw ValueNotGiven();
@@ -66,20 +65,22 @@ void	init_error_pages( const std::vector<std::string> & words, std::vector<std::
 
 		if (semicolon)
 			path.pop_back();
+		if (path.empty())
+			throw NoEndingSemicolon();
 		if (acstat(path.c_str(), F_OK | R_OK) == -1)
 			throw FailedAcstat(path.c_str());
-		errors[n] = path;
+		server.addErrorPage(code, actpath(path.c_str()));
 		if (semicolon)
 			break ;
 		++it;
 	}
-	server.setErrorPages(errors);
+	if (it == words.end())
+		throw NoEndingSemicolon();
+	server.setOverwritten("error_page");
 }
 
 void	init_names( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
-	std::vector<std::string>	names;
-
 	while (it != words.end())
 	{
 		std::string	name = *it;
@@ -87,16 +88,16 @@ void	init_names( const std::vector<std::string> & words, std::vector<std::string
 		if (!name.empty() && name.back() == ';')
 		{
 			name.pop_back();
-			names.push_back(name);
+			if (name.empty())
+				throw NoEndingSemicolon();
+			server.addName(name);
 			break ;
 		}
-		names.push_back(name);
+		server.addName(name);
 		++it;
-
 	}
-	if (names.empty())
+	if (it == words.end())
 		throw NoEndingSemicolon();
-	server.setNames(names);
 }
 
 void	init_root( std::string str, Server & server )
@@ -108,7 +109,8 @@ void	init_root( std::string str, Server & server )
 	if (acstat(str.c_str(), F_OK | R_OK) != 2)
 		throw FailedAcstat(str.c_str());
 
-	server.setRoot(str);
+	server.setRoot(actpath(str.c_str()));
+	server.setDuplicate("root");
 }
 
 void	init_host( std::string str, Server & server )
@@ -118,6 +120,7 @@ void	init_host( std::string str, Server & server )
 	str.pop_back();
 
 	server.setHost(str);
+	server.setDuplicate("host");
 }
 
 void	init_listen( std::string str, Server & server )
@@ -146,11 +149,19 @@ void	init_listen( std::string str, Server & server )
 	if (!(ss >> nb) || !ss.eof())
 		throw InvalidListen();
 	server.setPort(nb);
+	if (sep != std::string::npos)
+		server.setDuplicate("host");
+	server.setDuplicate("listen");
 }
 
 void	init_server( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
-	if (*it == "host")
+	try { if (server.getOverwritten(*it)) throw OverwrittenParameter(it->c_str()); }
+	catch ( std::exception & e ) { std::cout << e.what() << std::endl; }
+
+	if (server.getDuplicate(*it))
+		throw DuplicateParameter(it->c_str());
+	else if (*it == "host")
 		init_host(*(++it), server);
 	else if (*it == "listen")
 		init_listen(*(++it), server);
@@ -168,8 +179,6 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 		throw InvalidParameter(it->c_str());
 }
 
-// duplicate root, path etc..
-// default duplicate port server.
 std::vector<Server>	create_servers( const std::vector<std::string> & words )
 {
 	std::vector<Server>				servers;

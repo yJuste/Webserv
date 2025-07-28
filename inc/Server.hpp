@@ -43,6 +43,9 @@ class	Server
 		size_t				_maxSize;
 		std::vector<Location>		_locations;
 
+		std::map<std::string, bool>	_duplicate;
+		std::map<std::string, bool>	_overwritten;
+
 	public:
 
 		Server();
@@ -69,6 +72,8 @@ class	Server
 		size_t getMaxSize() const;
 		const std::string & getRoot() const;
 		const std::vector<Location> & getLocations() const;
+		bool getDuplicate( const std::string & ) const;
+		bool getOverwritten( const std::string & ) const;
 
 		// Setter
 
@@ -76,10 +81,12 @@ class	Server
 		void setPort( int );
 		void setRoot( const std::string & );
 		void setDefault( bool );
-		void setNames( const std::vector<std::string> & );
-		void setErrorPages( const std::map<int, std::string> & );
+		void addName( const std::string & );
+		void addErrorPage( int, const std::string & );
 		void setMaxSize( int );
 		void addLocation( const Location & );
+		void setDuplicate( const std::string & );
+		void setOverwritten( const std::string & );
 };
 
 #endif
