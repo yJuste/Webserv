@@ -23,11 +23,8 @@ void	init_cgi( std::vector<std::string>::const_iterator & it, Location & locatio
 	program.pop_back();
 	if (acstat(program.c_str(), F_OK | X_OK) != 1)
 		throw ProgramCgi(program.c_str());
-
-	std::map<std::string, std::string>	cgi = location.getCgi();
-	for ( std::map<std::string, std::string>::const_iterator cit = cgi.begin(); cit != cgi.end(); ++cit )
-		if (cit->first == extension && cit->second != "")
-			throw DuplicateCgi(extension.c_str());
+	if (location.dupCgi(extension))
+		throw DuplicateCgi(extension.c_str());
 
 	location.addCgi(extension, actpath(program.c_str()));
 }
@@ -37,7 +34,6 @@ void	init_autoindex( std::string str, Location & location )
 	if (str.empty() || str.back() != ';')
 		throw NoEndingSemicolon();
 	str.pop_back();
-
 	if (str != "true" && str != "false" && str != "1" && str != "0")
 		throw InvalidAutoindex();
 
@@ -50,7 +46,7 @@ void	init_index( const std::vector<std::string> & words, std::vector<std::string
 	while (it != words.end())
 	{
 		std::string	index = *it;
-		bool	semicolon = false;
+		bool		semicolon = false;
 
 		if (!index.empty() && index.back() == ';')
 		{
@@ -77,7 +73,6 @@ void	init_return( std::string str, Location & location )
 	if (str.empty() || str.back() != ';')
 		throw NoEndingSemicolon();
 	str.pop_back();
-
 	if (acstat(str.c_str(), F_OK | R_OK) != 2)
 		throw FailedAcstat(str.c_str());
 
@@ -89,15 +84,14 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 {
 	std::vector<std::string>	methods;
 	std::vector<std::string>	ext;
-	const int	count = (sizeof(g_methods) - sizeof(g_methods[0])) / sizeof(g_methods[0]);
+	const int			count = (sizeof(g_methods) - sizeof(g_methods[0])) / sizeof(g_methods[0]);
 
 	for ( int i = 0; i < count; ++i )
 		ext.push_back(std::string(g_methods[i]));
-
 	while (it != words.end())
 	{
 		std::string	method = *it;
-		bool	semicolon = false;
+		bool		semicolon = false;
 
 		if (!method.empty() && method.back() == ';')
 		{
@@ -128,7 +122,6 @@ void	init_upload( std::string str, Location & location )
 	if (str.empty() || str.back() != ';')
 		throw NoEndingSemicolon();
 	str.pop_back();
-
 	if (acstat(str.c_str(), F_OK | R_OK) != 2)
 		throw FailedAcstat(str.c_str());
 
@@ -171,15 +164,10 @@ void	create_location( const std::vector<std::string> & words, std::vector<std::s
 	location.setPath(actpath(it->c_str()));
 	std::vector<Location> locations = server.getLocations();
 
-	for ( std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it )
-		if (it->getPath() == location.getPath())
-			throw DuplicateLocation((location.getPath()).c_str());
-
-	++it;
-	if (it == words.end() || *it != "{")
+	if (server.dupLocation(location.getPath()))
+		throw DuplicateLocation((location.getPath()).c_str());
+	if (++it == words.end() || *(it++) != "{")
 		throw LocationNotGiven();
-	++it;
-
 	while (*it != "}")
 	{
 		if (*it == "{")

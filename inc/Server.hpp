@@ -94,6 +94,7 @@ class	Server
 		void startup();
 		void shutdown() const;
 		void myConfig() const;
+		bool dupLocation( const std::string & ) const;
 
 		// Getter
 

@@ -145,6 +145,14 @@ void	Server::shutdown( void ) const
 		close(_socket);
 }
 
+bool	Server::dupLocation( const std::string & path ) const
+{
+	for ( std::vector<Location>::const_iterator it = getLocations().begin(); it != getLocations().end(); ++it )
+		if (it->getPath() == path)
+			return true;
+	return false;
+}
+
 // Private Methods
 
 // return rounded number with its nearest units.

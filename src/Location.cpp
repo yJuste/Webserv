@@ -45,6 +45,12 @@ Location	&Location::operator = ( const Location & l )
 	return *this;
 }
 
+bool	Location::dupCgi( const std::string & extension ) const
+{
+	std::map<std::string, std::string>::const_iterator it = getCgi().find(extension);
+	return it != getCgi().end() && !it->second.empty();
+}
+
 // Getter
 
 const std::string	&Location::getPath() const { return _path; }
