@@ -19,35 +19,11 @@ int	main(int argc, char **argv)
 		(void)argc;
 		servers = configure_file(argv[1]);
 		servers[0].startup();
-		std::cout << "Host: " << servers[0].getHost() << std::endl;
-		std::cout << "Port: " << servers[0].getPort() << std::endl;
-		std::cout << "Root: " << servers[0].getRoot() << std::endl;
-		std::cout << "Default: " << servers[0].getDefault() << std::endl;
-		std::vector<std::string>	names = servers[0].getNames();
-		for ( std::vector<std::string>::iterator it = names.begin(); it != names.end(); ++it )
-			std::cout << "Names: " << *it << std::endl;
-		std::map<int, std::string>	errors = servers[0].getErrorPages();
-		for ( std::map<int, std::string>::iterator it = errors.begin(); it != errors.end(); ++it )
-    		std::cout << "Code: " << it->first << ", Path: " << it->second << std::endl;
-		std::cout << "Max Body Size: " << servers[0].getMaxSize() << std::endl;
-
-		// Location 0
-		std::vector<Location>	locations = servers[0].getLocations();
-		if (locations.empty())
-			return (0);
-		std::cout << "Location : " << locations[0].getPath() << std::endl;
-		std::vector<std::string>	methods = locations[0].getMethods();
-		for ( std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it )
-			std::cout << "Methods: " << *it << std::endl;
-		std::cout << "Redirect: " << locations[0].getRedirect() << std::endl;
-		std::cout << "Default: " << locations[0].getDefault() << std::endl;
-		std::cout << "Autoindex: " << locations[0].getAutoindex() << std::endl;
-
-		std::map<std::string, std::string>	cgi = locations[0].getCgi();
-		for ( std::map<std::string, std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it )
-			std::cout << "Cgi extension : " << it->first << ", path : " << it->second << std::endl;
-		std::cout << "Upload Folder: " << locations[0].getUpload() << std::endl;
+		servers[0].myConfig();
 		servers[0].shutdown();
+		servers[1].startup();
+		servers[1].myConfig();
+		servers[1].shutdown();
 	}
 	catch (std::exception & e) { std::cerr << e.what() << std::endl; }
 	return 0;

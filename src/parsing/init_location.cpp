@@ -126,10 +126,10 @@ void	init_upload( std::string str, Location & location )
 
 void	init_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server, Location & location )
 {
-	try { if (location.getOverwritten(*it)) throw OverwrittenParameter(it->c_str()); }
-	catch ( std::exception & e ) { std::cerr << e.what() << std::endl; }
+	try { if (location.getOverwrittenX(*it)) throw OverwrittenParameter(it->c_str()); }
+	catch ( std::exception & e ) { server.addWarning(e.what()); }
 
-	if (location.getDuplicate(*it))
+	if (location.getDuplicateX(*it))
 		throw DuplicateParameter(it->c_str());
 	else if (*it == "methods")
 		init_methods(words, ++it, location);

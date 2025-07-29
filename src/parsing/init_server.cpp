@@ -72,7 +72,7 @@ void	init_error_pages( const std::vector<std::string> & words, std::vector<std::
 			path.pop_back();
 		if (path.empty())
 			throw NoEndingSemicolon();
-		if (acstat(path.c_str(), F_OK | R_OK) == -1)
+		if (acstat(path.c_str(), F_OK | R_OK) != 1)
 			throw FailedAcstat(path.c_str());
 		for ( std::vector<int>::const_iterator it = codes.begin(); it != codes.end(); ++it )
 			server.addErrorPage(*it, actpath(path.c_str()));
@@ -116,7 +116,7 @@ void	init_root( std::string str, Server & server )
 		throw FailedAcstat(str.c_str());
 
 	try { if (!server.getRoot().empty()) throw OverwrittenParameter("root"); }
-	catch ( std::exception & e ) { std::cerr << e.what() << std::endl; }
+	catch ( std::exception & e ) { server.addWarning(e.what()); }
 
 	server.setRoot(actpath(str.c_str()));
 }
@@ -164,10 +164,10 @@ void	init_listen( std::string str, Server & server )
 
 void	init_server( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
-	try { if (server.getOverwritten(*it)) throw OverwrittenParameter(it->c_str()); }
-	catch ( std::exception & e ) { std::cerr << e.what() << std::endl; }
+	try { if (server.getOverwrittenX(*it)) throw OverwrittenParameter(it->c_str()); }
+	catch ( std::exception & e ) { server.addWarning(e.what()); }
 
-	if (server.getDuplicate(*it))
+	if (server.getDuplicateX(*it))
 		throw DuplicateParameter(it->c_str());
 	else if (*it == "host")
 		init_host(*(++it), server);
@@ -185,6 +185,18 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 		create_location(words, ++it, server);
 	else
 		throw InvalidParameter(it->c_str());
+}
+
+void	missingImportant( Server & server )
+{
+	try { if (server.getHost() == "0.0.0.0") throw MissingImportantValues("host"); }
+	catch ( std::exception & e ) { server.addWarning(e.what()); }
+	try { if (server.getRoot() == "") throw MissingImportantValues("root"); }
+	catch ( std::exception & e ) { server.addWarning(e.what()); }
+	try { if (server.getLocations().empty()) throw MissingImportantValues("location"); }
+	catch ( std::exception & e ) { server.addWarning(e.what()); }
+	if (server.getNames().empty())
+		server.addName("localhost");
 }
 
 std::vector<Server>	create_servers( const std::vector<std::string> & words )
@@ -218,6 +230,7 @@ std::vector<Server>	create_servers( const std::vector<std::string> & words )
 			for ( std::vector<Server>::const_iterator cit = servers.begin(); cit != servers.end(); ++cit)
 				if (cit != servers.end() - 1 && cit->getHost() == server.getHost() && cit->getPort() == server.getPort())
 					server.setDefault(false);
+			missingImportant(server);
 		}
 		else
 			++it;

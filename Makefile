@@ -21,12 +21,11 @@ SRC =	main.cpp				\
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 
 # Colors
-RESET			= "\033[0m"
-GREEN			= "\033[32m"
-RED			= "\033[91m"
-YELLOW			= "\033[93m"
-VIOLETC			= "\033[94m"
-VIOLETF			= "\033[95m"
+RESET		= "\033[0m"
+BLUE		= "\033[38;2;0;128;157m"
+BEIGE		= "\033[38;2;252;248;221m"
+YELLOW		= "\033[38;2;255;215;0m"
+BROWN		= "\033[38;2;211;175;55m"
 
 
 # Rules
@@ -34,18 +33,18 @@ all: $(NAME)
 
 $(NAME): $(OBJ)
 	@$(CC) $(CFLAGS) $(OBJ) -o $(NAME) -I $(INC_DIR)
-	@echo $(VIOLETF)"➤ '$(NAME)' is now ready."$(RESET)
+	@echo $(BLUE) "➤ '$(NAME)' is now ready." $(RESET)
 
 clean:
 	@rm -rf $(OBJ_DIR)
 
 fclean: clean
 	@rm -f $(NAME)
-	@echo $(RED)"➤ Every files and $(NAME) are removed."$(RESET)
+	@echo $(YELLOW) "➤ Every files and $(NAME) are removed." $(RESET)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
-	@echo $(VIOLETC)"Compiling: $<"$(RESET)
+	@echo $(BROWN) "Compiling ➤ $<" $(RESET)
 	@$(CC) $(CFLAGS) $< -c -o $@ -I $(INC_DIR)
 
 re: fclean all
