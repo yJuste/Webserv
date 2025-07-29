@@ -15,32 +15,16 @@ const char * g_methods[] = { "GET", "POST", "DELETE", NULL };
 
 void	init_cgi( std::vector<std::string>::const_iterator & it, Location & location )
 {
-	std::map<std::string, std::string>	cgi = location.getCgi();
-	const char **				comp = g_extensions;
-
-	for ( std::map<std::string, std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it )
-	{
-		while ( *comp != NULL )
-		{
-			if (it->first != *comp)
-				break ;
-			(*comp)++;
-		}
-		if (it->first.empty())
-			throw ExtensionCgi();
-	}
-
-	std::string	extension = *it;
-	it++;
+	std::string	extension = *(it++);
 	std::string	program = *it;
 
 	if (program.empty() || program.back() != ';')
 		throw NoEndingSemicolon();
 	program.pop_back();
-
 	if (acstat(program.c_str(), F_OK | X_OK) != 1)
 		throw ProgramCgi(program.c_str());
 
+	std::map<std::string, std::string>	cgi = location.getCgi();
 	for ( std::map<std::string, std::string>::const_iterator cit = cgi.begin(); cit != cgi.end(); ++cit )
 		if (cit->first == extension && cit->second != "")
 			throw DuplicateCgi(extension.c_str());
@@ -66,19 +50,17 @@ void	init_index( const std::vector<std::string> & words, std::vector<std::string
 	while (it != words.end())
 	{
 		std::string	index = *it;
-		bool		semicolon = false;
+		bool	semicolon = false;
 
 		if (!index.empty() && index.back() == ';')
 		{
 			index.pop_back();
 			semicolon = true;
 		}
-
 		if (index.empty())
 			throw NoEndingSemicolon();
 		if (acstat(index.c_str(), F_OK | R_OK) != 1)
 			throw FailedAcstat(index.c_str());
-
 		location.addIndex(actpath(index.c_str()));
 		if (semicolon)
 			break ;
@@ -86,6 +68,7 @@ void	init_index( const std::vector<std::string> & words, std::vector<std::string
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
+
 	location.setOverwritten("index");
 }
 
@@ -105,11 +88,16 @@ void	init_return( std::string str, Location & location )
 void	init_methods( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
 {
 	std::vector<std::string>	methods;
+	std::vector<std::string>	ext;
+	const int	count = (sizeof(g_methods) - sizeof(g_methods[0])) / sizeof(g_methods[0]);
+
+	for ( int i = 0; i < count; ++i )
+		ext.push_back(std::string(g_methods[i]));
 
 	while (it != words.end())
 	{
 		std::string	method = *it;
-		bool		semicolon = false;
+		bool	semicolon = false;
 
 		if (!method.empty() && method.back() == ';')
 		{
@@ -118,13 +106,6 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 		}
 		if (method.empty())
 			throw NoEndingSemicolon();
-
-		std::vector<std::string>	ext;
-		const int	count = (sizeof(g_methods) - sizeof(g_methods[0])) / sizeof(g_methods[0]);
-
-		for ( int i = 0; i < count; ++i )
-			ext.push_back(std::string(g_methods[i]));
-
 		if (std::find(ext.begin(), ext.end(), method) == ext.end())
 			throw MethodErrors();
 		if (std::find(methods.begin(), methods.end(), method) != methods.end())
@@ -136,6 +117,7 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
+
 	location.setMethods(methods);
 	location.setDuplicate("methods");
 	location.setDuplicate("allow_methods");
@@ -161,7 +143,7 @@ void	init_location( const std::vector<std::string> & words, std::vector<std::str
 
 	if (location.getDuplicateX(*it))
 		throw DuplicateParameter(it->c_str());
-	else if (*it == "methods" || *it == "allow_methods")
+	if (*it == "methods" || *it == "allow_methods")
 		init_methods(words, ++it, location);
 	else if (*it == "return")
 		init_return(*(++it), location);
@@ -187,14 +169,11 @@ void	create_location( const std::vector<std::string> & words, std::vector<std::s
 	Location	location;
 
 	location.setPath(actpath(it->c_str()));
+	std::vector<Location> locations = server.getLocations();
 
-	std::vector<Location>	locations = server.getLocations();
-
-	for (std::vector<Location>::const_iterator loc = locations.begin(); loc != locations.end(); ++loc)
-	{
-		if (loc->getPath() == location.getPath())
+	for ( std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it )
+		if (it->getPath() == location.getPath())
 			throw DuplicateLocation((location.getPath()).c_str());
-	}
 
 	++it;
 	if (it == words.end() || *it != "{")

@@ -18,7 +18,7 @@ std::vector<std::string>	split( const std::string & s )
 
 	while (ss >> word)
 	{
-		if (!word.empty() && word[0] == '#')
+		if (word[0] == '#')
 			break ;
 		if (word == "{}")
 		{
@@ -45,21 +45,19 @@ bool	is_commentary( const std::string & line )
 std::string	trim( const std::string & s )
 {
 	size_t	begin = s.find_first_not_of(" \t\r\n");
-	size_t	end = s.find_last_not_of(" \t\r\n");
-
 	if (begin == std::string::npos)
 		return "";
+
+	size_t	end = s.find_last_not_of(" \t\r\n");
 	return s.substr(begin, end - begin + 1);
 }
 
 std::vector<Server>	configure_file( const char * s )
 {
-	std::ifstream		file;
-
 	if (acstat(s, F_OK | R_OK) != 1)
 		throw FailedAcstat(s);
 
-	file.open(s, std::ifstream::binary);
+	std::ifstream	file(s, std::ifstream::binary);
 	if (!file.is_open())
 		throw FailedOpen();
 
@@ -71,13 +69,9 @@ std::vector<Server>	configure_file( const char * s )
 		line = trim(line);
 		if (!is_commentary(line))
 		{
-			std::vector<std::string>	words_splice = split(line);
-			words.insert(words.end(), words_splice.begin(), words_splice.end());
+			std::vector<std::string> w = split(line);
+			words.insert(words.end(), w.begin(), w.end());
 		}
 	}
-
-	std::vector<Server>	servers = create_servers(words);
-
-	file.close();
-	return servers;
+	return create_servers(words);
 }

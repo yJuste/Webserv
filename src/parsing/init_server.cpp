@@ -16,9 +16,9 @@ void	init_max_size( std::string str, Server & server )
 		throw NoEndingSemicolon();
 	str.pop_back();
 
-	char		suff = str[str.size() - 1];
+	char	suff = str[str.size() - 1];
 	std::string	number = str;
-	size_t		mult = 1;
+	size_t	mult = 1;
 
 	if (!std::isdigit(suff))
 	{
@@ -37,7 +37,7 @@ void	init_max_size( std::string str, Server & server )
 	}
 
 	std::stringstream	ss(number);
-	size_t			nb;
+	size_t	nb;
 
 	if (!(ss >> nb) || !ss.eof())
 		throw MaxSizeNotGiven();
@@ -55,7 +55,7 @@ void	init_error_pages( const std::vector<std::string> & words, std::vector<std::
 	while (it != words.end())
 	{
 		std::stringstream	ss(*it);
-		int			code;
+		int	code;
 
 		if (ss >> code && ss.eof())
 		{
@@ -66,7 +66,7 @@ void	init_error_pages( const std::vector<std::string> & words, std::vector<std::
 		}
 
 		std::string	path = *it;
-		bool		semicolon = !path.empty() && path.back() == ';';
+		bool	semicolon = !path.empty() && path.back() == ';';
 
 		if (semicolon)
 			path.pop_back();
@@ -127,8 +127,8 @@ void	init_host( std::string str, Server & server )
 		throw NoEndingSemicolon();
 	str.pop_back();
 
-	server.setHost(str);
 	server.setDuplicate("host");
+	server.setHost(str);
 }
 
 void	init_listen( std::string str, Server & server )
@@ -137,7 +137,7 @@ void	init_listen( std::string str, Server & server )
 		throw NoEndingSemicolon();
 	str.pop_back();
 
-	size_t		sep = str.find(':');
+	size_t	sep = str.find(':');
 	std::string	host = "";
 	std::string	port = "";
 
@@ -145,18 +145,18 @@ void	init_listen( std::string str, Server & server )
 	{
 		host = str.substr(0, sep);
 		port = str.substr(sep + 1);
-
 		server.setHost(host);
 	}
 	else
 		port = str;
 
 	std::stringstream	ss(port);
-	int			nb;
+	int	nb;
 
 	if (!(ss >> nb) || !ss.eof())
 		throw InvalidListen();
 	server.setPort(nb);
+
 	if (sep != std::string::npos)
 		server.setDuplicate("host");
 	server.setDuplicate("listen");
@@ -169,7 +169,7 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 
 	if (server.getDuplicateX(*it))
 		throw DuplicateParameter(it->c_str());
-	else if (*it == "host")
+	if (*it == "host")
 		init_host(*(++it), server);
 	else if (*it == "listen")
 		init_listen(*(++it), server);
@@ -187,8 +187,12 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 		throw InvalidParameter(it->c_str());
 }
 
-void	missingImportant( Server & server )
+void	missingImportant( std::vector<Server> & servers, Server & server )
 {
+	server.setDefault(true);
+	for ( std::vector<Server>::const_iterator cit = servers.begin(); cit != servers.end(); ++cit )
+		if (cit != servers.end() - 1 && cit->getHost() == server.getHost() && cit->getPort() == server.getPort())
+			server.setDefault(false);
 	try { if (server.getHost() == "0.0.0.0") throw MissingImportantValues("host"); }
 	catch ( std::exception & e ) { server.addWarning(e.what()); }
 	try { if (server.getRoot() == "") throw MissingImportantValues("root"); }
@@ -201,7 +205,7 @@ void	missingImportant( Server & server )
 
 std::vector<Server>	create_servers( const std::vector<std::string> & words )
 {
-	std::vector<Server>				servers;
+	std::vector<Server>	servers;
 	std::vector<std::string>::const_iterator	it = words.begin();
 
 	while (it != words.end())
@@ -226,11 +230,7 @@ std::vector<Server>	create_servers( const std::vector<std::string> & words )
 				init_server(words, it, server);
 				++it;
 			}
-			server.setDefault(true);
-			for ( std::vector<Server>::const_iterator cit = servers.begin(); cit != servers.end(); ++cit)
-				if (cit != servers.end() - 1 && cit->getHost() == server.getHost() && cit->getPort() == server.getPort())
-					server.setDefault(false);
-			missingImportant(server);
+			missingImportant(servers, server);
 		}
 		else
 			++it;

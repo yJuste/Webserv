@@ -19,10 +19,9 @@ int	acstat( const char * path, int mode )
 		return -1;
 	if (access(path, mode) == -1)
 		return -1;
-
 	if (S_ISREG(buf.st_mode))
 		return 1;
-	else if (S_ISDIR(buf.st_mode))
+	if (S_ISDIR(buf.st_mode))
 	{
 		DIR *dir = opendir(path);
 		if (!dir)
@@ -30,8 +29,7 @@ int	acstat( const char * path, int mode )
 		closedir(dir);
 		return 2;
 	}
-	else
-		return -1;
+	return -1;
 }
 
 // normalize path (actual + realpath)
