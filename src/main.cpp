@@ -18,12 +18,12 @@ int	main(int argc, char **argv)
 
 		(void)argc;
 		servers = configure_file(argv[1]);
-		servers[0].startup();
-		servers[0].myConfig();
-		servers[0].shutdown();
-		servers[1].startup();
-		servers[1].myConfig();
-		servers[1].shutdown();
+		for ( size_t i = 0; i < servers.size(); ++i )
+		{
+			servers[i].startup();
+			servers[i].myConfig();
+			servers[i].shutdown();
+		}
 	}
 	catch (std::exception & e) { std::cerr << e.what() << std::endl; }
 	return 0;

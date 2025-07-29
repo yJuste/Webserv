@@ -55,6 +55,23 @@ std::string	actpath( const char * path )
 	return rpath;
 }
 
+// duplicate.
+bool	duplicate( const std::map<std::string, std::string> & strs, const char ** comp )
+{
+	for ( std::map<std::string, std::string>::const_iterator it = strs.begin(); it != strs.end(); ++it )
+	{
+		while ( *comp != NULL )
+		{
+			if (it->first != *comp)
+				break ;
+			(*comp)++;
+		}
+		if (it->first.empty())
+			return true;
+	}
+	return false;
+}
+
 // DEBUG FUNCTION: str_to_ascii
 void	stoa( const std::string& path )
 {

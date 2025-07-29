@@ -80,6 +80,6 @@ class	OverwrittenParameter : public std::exception { private: char _msg[MSG_SIZE
 
 class	DuplicateLocation : public std::exception { private: char _msg[MSG_SIZE]; public: DuplicateLocation( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: The location with this path already exists.", s); } const char * what() const throw() { return _msg; } };
 
-class	MissingImportantValues : public std::exception { private: char _msg[MSG_SIZE]; public: MissingImportantValues( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[38;5;220mwarning\033[0m: `%s`: Important value for server operation.", s); } const char * what() const throw() { return _msg; } };
+class	MissingImportantValues : public std::exception { private: char _msg[MSG_SIZE]; public: MissingImportantValues( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31mwarning\033[0m: `%s`: Important value for server operation.", s); } const char * what() const throw() { return _msg; } };
 
 #endif

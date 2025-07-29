@@ -10,9 +10,14 @@
 # include "main.hpp"
 # include "Exceptions.hpp"
 
+const char * g_extensions[] = { ".py", ".php", NULL };
+const char * g_methods[] = { "GET", "POST", "DELETE", NULL };
+
 void	init_cgi( std::vector<std::string>::const_iterator & it, Location & location )
 {
-	if (*it != ".py" && *it != ".php")
+	std::map<std::string, std::string>	cgi = location.getCgi();
+
+	if (duplicate(cgi, g_extensions))
 		throw ExtensionCgi();
 
 	std::string	extension = *it;
@@ -26,10 +31,9 @@ void	init_cgi( std::vector<std::string>::const_iterator & it, Location & locatio
 	if (acstat(program.c_str(), F_OK | X_OK) != 1)
 		throw ProgramCgi(program.c_str());
 
-	std::map<std::string, std::string>	cgi = location.getCgi();
-
-	if (cgi.find(extension) != cgi.end())
-		throw DuplicateCgi(extension.c_str());
+	for ( std::map<std::string, std::string>::const_iterator cit = cgi.begin(); cit != cgi.end(); ++cit )
+		if (cit->first == extension && cit->second != "")
+			throw DuplicateCgi(extension.c_str());
 
 	location.addCgi(extension, actpath(program.c_str()));
 }
@@ -47,43 +51,49 @@ void	init_autoindex( std::string str, Location & location )
 	location.setOverwritten("autoindex");
 }
 
-void	init_default( std::string str, Location & location )
+void	init_index( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
 {
-	if (str.empty() || str.back() != ';')
+	while (it != words.end())
+	{
+		std::string	index = *it;
+		bool		semicolon = false;
+
+		if (!index.empty() && index.back() == ';')
+		{
+			index.pop_back();
+			semicolon = true;
+		}
+
+		if (index.empty())
+			throw NoEndingSemicolon();
+		if (acstat(index.c_str(), F_OK | R_OK) != 1)
+			throw FailedAcstat(index.c_str());
+
+		location.addIndex(actpath(index.c_str()));
+		if (semicolon)
+			break ;
+		++it;
+	}
+	if (it == words.end())
 		throw NoEndingSemicolon();
-	str.pop_back();
-
-	if (acstat(str.c_str(), F_OK | R_OK) != 1)
-		throw FailedAcstat(str.c_str());
-
-	location.setDefault(actpath(str.c_str()));
-	location.setOverwritten("default");
+	location.setOverwritten("index");
 }
 
-void	init_redirect( std::string str, Location & location )
+void	init_return( std::string str, Location & location )
 {
 	if (str.empty() || str.back() != ';')
 		throw NoEndingSemicolon();
 	str.pop_back();
 
-	if (str != "true" && str != "false" && str != "1" && str != "0")
-		throw InvalidRedirect();
+	if (acstat(str.c_str(), F_OK | R_OK) != 2)
+		throw FailedAcstat(str.c_str());
 
-	location.setRedirect(str == "true" || str == "1");
-	location.setOverwritten("redirect");
+	location.setReturn(actpath(str.c_str()));
+	location.setOverwritten("return");
 }
 
 void	init_methods( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
 {
-	static std::vector<std::string>		av_meths;
-
-	if (av_meths.empty())
-	{
-		av_meths.push_back("GET");
-		av_meths.push_back("POST");
-		av_meths.push_back("DELETE");
-	}
-
 	std::vector<std::string>	methods;
 
 	while (it != words.end())
@@ -98,7 +108,14 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 		}
 		if (method.empty())
 			throw NoEndingSemicolon();
-		if (std::find(av_meths.begin(), av_meths.end(), method) == av_meths.end())
+
+		std::vector<std::string>	ext;
+		const int	count = (sizeof(g_methods) - sizeof(g_methods[0])) / sizeof(g_methods[0]);
+
+		for ( int i = 0; i < count; ++i )
+			ext.push_back(std::string(g_methods[i]));
+
+		if (std::find(ext.begin(), ext.end(), method) == ext.end())
 			throw MethodErrors();
 		if (std::find(methods.begin(), methods.end(), method) != methods.end())
 			throw MethodErrors();
@@ -107,8 +124,11 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 			break ;
 		++it;
 	}
+	if (it == words.end())
+		throw NoEndingSemicolon();
 	location.setMethods(methods);
 	location.setDuplicate("methods");
+	location.setDuplicate("allow_methods");
 }
 
 void	init_upload( std::string str, Location & location )
@@ -131,12 +151,12 @@ void	init_location( const std::vector<std::string> & words, std::vector<std::str
 
 	if (location.getDuplicateX(*it))
 		throw DuplicateParameter(it->c_str());
-	else if (*it == "methods")
+	else if (*it == "methods" || *it == "allow_methods")
 		init_methods(words, ++it, location);
-	else if (*it == "redirect")
-		init_redirect(*(++it), location);
-	else if (*it == "default")
-		init_default(*(++it), location);
+	else if (*it == "return")
+		init_return(*(++it), location);
+	else if (*it == "index")
+		init_index(words, ++it, location);
 	else if (*it == "autoindex")
 		init_autoindex(*(++it), location);
 	else if (*it == "cgi")
@@ -149,8 +169,6 @@ void	init_location( const std::vector<std::string> & words, std::vector<std::str
 		throw InvalidParameter(it->c_str());
 }
 
-// duplicate root, path etc..
-// default duplicate port server.
 void	create_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
 	if (acstat(it->c_str(), F_OK | R_OK) != 2)
@@ -182,7 +200,5 @@ void	create_location( const std::vector<std::string> & words, std::vector<std::s
 		init_location(words, it, server, location);
 		++it;
 	}
-	if (location.getRedirect() && location.getDefault().empty())
-		throw RedirXDefault();
 	server.addLocation(location);
 }

@@ -10,14 +10,18 @@
 # include "Location.hpp"
 # include "Exceptions.hpp"
 
-Location::Location() : _path(""), _redirect(false), _autoindex(false), _default(""), _upload("")
+Location::Location() : _path(""), _return(""), _autoindex(false), _upload("")
 {
 	_duplicate["methods"] = false;
+	_duplicate["allow_methods"] = false;
 
-	_overwritten["redirect"] = false;
-	_overwritten["default"] = false;
+	_overwritten["return"] = false;
+	_overwritten["index"] = false;
 	_overwritten["autoindex"] = false;
 	_overwritten["upload"] = false;
+
+	_cgi[".py"] = "";
+	_cgi[".php"] = "";
 }
 Location::~Location() {}
 
@@ -29,9 +33,9 @@ Location	&Location::operator = ( const Location & l )
 	{
 		_path = l.getPath();
 		_methods = l.getMethods();
-		_redirect = l.getRedirect();
+		_return = l.getReturn();
 		_autoindex = l.getAutoindex();
-		_default = l.getDefault();
+		_index = l.getIndex();
 		_cgi = l.getCgi();
 		_upload = l.getUpload();
 
@@ -45,9 +49,9 @@ Location	&Location::operator = ( const Location & l )
 
 const std::string	&Location::getPath() const { return _path; }
 const std::vector<std::string>	&Location::getMethods() const { return _methods; }
-bool	Location::getRedirect() const { return _redirect; }
+const std::string	&Location::getReturn() const { return _return; }
 bool	Location::getAutoindex() const { return _autoindex; }
-const std::string	&Location::getDefault() const { return _default; }
+const std::vector<std::string>	&Location::getIndex() const { return _index; }
 const std::map<std::string, std::string>	&Location::getCgi() const { return _cgi; }
 const std::string	&Location::getUpload() const { return _upload; }
 
@@ -60,8 +64,8 @@ bool	Location::getOverwrittenX( const std::string & parameter ) const { std::map
 
 void	Location::setPath( const std::string & path ) { _path = path; }
 void	Location::setMethods( const std::vector<std::string> & methods ) { _methods = methods; }
-void	Location::setRedirect( bool redirect ) { _redirect = redirect; }
-void	Location::setDefault( const std::string & def ) { _default = def; }
+void	Location::setReturn( const std::string & ret ) { _return = ret; }
+void	Location::addIndex( const std::string & index ) { _index.push_back(index); }
 void	Location::setAutoindex( bool autoindex ) { _autoindex = autoindex; }
 void	Location::addCgi( const std::string & extension, const std::string & program ) { _cgi[extension] = program; }
 void	Location::setUpload( const std::string & upload ) { _upload = upload; }

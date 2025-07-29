@@ -110,10 +110,15 @@ void	Server::myConfig( void ) const
 		std::vector<std::string> methods = loc.getMethods();
 		for ( std::vector<std::string>::const_iterator mit = methods.begin(); mit != methods.end(); ++mit )
 			std::cout << BEIGE << *mit << " " << RESET;
-			std::cout << std::endl << BROWN << "    - Redirect       : " << BEIGE << (loc.getRedirect() ? "Yes" : "No") << RESET << std::endl;
-			std::cout << BROWN << "    - Default File   : " << BEIGE << loc.getDefault() << RESET << std::endl;
-			std::cout << BROWN << "    - Autoindex      : " << BEIGE << (loc.getAutoindex() ? "Enabled" : "Disabled") << RESET << std::endl;
-			std::cout << BROWN << "    - Upload Folder  : " << BEIGE << loc.getUpload() << RESET << std::endl;
+		std::cout << std::endl;
+		std::cout << BROWN << "    - Redirection    : " << BEIGE << loc.getReturn() << RESET << std::endl;
+		std::cout << BROWN << "    - Default File   : " << BEIGE;
+		std::vector<std::string>	index = loc.getIndex();
+		for ( std::vector<std::string>::const_iterator it = index.begin(); it != index.end(); ++it )
+			std::cout << *it << " ";
+		std::cout << RESET << std::endl;
+		std::cout << BROWN << "    - Autoindex      : " << BEIGE << (loc.getAutoindex() ? "Enabled" : "Disabled") << RESET << std::endl;
+		std::cout << BROWN << "    - Upload Folder  : " << BEIGE << loc.getUpload() << RESET << std::endl;
 
 		std::map<std::string, std::string>	cgi = loc.getCgi();
 		if (!cgi.empty())

@@ -26,9 +26,9 @@ class	Location
 
 		std::string				_path;
 		std::vector<std::string>		_methods;
-		bool					_redirect;
+		std::string				_return;
 		bool					_autoindex;
-		std::string				_default;
+		std::vector<std::string>		_index;
 		std::map<std::string, std::string>	_cgi;
 		std::string				_upload;
 
@@ -47,9 +47,9 @@ class	Location
 
 		const std::string & getPath() const;
 		const std::vector<std::string> & getMethods() const;
-		bool getRedirect() const;
+		const std::string & getReturn() const;
 		bool getAutoindex() const;
-		const std::string & getDefault() const;
+		const std::vector<std::string> & getIndex() const;
 		const std::map<std::string, std::string> & getCgi() const;
 		const std::string & getUpload() const;
 
@@ -62,8 +62,8 @@ class	Location
 
 		void setPath( const std::string & );
 		void setMethods( const std::vector<std::string> & );
-		void setRedirect( bool );
-		void setDefault( const std::string & );
+		void setReturn( const std::string & );
+		void addIndex( const std::string & );
 		void setAutoindex( bool );
 		void addCgi( const std::string &, const std::string & );
 		void setUpload( const std::string & str );

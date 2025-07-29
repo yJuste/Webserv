@@ -48,6 +48,7 @@ void	create_location( const std::vector<std::string> &, std::vector<std::string>
 // utils.cpp
 int	acstat( const char *, int );
 std::string	actpath( const char * );
+bool	duplicate( const std::map<std::string, std::string> & strs, const char ** comp );
 void	stoa( const std::string & );
 
 #endif
