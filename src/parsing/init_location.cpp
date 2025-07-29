@@ -3,7 +3,7 @@
 //                init_location.cpp                                           //
 //                Created on  : xxx Jul xx xx:xx:xx 2025                      //
 //                Last update : xxx Jul xx xx:xx:xx 2025                      //
-//                Made by     :                                               //
+//                Made by     : Jules Longin                                  //
 //                                                                            //
 // ************************************************************************** //
 
@@ -16,9 +16,19 @@ const char * g_methods[] = { "GET", "POST", "DELETE", NULL };
 void	init_cgi( std::vector<std::string>::const_iterator & it, Location & location )
 {
 	std::map<std::string, std::string>	cgi = location.getCgi();
+	const char **				comp = g_extensions;
 
-	if (duplicate(cgi, g_extensions))
-		throw ExtensionCgi();
+	for ( std::map<std::string, std::string>::const_iterator it = cgi.begin(); it != cgi.end(); ++it )
+	{
+		while ( *comp != NULL )
+		{
+			if (it->first != *comp)
+				break ;
+			(*comp)++;
+		}
+		if (it->first.empty())
+			throw ExtensionCgi();
+	}
 
 	std::string	extension = *it;
 	it++;

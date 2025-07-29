@@ -3,7 +3,7 @@
 //                utils.cpp                                                   //
 //                Created on  : xxx Jul xx xx:xx:xx 2025                      //
 //                Last update : xxx Jul xx xx:xx:xx 2025                      //
-//                Made by     :                                               //
+//                Made by     : Jules Longin                                  //
 //                                                                            //
 // ************************************************************************** //
 
@@ -53,23 +53,6 @@ std::string	actpath( const char * path )
 	if (rpath.find(cpath) == 0)
 		return "." + rpath.substr(cpath.size());
 	return rpath;
-}
-
-// duplicate.
-bool	duplicate( const std::map<std::string, std::string> & strs, const char ** comp )
-{
-	for ( std::map<std::string, std::string>::const_iterator it = strs.begin(); it != strs.end(); ++it )
-	{
-		while ( *comp != NULL )
-		{
-			if (it->first != *comp)
-				break ;
-			(*comp)++;
-		}
-		if (it->first.empty())
-			return true;
-	}
-	return false;
 }
 
 // DEBUG FUNCTION: str_to_ascii

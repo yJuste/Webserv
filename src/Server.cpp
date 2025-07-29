@@ -3,7 +3,7 @@
 //                Server.cpp                                                  //
 //                Created on  : xxx Jul xx xx:xx:xx 2025                      //
 //                Last update : xxx Jul xx xx:xx:xx 2025                      //
-//                Made by     :                                               //
+//                Made by     : Jules Longin                                  //
 //                                                                            //
 // ************************************************************************** //
 
@@ -91,15 +91,18 @@ void	Server::myConfig( void ) const
 	std::cout << BROWN << " Root             : " << BEIGE << getRoot() << RESET << std::endl;
 	std::cout << BROWN << " Default Server   : " << BEIGE << ( getDefault() ? "Yes" : "No" ) << RESET << std::endl;
 	std::cout << BROWN << " Max Body Size    : " << BEIGE << _rounded(getMaxSize()) << " bytes" << RESET << std::endl;
-
 	std::cout << std::endl << BROWN << " Server Names:" << RESET << std::endl;
 	for ( std::vector<std::string>::const_iterator it = getNames().begin(); it != getNames().end(); ++it )
-		std::cout << BEIGE << "  - " << *it << RESET << std::endl;
-
-	std::cout << std::endl << BROWN << " Error Pages:" << RESET << std::endl;
-	for ( std::map<int, std::string>::const_iterator it = getErrorPages().begin(); it != getErrorPages().end(); ++it )
-		std::cout << BEIGE << "  [" << RESET << BLUE << std::setw(3) << it->first << RESET << BEIGE << "] => " << RESET << YELLOW << it->second << RESET << std::endl;
-
+		std::cout << BEIGE << "   - " << *it << RESET << std::endl;
+	std::cout << std::endl << BROWN << " Error Pages:" << RESET;
+	if (getErrorPages().empty())
+		std::cout << YELLOW << " No specified." << RESET << std::endl;
+	else
+	{
+		std::cout << std::endl;
+		for ( std::map<int, std::string>::const_iterator it = getErrorPages().begin(); it != getErrorPages().end(); ++it )
+			std::cout << BEIGE << "   [" << RESET << BLUE << std::setw(3) << it->first << RESET << BEIGE << "] => " << RESET << YELLOW << it->second << RESET << std::endl;
+	}
 	std::cout << std::endl << BOLD BLUE << "═══ LOCATIONS ════════════════════════════════════════════════" << RESET << std::endl;
 	for ( size_t i = 0; i < getLocations().size(); ++i )
 	{
@@ -119,13 +122,12 @@ void	Server::myConfig( void ) const
 		std::cout << RESET << std::endl;
 		std::cout << BROWN << "    - Autoindex      : " << BEIGE << (loc.getAutoindex() ? "Enabled" : "Disabled") << RESET << std::endl;
 		std::cout << BROWN << "    - Upload Folder  : " << BEIGE << loc.getUpload() << RESET << std::endl;
-
 		std::map<std::string, std::string>	cgi = loc.getCgi();
 		if (!cgi.empty())
 		{
 			std::cout << BROWN << "    - Available CGI  :" << RESET << std::endl;
 			for ( std::map<std::string, std::string>::const_iterator cit = cgi.begin(); cit != cgi.end(); ++cit )
-				std::cout << BEIGE << "         - " << BLUE << cit->first << BEIGE << " => " << YELLOW << cit->second << RESET << std::endl;
+				std::cout << BEIGE << "        - " << BLUE << cit->first << BEIGE << " => " << YELLOW << cit->second << RESET << std::endl;
 		}
 	}
 	std::cout << std::endl << BOLD BLUE << "═══ WARNINGS ═════════════════════════════════════════════════" << RESET << std::endl << std::endl;
