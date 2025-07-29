@@ -28,19 +28,23 @@
 // Ansii
 
 # ifndef BLUE
-#  define BLUE "\033[38;2;0;128;157m"
+#  define BLUE "\033[38;5;74m"
 # endif
 
 # ifndef BEIGE
-#  define BEIGE "\033[38;2;252;248;221m"
+#  define BEIGE "\033[38;5;230m"
 # endif
 
 # ifndef YELLOW
-#  define YELLOW "\033[38;2;255;215;0m"
+#  define YELLOW "\033[38;5;220m"
 # endif
 
 # ifndef BROWN
-#  define BROWN "\033[38;2;211;175;55m"
+#  define BROWN "\033[38;5;137m"
+# endif
+
+# ifndef GREEN
+#  define GREEN "\033[38;5;154m"
 # endif
 
 # ifndef RESET

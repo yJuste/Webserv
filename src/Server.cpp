@@ -126,7 +126,9 @@ void	Server::myConfig( void ) const
 	std::cout << std::endl << BOLD BLUE << "═══ WARNINGS ═════════════════════════════════════════════════" << RESET << std::endl << std::endl;
 	std::vector<std::string>	warnings = getWarnings();
 	for ( std::vector<std::string>::const_iterator wit = warnings.begin(); wit != warnings.end(); ++wit )
-		std::cerr << *wit << std::endl;
+		std::cerr << " " << *wit << std::endl;
+	if (warnings.empty())
+		std::cout << GREEN << " ➤ This server configuration is now ready." << RESET << std::endl;
 	std::cout << std::endl << BOLD BLUE << "══════════════════════════════════════════════════════════════" << RESET << std::endl << std::endl;
 }
 
