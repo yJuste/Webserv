@@ -86,15 +86,15 @@ void	Server::myConfig( void ) const
 	std::cout << std::endl << BOLD BLUE << "╔════════════════════════════════════════════════════════════╗" << std::endl;
 	std::cout << "║                    SERVER CONFIGURATION                    ║" << std::endl;
 	std::cout << "╚════════════════════════════════════════════════════════════╝" << "\033[0m" << std::endl << std::endl;
-	std::cout << BROWN << " Host             : " << BEIGE << getHost() << RESET << std::endl;
-	std::cout << BROWN << " Port             : " << BEIGE << getPort() << RESET << std::endl;
-	std::cout << BROWN << " Root             : " << BEIGE << getRoot() << RESET << std::endl;
-	std::cout << BROWN << " Default Server   : " << BEIGE << ( getDefault() ? "Yes" : "No" ) << RESET << std::endl;
-	std::cout << BROWN << " Max Body Size    : " << BEIGE << _rounded(getMaxSize()) << " bytes" << RESET << std::endl;
-	std::cout << std::endl << BROWN << " Server Names:" << RESET << std::endl;
+	std::cout << BROWN << " Host              : " << BEIGE << getHost() << RESET << std::endl;
+	std::cout << BROWN << " Port              : " << BEIGE << getPort() << RESET << std::endl;
+	std::cout << BROWN << " Root              : " << BEIGE << getRoot() << RESET << std::endl;
+	std::cout << BROWN << " Default Server    : " << BEIGE << ( getDefault() ? "\033[32mYes\033[0m" : "\033[31mNo\033[0m" ) << RESET << std::endl;
+	std::cout << BROWN << " Max Body Size     : " << BEIGE << _rounded(getMaxSize()) << " bytes" << RESET << std::endl;
+	std::cout << std::endl << BROWN << " Server Name(s) :" << RESET << std::endl;
 	for ( std::vector<std::string>::const_iterator it = getNames().begin(); it != getNames().end(); ++it )
 		std::cout << BEIGE << "   - " << *it << RESET << std::endl;
-	std::cout << std::endl << BROWN << " Error Pages:" << RESET;
+	std::cout << std::endl << BROWN << " Error Page(s) :" << RESET;
 	if (getErrorPages().empty())
 		std::cout << YELLOW << " No specified." << RESET << std::endl;
 	else
@@ -108,26 +108,27 @@ void	Server::myConfig( void ) const
 	{
 		const Location	&loc = _locations[i];
 		std::cout << std::endl;
-		std::cout << BLUE << " Location Path       " << YELLOW << loc.getPath() << RESET << std::endl << std::endl;
-		std::cout << BROWN << "    - Methods        : " << RESET;
+		std::cout << BLUE << " Location Path         " << YELLOW << loc.getPath() << RESET << std::endl << std::endl;
+		std::cout << BROWN << "    - Method(s)        : " << RESET;
 		std::vector<std::string> methods = loc.getMethods();
 		for ( std::vector<std::string>::const_iterator mit = methods.begin(); mit != methods.end(); ++mit )
 			std::cout << BEIGE << *mit << " " << RESET;
 		std::cout << std::endl;
-		std::cout << BROWN << "    - Redirection    : " << BEIGE << loc.getReturn() << RESET << std::endl;
-		std::cout << BROWN << "    - Default File   : " << BEIGE;
+		std::cout << BROWN << "    - Redirection      : " << BEIGE << loc.getReturn() << RESET << std::endl;
+		std::cout << BROWN << "    - Default File(s)  : " << BEIGE;
 		std::vector<std::string>	index = loc.getIndex();
 		for ( std::vector<std::string>::const_iterator it = index.begin(); it != index.end(); ++it )
 			std::cout << *it << " ";
 		std::cout << RESET << std::endl;
-		std::cout << BROWN << "    - Autoindex      : " << BEIGE << (loc.getAutoindex() ? "Enabled" : "Disabled") << RESET << std::endl;
-		std::cout << BROWN << "    - Upload Folder  : " << BEIGE << loc.getUpload() << RESET << std::endl;
+		std::cout << BROWN << "    - Autoindex        : " << BEIGE << (loc.getAutoindex() ? "Enabled" : "Disabled") << RESET << std::endl;
+		std::cout << BROWN << "    - Upload Folder    : " << BEIGE << loc.getUpload() << RESET << std::endl;
 		std::map<std::string, std::string>	cgi = loc.getCgi();
 		if (!cgi.empty())
 		{
-			std::cout << BROWN << "    - Available CGI  :" << RESET << std::endl;
+			std::cout << BROWN << "    - Available CGI    :" << RESET << std::endl;
 			for ( std::map<std::string, std::string>::const_iterator cit = cgi.begin(); cit != cgi.end(); ++cit )
-				std::cout << BEIGE << "        - " << BLUE << cit->first << BEIGE << " => " << YELLOW << cit->second << RESET << std::endl;
+				if (!cit->second.empty())
+					std::cout << BEIGE << "        - " << BLUE << cit->first << BEIGE << " => " << YELLOW << cit->second << RESET << std::endl;
 		}
 	}
 	std::cout << std::endl << BOLD BLUE << "═══ WARNINGS ═════════════════════════════════════════════════" << RESET << std::endl << std::endl;
