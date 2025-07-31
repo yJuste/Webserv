@@ -92,7 +92,7 @@ class	Server
 		// Methode
 
 		void startup();
-		void shutdown() const;
+		void shutdown();
 		void myConfig() const;
 		bool dupLocation( const std::string & ) const;
 

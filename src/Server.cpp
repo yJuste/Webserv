@@ -80,6 +80,15 @@ void	Server::startup( void )
 		throw FailedListen();
 }
 
+void	Server::shutdown( void )
+{
+	if (_socket != -1)
+	{
+		close(_socket);
+		_socket = -1;
+	}
+}
+
 void	Server::myConfig( void ) const
 {
 
@@ -138,12 +147,6 @@ void	Server::myConfig( void ) const
 	if (warnings.empty())
 		std::cout << GREEN << " ➤ This server configuration is now ready." << RESET << std::endl;
 	std::cout << std::endl << BOLD BLUE << "══════════════════════════════════════════════════════════════" << RESET << std::endl << std::endl;
-}
-
-void	Server::shutdown( void ) const
-{
-	if (_socket != -1)
-		close(_socket);
 }
 
 bool	Server::dupLocation( const std::string & path ) const

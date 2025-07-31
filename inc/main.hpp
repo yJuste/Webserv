@@ -18,15 +18,21 @@
 # include <sys/stat.h>
 # include <dirent.h>
 # include <cstdlib>
+# include <poll.h>
 
 // Dependences
 
 # include "Server.hpp"
+# include "Supervisor.hpp"
 
 // Defines
 
 # ifndef PATH_SIZE
 #  define PATH_SIZE 256
+# endif
+
+# ifndef BUFFER
+#  define BUFFER 256
 # endif
 
 // ************************************************************************** //

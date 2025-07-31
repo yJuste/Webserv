@@ -38,6 +38,14 @@ class	FailedRealpath : public std::exception { public : const char * what() cons
 
 class	FailedGetcwd : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: getcwd() failed."; } };
 
+class	FailedPoll : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: poll() failed."; } };
+
+class	FailedAccept : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: accept() failed."; } };
+
+class	FailedRecv : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: recv() failed."; } };
+
+class	FailedSend : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: send() failed."; } };
+
 // Parsing
 
 class	BracketsNotClosed : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Brackets are not closed."; } };

@@ -22,8 +22,11 @@ int	main(int argc, char **argv)
 		{
 			servers[i].startup();
 			servers[i].myConfig();
-			servers[i].shutdown();
 		}
+
+		Supervisor	supervisor(servers);
+
+		supervisor.execution();
 	}
 	catch (std::exception & e) { std::cerr << e.what() << std::endl; }
 	return 0;
