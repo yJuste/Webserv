@@ -12,9 +12,9 @@ OBJ_DIR = obj
 # Files
 SRC =	main.cpp				\
 	Server.cpp				\
+	Location.cpp				\
 	Client.cpp				\
 	Supervisor.cpp				\
-	Location.cpp				\
 	parsing/configure_file.cpp		\
 	parsing/init_server.cpp			\
 	parsing/init_location.cpp		\

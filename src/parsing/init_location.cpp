@@ -13,6 +13,12 @@
 const char * g_extensions[] = { ".py", ".php", NULL };
 const char * g_methods[] = { "GET", "POST", "DELETE", NULL };
 
+bool	dupCgi( const std::map<std::string, std::string> & cgi, const std::string & extension )
+{
+	std::map<std::string, std::string>::const_iterator it = cgi.find(extension);
+	return it != cgi.end() && !it->second.empty();
+}
+
 void	init_cgi( std::vector<std::string>::const_iterator & it, Location & location )
 {
 	std::string	extension = *(it++);
@@ -23,7 +29,7 @@ void	init_cgi( std::vector<std::string>::const_iterator & it, Location & locatio
 	program.pop_back();
 	if (acstat(program.c_str(), F_OK | X_OK) != 1)
 		throw ProgramCgi(program.c_str());
-	if (location.dupCgi(extension))
+	if (dupCgi(location.getCgi(), extension))
 		throw DuplicateCgi(extension.c_str());
 
 	location.addCgi(extension, actpath(program.c_str()));
@@ -154,6 +160,14 @@ void	init_location( const std::vector<std::string> & words, std::vector<std::str
 		throw InvalidParameter(it->c_str());
 }
 
+bool	dupLocation( const std::vector<Location> & locations, const std::string & path )
+{
+	for (std::vector<Location>::const_iterator it = locations.begin(); it != locations.end(); ++it)
+		if (it->getPath() == path)
+			return true;
+	return false;
+}
+
 void	create_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
 	if (acstat(it->c_str(), F_OK | R_OK) != 2)
@@ -164,7 +178,7 @@ void	create_location( const std::vector<std::string> & words, std::vector<std::s
 	location.setPath(actpath(it->c_str()));
 	std::vector<Location> locations = server.getLocations();
 
-	if (server.dupLocation(location.getPath()))
+	if (dupLocation(server.getLocations(), location.getPath()))
 		throw DuplicateLocation((location.getPath()).c_str());
 	if (++it == words.end() || *(it++) != "{")
 		throw LocationNotGiven();

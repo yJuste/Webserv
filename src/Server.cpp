@@ -149,14 +149,6 @@ void	Server::myConfig( void ) const
 	std::cout << std::endl << BOLD BLUE << "══════════════════════════════════════════════════════════════" << RESET << std::endl << std::endl;
 }
 
-bool	Server::dupLocation( const std::string & path ) const
-{
-	for ( std::vector<Location>::const_iterator it = getLocations().begin(); it != getLocations().end(); ++it )
-		if (it->getPath() == path)
-			return true;
-	return false;
-}
-
 // Private Methods
 
 // return rounded number with its nearest units.

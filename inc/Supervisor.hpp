@@ -12,8 +12,6 @@
 
 // Standard Libraries
 
-# include <iostream>
-# include <vector>
 # include <poll.h>
 
 // Defines
@@ -37,9 +35,10 @@ class	Supervisor
 		struct pollfd		_fds[FDS_SIZE];
 		size_t			_size;
 
+		Supervisor();
+
 	public:
 
-		Supervisor();
 		Supervisor( const std::vector<Server> & );
 		~Supervisor();
 

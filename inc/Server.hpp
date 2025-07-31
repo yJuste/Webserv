@@ -14,8 +14,6 @@
 
 # include <iostream>
 # include <sstream>
-# include <vector>
-# include <map>
 # include <unistd.h>
 # include <netdb.h>
 # include <fstream>
@@ -91,10 +89,9 @@ class	Server
 
 		// Methode
 
-		void startup();
-		void shutdown();
-		void myConfig() const;
-		bool dupLocation( const std::string & ) const;
+		void startup();			// start server
+		void shutdown();		// close server
+		void myConfig() const;		// print server configuration
 
 		// Getter
 

@@ -12,13 +12,8 @@
 
 // Standard Libraries
 
-# include <iostream>
-# include <vector>
-# include <sstream>
 # include <sys/stat.h>
 # include <dirent.h>
-# include <cstdlib>
-# include <poll.h>
 
 // Dependences
 

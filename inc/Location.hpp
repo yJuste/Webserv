@@ -12,8 +12,6 @@
 
 // Standard Libraries
 
-# include <iostream>
-# include <vector>
 # include <map>
 
 // ************************************************************************** //
@@ -42,10 +40,6 @@ class	Location
 
 		Location( const Location & );
 		Location & operator = ( const Location & );
-
-		// Method
-
-		bool dupCgi( const std::string & ) const;
 
 		// Getter
 
