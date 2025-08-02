@@ -186,11 +186,11 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 		throw InvalidParameter(it->c_str());
 }
 
-void	missingImportant( std::vector<Server> & servers, Server & server )
+void	missingImportant( std::vector<Server *> & servers, Server & server )
 {
 	server.setDefault(true);
-	for ( std::vector<Server>::const_iterator cit = servers.begin(); cit != servers.end(); ++cit )
-		if (cit != servers.end() - 1 && cit->getHost() == server.getHost() && cit->getPort() == server.getPort())
+	for (std::vector<Server *>::const_iterator cit = servers.begin(); cit != servers.end(); ++cit)
+		if (cit != servers.end() - 1 && (*cit)->getHost() == server.getHost() && (*cit)->getPort() == server.getPort())
 			server.setDefault(false);
 	try { if (server.getHost() == "0.0.0.0") throw MissingImportantValues("host"); }
 	catch ( std::exception & e ) { server.addWarning(e.what()); }
@@ -202,11 +202,11 @@ void	missingImportant( std::vector<Server> & servers, Server & server )
 		server.addName("localhost");
 }
 
-std::vector<Server>	create_servers( const std::vector<std::string> & words )
+std::vector<Server *>	create_servers( const std::vector<std::string> & words )
 {
-	std::vector<Server>				servers;
-
+	std::vector<Server *>		servers;
 	std::vector<std::string>::const_iterator it = words.begin();
+
 	while (it != words.end())
 	{
 		if (*it == "server")
@@ -216,18 +216,19 @@ std::vector<Server>	create_servers( const std::vector<std::string> & words )
 			if (++it == words.end())
 				throw ValueNotGiven();
 
-			servers.emplace_back();
-			Server & server = servers.back();
+			Server * server = new Server();
+			servers.push_back(server);
+
 			while (*it != "}")
 			{
 				if (*it == "{")
 					throw BracketsNotClosed();
 				if ((++it)-- == words.end())
 					throw ValueNotGiven();
-				init_server(words, it, server);
+				init_server(words, it, *server);
 				++it;
 			}
-			missingImportant(servers, server);
+			missingImportant(servers, *server);
 		}
 		else
 			++it;

@@ -46,6 +46,8 @@ class	FailedRecv : public std::exception { public : const char * what() const th
 
 class	FailedSend : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: send() failed."; } };
 
+class	FailedEvents : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: poll() failed, revents not correct."; } };
+
 // Parsing
 
 class	BracketsNotClosed : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Brackets are not closed."; } };
@@ -89,5 +91,7 @@ class	OverwrittenParameter : public std::exception { private: char _msg[MSG_SIZE
 class	DuplicateLocation : public std::exception { private: char _msg[MSG_SIZE]; public: DuplicateLocation( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: The location with this path already exists.", s); } const char * what() const throw() { return _msg; } };
 
 class	MissingImportantValues : public std::exception { private: char _msg[MSG_SIZE]; public: MissingImportantValues( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31mwarning\033[0m: `%s`: Important value for server operation.", s); } const char * what() const throw() { return _msg; } };
+
+class	TooManyConnexions : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Too many connexions on the server."; } };
 
 #endif

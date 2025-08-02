@@ -16,6 +16,13 @@
 # include <netdb.h>
 # include <unistd.h>
 
+/*	HELP
+
+* Client is a RAII class.
+* Warning: Copying is forbidden because it's dangerous to duplicate a fd.
+
+*/
+
 // ************************************************************************** //
 //                                 Client Class                               //
 // ************************************************************************** //
@@ -26,13 +33,15 @@ class	Client
 
 		int		_socket;
 
-	public:
-
 		Client();
-		~Client();
 
 		Client( const Client & );
 		Client & operator = ( const Client & );
+
+	public:
+
+		Client( int );
+		~Client();
 
 		// Method
 

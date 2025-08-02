@@ -37,10 +37,10 @@
 // ----- Parsing -----
 
 // configure_file.cpp
-std::vector<Server>	configure_file( const char * );
+std::vector<Server *>	configure_file( const char * );
 
 // init_server.cpp
-std::vector<Server>	create_servers( const std::vector<std::string> & );
+std::vector<Server *>	create_servers( const std::vector<std::string> & );
 void	init_root( std::string str, Server & server );
 
 // init_location.cpp

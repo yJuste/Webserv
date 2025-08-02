@@ -12,16 +12,16 @@
 
 int	main(int argc, char **argv)
 {
+	std::vector<Server *>	servers;
+
 	try
 	{
-		std::vector<Server>	servers;
-
 		(void)argc;
 		servers = configure_file(argv[1]);
 		for ( size_t i = 0; i < servers.size(); ++i )
 		{
-			servers[i].startup();
-			servers[i].myConfig();
+			servers[i]->startup();
+			servers[i]->myConfig();
 		}
 
 		Supervisor	supervisor(servers);

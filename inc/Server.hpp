@@ -53,6 +53,13 @@
 #  define BOLD "\033[1m"
 # endif
 
+/*	HELP
+
+* Server is a RAII class.
+* Warning: Copying is forbidden because it's dangerous to duplicate a fd.
+
+*/
+
 // ************************************************************************** //
 //                                 Server Class                               //
 // ************************************************************************** //
@@ -79,13 +86,13 @@ class	Server
 
 		std::string			_rounded( size_t ) const;
 
+		Server( const Server & );
+		Server & operator = ( const Server & );
+
 	public:
 
 		Server();
 		~Server();
-
-		Server( const Server & );
-		Server & operator = ( const Server & );
 
 		// Methode
 

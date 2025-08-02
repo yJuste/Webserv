@@ -11,30 +11,17 @@
 # include "Exceptions.hpp"
 
 Supervisor::Supervisor() : _size(0) { std::memset(_fds, 0, sizeof(_fds)); }
-Supervisor::~Supervisor() {}
+Supervisor::~Supervisor() { _clean(); }
 
-Supervisor::Supervisor( const Supervisor & s ) { *this = s; }
-
-Supervisor::Supervisor( const std::vector<Server> & servers ) : _size(servers.size())
+Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(servers.size()), _servers(servers)
 {
 	std::memset(_fds, 0, sizeof(_fds));
 
 	for (size_t i = 0; i < _size; ++i)
 	{
-		_fds[i].fd = servers[i].getSocket();
+		_fds[i].fd = _servers[i]->getSocket();
 		_fds[i].events = POLLIN;
 	}
-}
-
-Supervisor	&Supervisor::operator = ( const Supervisor & s )
-{
-	if (this != &s)
-	{
-		for (int i = 0; i < FDS_SIZE; ++i)
-			_fds[i] = s.getFdsX(i);
-		_size = s.getSize();
-	}
-	return *this;
 }
 
 // Method
@@ -47,62 +34,91 @@ void	Supervisor::execution( void )
 			throw FailedPoll();
 		for (size_t i = 0; i < _size; ++i)
 		{
-			;
+			if (_fds[i].revents == 0)
+				continue ;
+			if (!(_fds[i].revents & POLLIN))
+				continue ;
+			int fd = _fds[i].fd;
+			if (_find(_servers, fd))
+			{
+				if (_size >= FDS_SIZE)
+					throw TooManyConnexions();
+				Client * client = new Client(fd);
+				addClient(client);
+				_fds[_size].fd = client->getSocket();
+				_fds[_size].events = POLLIN;
+				++_size;
+				printf("New client connexion.\n");
+				printf("client:%d:\n", client->getSocket());
+				printf("server:%d:\n", _servers[0]->getSocket());
+			}
+			else
+			{
+				char buffer[1024];
+				int rc = recv(fd, buffer, sizeof(buffer), 0);
+				if (rc <= 0)
+				{
+					printf("Client %d s'est déconnecté.\n", fd);
+					supClient(fd);
+					close(fd);
+					_fds[i] = _fds[_size - 1];
+					--_size;
+					--i;
+					continue ;
+				}
+				else
+				{
+					std::string	response =
+					"HTTP/1.1 200 OK\r\n"
+					"Content-Type: text/plain\r\n"
+					"Content-Length: 13\r\n"
+					"\r\n"
+					"Hello, world!";
+					send(fd, response.c_str(), response.size(), 0);
+				}
+			}
 		}
 	}
+}
+
+void	Supervisor::supClient( int fd )
+{
+	for (std::vector<Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		if ((*it)->getSocket() == fd)
+		{
+			delete *it;
+			_clients.erase(it);
+			return ;
+		}
+	}
+}
+
+// Private Method
+
+bool	Supervisor::_find( const std::vector<Server *> & servers, int fd )
+{
+	for (size_t i = 0; i < servers.size(); ++i)
+		if (servers[i]->getSocket() == fd)
+			return true;
+	return false;
+}
+
+void	Supervisor::_clean()
+{
+	for (size_t i = 0; i < _servers.size(); ++i)
+		delete _servers[i];
+	_servers.clear();
+	for (size_t i = 0; i < _clients.size(); ++i)
+		delete _clients[i];
+	_clients.clear();
 }
 
 // Getter
 
 size_t	Supervisor::getSize() const { return _size; }
-struct pollfd	Supervisor::getFdsX( int idx ) const { return _fds[idx]; }
+struct pollfd	Supervisor::getFdX( int idx ) const { return _fds[idx]; }
 
-/*
-		// 3 minutes waiting for something
-		int nfds = 1;
-		while (1)
-		{
-			printf("Waiting the poll()...\n");
-			if (poll(fds, nfds, 0) == -1)
-				throw FailedPoll();
-			for (int i = 0; i < nfds; ++i)
-			{
-				if (fds[i].revents == 0)
-					continue ;
-				if (fds[i].revents != POLLIN)
-				{
-					printf("Error 1");
-					return 1;
-				}
-				if (fds[i].fd == servers[0].getSocket())
-				{
-					printf("Listening socket");
-					int client_fd = accept(servers[0].getSocket(), NULL, NULL);
-					if (client_fd == -1)
-						throw FailedAccept();
-					printf("New incoming connexion");
-					fds[nfds].fd = client_fd;
-					fds[nfds].events = POLLIN;
-					nfds++;
-				}
-				else
-				{
-					char		buffer[80];
-					int rc = recv(fds[i].fd, buffer, sizeof(buffer), 0);
-					if (rc == -1)
-						throw FailedRecv();
-					if (rc == 0)
-					{
-						printf("Connexion closed.");
-						break ;
-					}
-					rc = send(fds[i].fd, buffer, rc, 0);
-					if (rc == -1)
-						throw FailedSend();
-				}
-			}
-		}
-		for (int i = 0; i < nfds; ++i)
-			if (fds[i].fd >= 0)
-				close(fds[i].fd);
-*/
+// Setter
+
+void	Supervisor::addClient( Client * client ) { _clients.push_back(client); }

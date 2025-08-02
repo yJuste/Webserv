@@ -10,6 +10,17 @@
 # include "main.hpp"
 # include "Exceptions.hpp"
 
+bool	is_commentary( const std::string & line )
+{
+	if (line.empty())
+		return true;
+	if (line[0] == '#')
+		return true;
+	if (line.size() >= 2 && line[0] == '/' && line[1] == '/')
+		return true;
+	return false;
+}
+
 std::vector<std::string>	split( const std::string & s )
 {
 	std::stringstream		ss(s);
@@ -18,7 +29,7 @@ std::vector<std::string>	split( const std::string & s )
 
 	while (ss >> word)
 	{
-		if (word[0] == '#')
+		if (is_commentary(word))
 			break ;
 		if (word == "{}")
 		{
@@ -31,17 +42,6 @@ std::vector<std::string>	split( const std::string & s )
 	return words;
 }
 
-bool	is_commentary( const std::string & line )
-{
-	if (line.empty())
-		return true;
-	if (line[0] == '#')
-		return true;
-	if (line[0] == '/' && line[1] == '/')
-		return true;
-	return false;
-}
-
 std::string	trim( const std::string & s )
 {
 	size_t	begin = s.find_first_not_of(" \t\r\n");
@@ -52,7 +52,7 @@ std::string	trim( const std::string & s )
 	return s.substr(begin, end - begin + 1);
 }
 
-std::vector<Server>	configure_file( const char * s )
+std::vector<Server *>	configure_file( const char * s )
 {
 	if (acstat(s, F_OK | R_OK) != 1)
 		throw FailedAcstat(s);
@@ -67,11 +67,10 @@ std::vector<Server>	configure_file( const char * s )
 	while (std::getline(file, line))
 	{
 		line = trim(line);
-		if (!is_commentary(line))
-		{
-			std::vector<std::string> w = split(line);
-			words.insert(words.end(), w.begin(), w.end());
-		}
+		if (is_commentary(line))
+			continue ;
+		std::vector<std::string> w = split(line);
+		words.insert(words.end(), w.begin(), w.end());
 	}
 	return create_servers(words);
 }

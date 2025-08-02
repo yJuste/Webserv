@@ -13,16 +13,7 @@
 Client::Client() : _socket(-1) {}
 Client::~Client() { backout(); }
 
-Client::Client( const Client & client ) { *this = client; }
-
-Client	&Client::operator = ( const Client & c )
-{
-	if (this != &c)
-	{
-		_socket = c.getSocket();
-	}
-	return *this;
-}
+Client::Client( int server_socket ) { unit(server_socket); }
 
 // Methode
 
@@ -30,7 +21,7 @@ void	Client::unit( int server_socket )
 {
 	_socket = accept(server_socket, NULL, NULL);
 	if (_socket == -1)
-		throw FailedSocket();
+		throw FailedAccept();
 }
 
 void	Client::backout( void )

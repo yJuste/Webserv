@@ -20,30 +20,6 @@ Server::Server() : _socket(-1), _host("0.0.0.0"), _port(80), _root(""), _default
 }
 Server::~Server() { shutdown(); }
 
-Server::Server( const Server & server ) { *this = server; }
-
-Server	&Server::operator = ( const Server & s )
-{
-	if (this != &s)
-	{
-		_socket = s.getSocket();
-		_address = s.getAddress();
-		_host = s.getHost();
-		_port = s.getPort();
-		_root = s.getRoot();
-		_default = s.getDefault();
-		_names = s.getNames();
-		_errorPages = s.getErrorPages();
-		_maxSize = s.getMaxSize();
-		_locations = s.getLocations();
-
-		_duplicate = s.getDuplicate();
-		_overwritten = s.getOverwritten();
-		_warnings = s.getWarnings();
-	}
-	return *this;
-}
-
 // Methode
 
 void	Server::startup( void )
