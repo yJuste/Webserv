@@ -10,15 +10,17 @@
 # include "Supervisor.hpp"
 # include "Exceptions.hpp"
 
-Supervisor::Supervisor() : _size(0), _server_size(0) { std::memset(_fds, 0, sizeof(_fds)); }
+Supervisor::Supervisor() : _size(0), _server_size(0), _running(true) { std::memset(_fds, 0, sizeof(_fds)); }
 Supervisor::~Supervisor() { _clean(); }
 
-Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(0), _server_size(servers.size()), _servers(servers)
+Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(0), _server_size(servers.size()), _running(true), _servers(servers)
 {
 	std::memset(_fds, 0, sizeof(_fds));
 
 	if (_server_size == 0)
 		throw NoServerAdded();
+	for (size_t i = 0; i < servers.size(); ++i)
+		servers[i]->startup();
 	for (size_t i = 0; i < _server_size; ++i)
 	{
 		_fds[i].fd = _servers[i]->getSocket();
@@ -31,7 +33,7 @@ Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(0), _ser
 
 void	Supervisor::execution( void )
 {
-	while (true)
+	while (_running)
 	{
 		if (poll(_fds, _size, 0) == -1)
 			throw FailedPoll();
@@ -62,9 +64,10 @@ void	Supervisor::execution( void )
 				else if (rc == 0)
 				{
 					printf("Client [%d] s'est déconnecté.\n", fd);
-					_supClient(fd);
-					close(fd);
+					if (!_supClient(fd))
+						throw SupNoClient();
 					_fds[i] = _fds[_size - 1];
+					close(fd);
 					--_size;
 					continue ;
 				}
@@ -94,7 +97,7 @@ bool	Supervisor::_find( const std::vector<Server *> & servers, int fd )
 	return false;
 }
 
-void	Supervisor::_supClient( int fd )
+bool	Supervisor::_supClient( int fd )
 {
 	for (std::vector<Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
@@ -102,9 +105,10 @@ void	Supervisor::_supClient( int fd )
 		{
 			delete *it;
 			_clients.erase(it);
-			return ;
+			return true;
 		}
 	}
+	return false;
 }
 
 void	Supervisor::_clean()
@@ -121,6 +125,7 @@ void	Supervisor::_clean()
 
 size_t	Supervisor::getSize() const { return _size; }
 struct pollfd	Supervisor::getFdX( int idx ) const { return _fds[idx]; }
+bool	Supervisor::getRunning() const { return _running; }
 
 // Setters
 

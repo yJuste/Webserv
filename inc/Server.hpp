@@ -58,6 +58,7 @@
 
 * Server is a RAII class.
 * Warning: Copying is forbidden because it's dangerous to duplicate a fd.
+* Startup() & Shutdown() can only be used once ( they are protected )
 
 */
 
@@ -97,8 +98,8 @@ class	Server
 
 		// Methode
 
-		void startup();			// start server
-		void shutdown();		// close server
+		void startup();			// start server (protected)
+		void shutdown();		// close server (protected)
 		void myConfig() const;		// print server configuration
 
 		// Getter

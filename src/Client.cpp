@@ -13,12 +13,14 @@
 Client::Client() : _socket(-1) {}
 Client::~Client() { _backout(); }
 
-Client::Client( int server_socket ) { _unit(server_socket); }
+Client::Client( int server_socket ) : _socket(-1) { _unit(server_socket); }
 
 // Private Methods
 
 void	Client::_unit( int server_socket )
 {
+	if (_socket != -1)
+		return ;
 	_socket = accept(server_socket, NULL, NULL);
 	if (_socket == -1)
 		throw FailedAccept();

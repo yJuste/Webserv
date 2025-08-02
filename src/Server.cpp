@@ -24,11 +24,15 @@ Server::~Server() { shutdown(); }
 
 void	Server::startup( void )
 {
-	const int	opt = 1;
+	if (_socket != -1)
+		return ;
 
 	_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_socket == -1)
 		throw FailedSocket();
+
+	const int	opt = 1;
+
 	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) == -1)
 		throw FailedSetsockopt();
 	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(int)) == -1)

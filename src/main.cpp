@@ -15,17 +15,12 @@ int	main(int argc, char **argv)
 	try
 	{
 		(void)argc;
-		std::vector<Server *>		servers;
+		std::vector<Server *> servers = configure_file(argv[1]);
 
-		servers = configure_file(argv[1]);
-		for ( size_t i = 0; i < servers.size(); ++i )
-		{
-			servers[i]->startup();
+		for (size_t i = 0; i < servers.size(); ++i)
 			servers[i]->myConfig();
-		}
 
-		Supervisor	supervisor(servers);
-
+		Supervisor supervisor(servers);
 		supervisor.execution();
 	}
 	catch (std::exception & e) { std::cerr << e.what() << std::endl; }
