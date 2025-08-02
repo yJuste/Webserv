@@ -12,11 +12,11 @@
 
 int	main(int argc, char **argv)
 {
-	std::vector<Server *>	servers;
-
 	try
 	{
 		(void)argc;
+		std::vector<Server *>		servers;
+
 		servers = configure_file(argv[1]);
 		for ( size_t i = 0; i < servers.size(); ++i )
 		{

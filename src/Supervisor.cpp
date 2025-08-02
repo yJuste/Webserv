@@ -49,8 +49,6 @@ void	Supervisor::execution( void )
 				_fds[_size].events = POLLIN;
 				++_size;
 				printf("New client connexion.\n");
-				printf("client:%d:\n", client->getSocket());
-				printf("server:%d:\n", _servers[0]->getSocket());
 			}
 			else
 			{
@@ -59,7 +57,7 @@ void	Supervisor::execution( void )
 				if (rc <= 0)
 				{
 					printf("Client %d s'est déconnecté.\n", fd);
-					supClient(fd);
+					_supClient(fd);
 					close(fd);
 					_fds[i] = _fds[_size - 1];
 					--_size;
@@ -81,7 +79,17 @@ void	Supervisor::execution( void )
 	}
 }
 
-void	Supervisor::supClient( int fd )
+// Private Methods
+
+bool	Supervisor::_find( const std::vector<Server *> & servers, int fd )
+{
+	for (size_t i = 0; i < servers.size(); ++i)
+		if (servers[i]->getSocket() == fd)
+			return true;
+	return false;
+}
+
+void	Supervisor::_supClient( int fd )
 {
 	for (std::vector<Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
@@ -94,16 +102,6 @@ void	Supervisor::supClient( int fd )
 	}
 }
 
-// Private Method
-
-bool	Supervisor::_find( const std::vector<Server *> & servers, int fd )
-{
-	for (size_t i = 0; i < servers.size(); ++i)
-		if (servers[i]->getSocket() == fd)
-			return true;
-	return false;
-}
-
 void	Supervisor::_clean()
 {
 	for (size_t i = 0; i < _servers.size(); ++i)
@@ -114,11 +112,11 @@ void	Supervisor::_clean()
 	_clients.clear();
 }
 
-// Getter
+// Getters
 
 size_t	Supervisor::getSize() const { return _size; }
 struct pollfd	Supervisor::getFdX( int idx ) const { return _fds[idx]; }
 
-// Setter
+// Setters
 
 void	Supervisor::addClient( Client * client ) { _clients.push_back(client); }

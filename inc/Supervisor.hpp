@@ -51,6 +51,7 @@ class	Supervisor
 		std::vector<Client *>	_clients;
 
 		bool			_find( const std::vector<Server *> &, int );
+		void			_supClient( int );
 		void			_clean();
 
 		Supervisor();
@@ -66,7 +67,6 @@ class	Supervisor
 		// Method
 
 		void execution();
-		void supClient( int );
 
 		// Getter
 

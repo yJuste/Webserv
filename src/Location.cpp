@@ -45,7 +45,7 @@ Location	&Location::operator = ( const Location & l )
 	return *this;
 }
 
-// Getter
+// Getters
 
 const std::string	&Location::getPath() const { return _path; }
 const std::vector<std::string>	&Location::getMethods() const { return _methods; }
@@ -60,7 +60,7 @@ const std::map<std::string, bool>	&Location::getOverwritten() const { return _ov
 bool	Location::getDuplicateX( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _duplicate.find(parameter); return it != _duplicate.end() && it->second; }
 bool	Location::getOverwrittenX( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _overwritten.find(parameter); return it != _overwritten.end() && it->second; }
 
-// Setter
+// Setters
 
 void	Location::setPath( const std::string & path ) { _path = path; }
 void	Location::setMethods( const std::vector<std::string> & methods ) { _methods = methods; }

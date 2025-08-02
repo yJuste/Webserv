@@ -20,7 +20,7 @@ Server::Server() : _socket(-1), _host("0.0.0.0"), _port(80), _root(""), _default
 }
 Server::~Server() { shutdown(); }
 
-// Methode
+// Methods
 
 void	Server::startup( void )
 {
@@ -148,7 +148,7 @@ std::string	Server::_rounded( size_t bytes ) const
 	return ss.str();
 }
 
-// Getter
+// Getters
 
 int	Server::getSocket() const { return _socket; }
 const struct sockaddr_in	&Server::getAddress() const { return _address; }
@@ -168,7 +168,7 @@ bool	Server::getDuplicateX( const std::string & parameter ) const { std::map<std
 bool	Server::getOverwrittenX( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _overwritten.find(parameter); return it != _overwritten.end() && it->second; }
 const std::vector<std::string>	&Server::getWarnings() const { return _warnings; }
 
-// Setter
+// Setters
 
 void	Server::setHost( const std::string & host ) { _host = host; }
 void	Server::setPort( int port ) { _port = port; }

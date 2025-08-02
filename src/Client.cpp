@@ -11,20 +11,20 @@
 # include "Exceptions.hpp"
 
 Client::Client() : _socket(-1) {}
-Client::~Client() { backout(); }
+Client::~Client() { _backout(); }
 
-Client::Client( int server_socket ) { unit(server_socket); }
+Client::Client( int server_socket ) { _unit(server_socket); }
 
-// Methode
+// Private Methods
 
-void	Client::unit( int server_socket )
+void	Client::_unit( int server_socket )
 {
 	_socket = accept(server_socket, NULL, NULL);
 	if (_socket == -1)
 		throw FailedAccept();
 }
 
-void	Client::backout( void )
+void	Client::_backout( void )
 {
 	if (_socket != -1)
 	{

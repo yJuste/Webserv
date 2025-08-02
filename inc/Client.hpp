@@ -33,6 +33,9 @@ class	Client
 
 		int		_socket;
 
+		void		_unit( int );
+		void		_backout();
+
 		Client();
 
 		Client( const Client & );
@@ -43,15 +46,9 @@ class	Client
 		Client( int );
 		~Client();
 
-		// Method
-
-		void unit( int );
-		void backout();
-
 		// Getter
 
 		int getSocket() const;
-		const struct sockaddr_in & getAddress() const;
 };
 
 #endif
