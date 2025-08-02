@@ -46,7 +46,7 @@ class	FailedRecv : public std::exception { public : const char * what() const th
 
 class	FailedSend : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: send() failed."; } };
 
-class	FailedEvents : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: poll() failed, revents not correct."; } };
+class	FailedFcntl : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: fcntl() failed."; } };
 
 // Parsing
 

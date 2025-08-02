@@ -34,6 +34,9 @@ void	Server::startup( void )
 	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(int)) == -1)
 		throw FailedSetsockopt();
 
+	if (fcntl(_socket, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
+		throw FailedFcntl();
+
 	struct addrinfo		def;
 	struct addrinfo		*info;
 

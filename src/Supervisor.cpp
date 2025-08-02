@@ -10,18 +10,21 @@
 # include "Supervisor.hpp"
 # include "Exceptions.hpp"
 
-Supervisor::Supervisor() : _size(0) { std::memset(_fds, 0, sizeof(_fds)); }
+Supervisor::Supervisor() : _size(0), _server_size(0) { std::memset(_fds, 0, sizeof(_fds)); }
 Supervisor::~Supervisor() { _clean(); }
 
-Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(servers.size()), _servers(servers)
+Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(0), _server_size(servers.size()), _servers(servers)
 {
 	std::memset(_fds, 0, sizeof(_fds));
 
-	for (size_t i = 0; i < _size; ++i)
+	if (_server_size == 0)
+		throw NoServerAdded();
+	for (size_t i = 0; i < _server_size; ++i)
 	{
 		_fds[i].fd = _servers[i]->getSocket();
 		_fds[i].events = POLLIN;
 	}
+	_size = _server_size;
 }
 
 // Method
@@ -39,7 +42,7 @@ void	Supervisor::execution( void )
 			if (!(_fds[i].revents & POLLIN))
 				continue ;
 			int fd = _fds[i].fd;
-			if (_find(_servers, fd))
+			if (i < _server_size)
 			{
 				if (_size >= FDS_SIZE)
 					throw TooManyConnexions();
@@ -48,31 +51,33 @@ void	Supervisor::execution( void )
 				_fds[_size].fd = client->getSocket();
 				_fds[_size].events = POLLIN;
 				++_size;
-				printf("New client connexion.\n");
+				printf("New client [%d] connexion.\n", client->getSocket());
 			}
 			else
 			{
-				char buffer[1024];
+				char buffer[BUFFER_SIZE];
 				int rc = recv(fd, buffer, sizeof(buffer), 0);
-				if (rc <= 0)
+				if (rc == -1)
+					continue ;
+				else if (rc == 0)
 				{
-					printf("Client %d s'est déconnecté.\n", fd);
+					printf("Client [%d] s'est déconnecté.\n", fd);
 					_supClient(fd);
 					close(fd);
 					_fds[i] = _fds[_size - 1];
 					--_size;
-					--i;
 					continue ;
 				}
 				else
 				{
-					std::string	response =
+					std::string response =
 					"HTTP/1.1 200 OK\r\n"
 					"Content-Type: text/plain\r\n"
 					"Content-Length: 13\r\n"
 					"\r\n"
 					"Hello, world!";
-					send(fd, response.c_str(), response.size(), 0);
+					if (send(fd, response.c_str(), response.size(), 0) == -1)
+						throw FailedSend();
 				}
 			}
 		}

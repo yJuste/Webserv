@@ -33,6 +33,7 @@
 
 * The Supervisor class waits for an array of Servers allocated on the heap.
 * Warning: supervisor destroys the Servers itself ( no need to delete[] )
+* Test it with : curl -v http://IPv4:Port
 
 */
 
@@ -46,6 +47,7 @@ class	Supervisor
 
 		struct pollfd		_fds[FDS_SIZE];
 		size_t			_size;
+		const size_t		_server_size;
 
 		std::vector<Server *>	_servers;
 		std::vector<Client *>	_clients;
@@ -76,6 +78,10 @@ class	Supervisor
 		// Setter
 
 		void addClient( Client * );
+
+		class NoServerAdded;
 };
+
+class	Supervisor::NoServerAdded : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Supervisor cannot monitor without a server."; } };
 
 #endif

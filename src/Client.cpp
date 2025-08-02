@@ -22,6 +22,8 @@ void	Client::_unit( int server_socket )
 	_socket = accept(server_socket, NULL, NULL);
 	if (_socket == -1)
 		throw FailedAccept();
+	if (fcntl(_socket, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
+		throw FailedFcntl();
 }
 
 void	Client::_backout( void )

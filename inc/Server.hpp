@@ -18,6 +18,7 @@
 # include <netdb.h>
 # include <fstream>
 # include <iomanip>
+# include <fcntl.h>
 
 // Dependences
 
