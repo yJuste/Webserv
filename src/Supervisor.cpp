@@ -99,7 +99,7 @@ bool	Supervisor::_find( const std::vector<Server *> & servers, int fd )
 
 bool	Supervisor::_supClient( int fd )
 {
-	for (std::vector<Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
+	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		if ((*it)->getSocket() == fd)
 		{

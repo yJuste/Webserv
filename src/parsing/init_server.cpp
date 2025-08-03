@@ -12,9 +12,9 @@
 
 void	init_max_size( std::string str, Server & server )
 {
-	if (str.empty() || str.back() != ';')
+	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
-	str.pop_back();
+	str.erase(str.size() - 1);
 
 	char		suff = str[str.size() - 1];
 	std::string	number = str;
@@ -66,10 +66,10 @@ void	init_error_pages( const std::vector<std::string> & words, std::vector<std::
 		}
 
 		std::string	path = *it;
-		bool		semicolon = !path.empty() && path.back() == ';';
+		bool		semicolon = !path.empty() && path[path.size() - 1] == ';';
 
 		if (semicolon)
-			path.pop_back();
+			path.erase(path.size() - 1);
 		if (path.empty())
 			throw NoEndingSemicolon();
 		if (acstat(path.c_str(), F_OK | R_OK) != 1)
@@ -91,9 +91,9 @@ void	init_names( const std::vector<std::string> & words, std::vector<std::string
 	while (it != words.end())
 	{
 		std::string name = *it;
-		if (!name.empty() && name.back() == ';')
+		if (!name.empty() && name[name.size() - 1] == ';')
 		{
-			name.pop_back();
+			name.erase(name.size() - 1);
 			if (name.empty())
 				throw NoEndingSemicolon();
 			server.addName(name);
@@ -108,9 +108,9 @@ void	init_names( const std::vector<std::string> & words, std::vector<std::string
 
 void	init_root( std::string str, Server & server )
 {
-	if (str.empty() || str.back() != ';')
+	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
-	str.pop_back();
+	str.erase(str.size() - 1);
 	if (acstat(str.c_str(), F_OK | R_OK) != 2)
 		throw FailedAcstat(str.c_str());
 
@@ -122,9 +122,9 @@ void	init_root( std::string str, Server & server )
 
 void	init_host( std::string str, Server & server )
 {
-	if (str.empty() || str.back() != ';')
+	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
-	str.pop_back();
+	str.erase(str.size() - 1);
 
 	server.setDuplicate("host");
 	server.setHost(str);
@@ -132,9 +132,9 @@ void	init_host( std::string str, Server & server )
 
 void	init_listen( std::string str, Server & server )
 {
-	if (str.empty() || str.back() != ';')
+	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
-	str.pop_back();
+	str.erase(str.size() - 1);
 
 	size_t		sep = str.find(':');
 	std::string	host = "";

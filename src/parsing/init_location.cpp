@@ -24,9 +24,9 @@ void	init_cgi( std::vector<std::string>::const_iterator & it, Location & locatio
 	std::string	extension = *(it++);
 	std::string	program = *it;
 
-	if (program.empty() || program.back() != ';')
+	if (program.empty() || program[program.size() - 1] != ';')
 		throw NoEndingSemicolon();
-	program.pop_back();
+	program.erase(program.size() - 1);
 	if (acstat(program.c_str(), F_OK | X_OK) != 1)
 		throw ProgramCgi(program.c_str());
 	if (dupCgi(location.getCgi(), extension))
@@ -37,9 +37,9 @@ void	init_cgi( std::vector<std::string>::const_iterator & it, Location & locatio
 
 void	init_autoindex( std::string str, Location & location )
 {
-	if (str.empty() || str.back() != ';')
+	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
-	str.pop_back();
+	str.erase(str.size() - 1);
 	if (str != "true" && str != "false" && str != "1" && str != "0")
 		throw InvalidAutoindex();
 
@@ -54,9 +54,9 @@ void	init_index( const std::vector<std::string> & words, std::vector<std::string
 		std::string	index = *it;
 		bool		semicolon = false;
 
-		if (!index.empty() && index.back() == ';')
+		if (!index.empty() && index[index.size() - 1] == ';')
 		{
-			index.pop_back();
+			index.erase(index.size() - 1);
 			semicolon = true;
 		}
 		if (index.empty())
@@ -76,9 +76,9 @@ void	init_index( const std::vector<std::string> & words, std::vector<std::string
 
 void	init_return( std::string str, Location & location )
 {
-	if (str.empty() || str.back() != ';')
+	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
-	str.pop_back();
+	str.erase(str.size() - 1);
 	if (acstat(str.c_str(), F_OK | R_OK) != 2)
 		throw FailedAcstat(str.c_str());
 
@@ -99,9 +99,9 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 		std::string	method = *it;
 		bool		semicolon = false;
 
-		if (!method.empty() && method.back() == ';')
+		if (!method.empty() && method[method.size() - 1] == ';')
 		{
-			method.pop_back();
+			method.erase(method.size() - 1);
 			semicolon = true;
 		}
 		if (method.empty())
@@ -125,9 +125,9 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 
 void	init_upload( std::string str, Location & location )
 {
-	if (str.empty() || str.back() != ';')
+	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
-	str.pop_back();
+	str.erase(str.size() - 1);
 	if (acstat(str.c_str(), F_OK | R_OK) != 2)
 		throw FailedAcstat(str.c_str());
 

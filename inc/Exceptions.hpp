@@ -10,6 +10,12 @@
 #ifndef EXCEPTIONS_HPP
 # define EXCEPTIONS_HPP
 
+// Standard Libraries
+
+# include <cstdio>
+
+// Defines
+
 # ifndef MSG_SIZE
 #  define MSG_SIZE 256
 # endif

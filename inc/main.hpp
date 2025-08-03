@@ -12,8 +12,10 @@
 
 // Standard Libraries
 
+# include <algorithm>
 # include <sys/stat.h>
 # include <dirent.h>
+# include <stdint.h>
 
 // Dependences
 

@@ -13,11 +13,12 @@
 // Standard Libraries
 
 # include <iostream>
+# include <iomanip>
 # include <sstream>
+# include <fstream>
+# include <cstring>
 # include <unistd.h>
 # include <netdb.h>
-# include <fstream>
-# include <iomanip>
 # include <fcntl.h>
 
 // Dependences
