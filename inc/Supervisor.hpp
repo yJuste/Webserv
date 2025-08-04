@@ -51,8 +51,7 @@ class	Supervisor
 
 		struct pollfd		_fds[FDS_SIZE];
 		size_t			_size;
-		const size_t		_server_size;
-		bool			_running;
+		size_t			_server_size;
 
 		std::vector<Server *>	_servers;
 		std::vector<Client *>	_clients;
@@ -61,25 +60,24 @@ class	Supervisor
 		bool			_supClient( int );
 		void			_clean();
 
-		Supervisor();
-
 		Supervisor( const Supervisor & );
 		Supervisor & operator = ( const Supervisor & );
 
 	public:
 
+		Supervisor();
 		Supervisor( const std::vector<Server *> & );
 		~Supervisor();
 
 		// Method
 
+		void hold( const std::vector<Server *> & );
 		void execution();
 
 		// Getter
 
 		size_t getSize() const;
 		struct pollfd getFdX( int ) const;
-		bool getRunning() const;
 
 		// Setter
 

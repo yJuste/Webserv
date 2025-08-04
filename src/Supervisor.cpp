@@ -10,30 +10,37 @@
 # include "Supervisor.hpp"
 # include "Exceptions.hpp"
 
-Supervisor::Supervisor() : _size(0), _server_size(0), _running(true) { std::memset(_fds, 0, sizeof(_fds)); }
+Supervisor::Supervisor() : _size(0), _server_size(0) { std::memset(_fds, 0, sizeof(_fds)); }
 Supervisor::~Supervisor() { _clean(); }
 
-Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(0), _server_size(servers.size()), _running(true), _servers(servers)
+Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(0), _server_size(0)
 {
 	std::memset(_fds, 0, sizeof(_fds));
+	hold(servers);
+}
 
-	if (_server_size == 0)
-		throw NoServerAdded();
-	for (size_t i = 0; i < servers.size(); ++i)
-		servers[i]->startup();
+void	Supervisor::hold( const std::vector<Server *> & servers )
+{
+	if (_server_size)
+		return ;
+	_servers = servers;
+	_server_size = _servers.size();
+	_size = _server_size;
 	for (size_t i = 0; i < _server_size; ++i)
 	{
+		servers[i]->startup();
 		_fds[i].fd = _servers[i]->getSocket();
 		_fds[i].events = POLLIN;
 	}
-	_size = _server_size;
 }
 
 // Method
 
 void	Supervisor::execution( void )
 {
-	while (_running)
+	if (_server_size == 0)
+		throw NoServerAdded();
+	while (true)
 	{
 		if (poll(_fds, _size, 0) == -1)
 			throw FailedPoll();
@@ -125,7 +132,6 @@ void	Supervisor::_clean()
 
 size_t	Supervisor::getSize() const { return _size; }
 struct pollfd	Supervisor::getFdX( int idx ) const { return _fds[idx]; }
-bool	Supervisor::getRunning() const { return _running; }
 
 // Setters
 

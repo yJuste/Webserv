@@ -20,7 +20,9 @@ int	main(int argc, char **argv)
 		for (size_t i = 0; i < servers.size(); ++i)
 			servers[i]->myConfig();
 
-		Supervisor supervisor(servers);
+		Supervisor supervisor;
+
+		supervisor.hold(servers);
 		supervisor.execution();
 	}
 	catch (std::exception & e) { std::cerr << e.what() << std::endl; }
