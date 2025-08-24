@@ -72,10 +72,8 @@ void	init_error_pages( const std::vector<std::string> & words, std::vector<std::
 			path.erase(path.size() - 1);
 		if (path.empty())
 			throw NoEndingSemicolon();
-		if (acstat(path.c_str(), F_OK | R_OK) != 1)
-			throw FailedAcstat(path.c_str());
 		for ( std::vector<int>::const_iterator it = codes.begin(); it != codes.end(); ++it )
-			server.addErrorPage(*it, actpath(path.c_str()));
+			server.addErrorPage(*it, path.c_str());
 		if (semicolon)
 			break ;
 		++it;
@@ -111,13 +109,11 @@ void	init_root( std::string str, Server & server )
 	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
-	if (acstat(str.c_str(), F_OK | R_OK) != 2)
-		throw FailedAcstat(str.c_str());
 
 	try { if (!server.getRoot().empty()) throw OverwrittenParameter("root"); }
 	catch ( std::exception & e ) { server.addWarning(e.what()); }
 
-	server.setRoot(actpath(str.c_str()));
+	server.setRoot(str.c_str());
 }
 
 void	init_host( std::string str, Server & server )
@@ -202,6 +198,27 @@ void	missingImportant( std::vector<Server *> & servers, Server & server )
 		server.addName("localhost");
 }
 
+void	create_paths( Server & server )
+{
+	std::string root = server.getRoot();
+	if (!root.size())
+		root += '.';
+	else if (root[root.size() - 1] != '/')
+		root += '/';
+	server.setRoot(root);
+	if (acstat(server.getRoot().c_str(), F_OK | R_OK) != 2)
+		throw FailedAcstat(server.getRoot().c_str());
+
+	std::map<int, std::string> errors = server.getErrorPages();
+	for (std::map<int, std::string>::const_iterator it = errors.begin(); it != errors.end(); ++it)
+	{
+		std::string page = root + it->second;
+		server.addErrorPage(it->first, page);
+		if (acstat(page.c_str(), F_OK | R_OK) != 1)
+			throw FailedAcstat(page.c_str());
+	}
+}
+
 std::vector<Server *>	create_servers( const std::vector<std::string> & words )
 {
 	std::vector<Server *>		servers;
@@ -229,6 +246,7 @@ std::vector<Server *>	create_servers( const std::vector<std::string> & words )
 				++it;
 			}
 			missingImportant(servers, *server);
+			create_paths(*server);
 		}
 		else
 			++it;

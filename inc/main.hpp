@@ -50,7 +50,6 @@ void	create_location( const std::vector<std::string> &, std::vector<std::string>
 
 // utils.cpp
 int	acstat( const char *, int );
-std::string	actpath( const char * );
 void	stoa( const std::string & );
 
 #endif

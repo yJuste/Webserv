@@ -32,7 +32,7 @@ void	init_cgi( std::vector<std::string>::const_iterator & it, Location & locatio
 	if (dupCgi(location.getCgi(), extension))
 		throw DuplicateCgi(extension.c_str());
 
-	location.addCgi(extension, actpath(program.c_str()));
+	location.addCgi(extension, program.c_str());
 }
 
 void	init_autoindex( std::string str, Location & location )
@@ -63,7 +63,7 @@ void	init_index( const std::vector<std::string> & words, std::vector<std::string
 			throw NoEndingSemicolon();
 		if (acstat(index.c_str(), F_OK | R_OK) != 1)
 			throw FailedAcstat(index.c_str());
-		location.addIndex(actpath(index.c_str()));
+		location.addIndex(index.c_str());
 		if (semicolon)
 			break ;
 		++it;
@@ -82,7 +82,7 @@ void	init_return( std::string str, Location & location )
 	if (acstat(str.c_str(), F_OK | R_OK) != 2)
 		throw FailedAcstat(str.c_str());
 
-	location.setReturn(actpath(str.c_str()));
+	location.setReturn(str.c_str());
 	location.setOverwritten("return");
 }
 
@@ -131,7 +131,7 @@ void	init_upload( std::string str, Location & location )
 	if (acstat(str.c_str(), F_OK | R_OK) != 2)
 		throw FailedAcstat(str.c_str());
 
-	location.setUpload(actpath(str.c_str()));
+	location.setUpload(str.c_str());
 	location.setOverwritten("upload");
 }
 
@@ -175,7 +175,7 @@ void	create_location( const std::vector<std::string> & words, std::vector<std::s
 
 	Location	location;
 
-	location.setPath(actpath(it->c_str()));
+	location.setPath(it->c_str());
 	std::vector<Location> locations = server.getLocations();
 
 	if (dupLocation(server.getLocations(), location.getPath()))
