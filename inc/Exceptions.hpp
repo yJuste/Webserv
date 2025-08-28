@@ -38,7 +38,7 @@ class	FailedListen : public std::exception { public : const char * what() const 
 
 class	FailedOpen : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: open() failed."; } };
 
-class	FailedAcstat : public std::exception { private: char _msg[MSG_SIZE]; public: FailedAcstat( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: acstat() failed.", s); } const char * what() const throw() { return _msg; } };
+class	FailedAcstat : public std::exception { private: char _msg[MSG_SIZE]; public: FailedAcstat( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: The path is not \033[31mfound or accessible\033[0m.", s); } const char * what() const throw() { return _msg; } };
 
 class	FailedRealpath : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: realpath() failed."; } };
 
