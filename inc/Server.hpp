@@ -78,6 +78,7 @@ class	Server
 		int				_port;
 		std::string			_root;
 		bool				_default;
+		std::vector<std::string>	_index;
 		std::vector<std::string>	_names;
 		std::map<int, std::string>	_errorPages;
 		size_t				_maxSize;
@@ -111,6 +112,8 @@ class	Server
 		const std::string & getHost() const;
 		int getPort() const;
 		bool getDefault() const;
+		const std::vector<std::string> & getIndex() const;
+		std::vector<std::string> & getIndex();
 		const std::vector<std::string> & getNames() const;
 		const std::map<int, std::string> & getErrorPages() const;
 		size_t getMaxSize() const;
@@ -130,6 +133,7 @@ class	Server
 		void setPort( int );
 		void setRoot( const std::string & );
 		void setDefault( bool );
+		void addIndex( const std::string & );
 		void addName( const std::string & );
 		void addErrorPage( int, const std::string & );
 		void setMaxSize( int );

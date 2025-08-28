@@ -45,7 +45,7 @@ void	init_max_size( std::string str, Server & server )
 		throw Overflow();
 
 	server.setMaxSize(nb * mult);
-	server.setDuplicate("client_max_body_size");
+	server.setOverwritten("client_max_body_size");
 }
 
 void	init_error_pages( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
@@ -104,15 +104,39 @@ void	init_names( const std::vector<std::string> & words, std::vector<std::string
 		throw NoEndingSemicolon();
 }
 
+void	init_index( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
+{
+	server.getIndex().clear();
+	while (it != words.end())
+	{
+		std::string	index = *it;
+		bool		semicolon = false;
+
+		if (!index.empty() && index[index.size() - 1] == ';')
+		{
+			index.erase(index.size() - 1);
+			semicolon = true;
+		}
+		if (index.empty())
+			throw NoEndingSemicolon();
+		server.addIndex(index.c_str());
+		if (semicolon)
+			break ;
+		++it;
+	}
+	if (it == words.end())
+		throw NoEndingSemicolon();
+
+	server.setOverwritten("index");
+}
+
 void	init_root( std::string str, Server & server )
 {
 	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
 
-	try { if (!server.getRoot().empty()) throw OverwrittenParameter("root"); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
-
+	server.setDuplicate("root");
 	server.setRoot(str.c_str());
 }
 
@@ -161,15 +185,17 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 {
 	try { if (server.getOverwrittenX(*it)) throw OverwrittenParameter(it->c_str()); }
 	catch ( std::exception & e ) { server.addWarning(e.what()); }
-
 	if (server.getDuplicateX(*it))
 		throw DuplicateParameter(it->c_str());
+
 	if (*it == "host")
 		init_host(*(++it), server);
 	else if (*it == "listen")
 		init_listen(*(++it), server);
 	else if (*it == "root")
 		init_root(*(++it), server);
+	else if (*it == "index")
+		init_index(words, ++it, server);
 	else if (*it == "server_name")
 		init_names(words, ++it, server);
 	else if (*it == "error_page")
@@ -177,7 +203,7 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 	else if (*it == "client_max_body_size")
 		init_max_size(*(++it), server);
 	else if (*it == "location")
-		create_location(words, ++it, server);
+		server.addLocation(create_location(words, ++it, server));
 	else
 		throw InvalidParameter(it->c_str());
 }
@@ -206,14 +232,33 @@ void	create_paths( Server & server )
 	else if (root[root.size() - 1] != '/')
 		root += '/';
 	server.setRoot(root);
-	if (acstat(server.getRoot().c_str(), F_OK | R_OK) != 2)
-		throw FailedAcstat(server.getRoot().c_str());
+	if (acstat(root.c_str(), F_OK | R_OK) != 2)
+		throw FailedAcstat(root.c_str());
+
+	std::string page = "";
 
 	std::map<int, std::string> errors = server.getErrorPages();
 	for (std::map<int, std::string>::const_iterator it = errors.begin(); it != errors.end(); ++it)
 	{
-		std::string page = root + it->second;
+		std::string str = it->second;
+		size_t i = 0;
+		if (str[0] == '.')
+		{
+			if (str[++i] != '/')
+				i = 0;
+			else
+				while (str[i] == '/')
+					++i;
+		}
+		page = root + str.substr(i);
 		server.addErrorPage(it->first, page);
+		if (acstat(page.c_str(), F_OK | R_OK) != 1)
+			throw FailedAcstat(page.c_str());
+	}
+	std::vector<std::string> index = server.getIndex();
+	for ( std::vector<std::string>::const_iterator it = index.begin(); it != index.end(); ++it )
+	{
+		page = root + *it;
 		if (acstat(page.c_str(), F_OK | R_OK) != 1)
 			throw FailedAcstat(page.c_str());
 	}

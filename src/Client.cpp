@@ -39,4 +39,4 @@ void	Client::_backout( void )
 
 // Getter
 
-int	Client::getSocket() const { return _socket; }
+int Client::getSocket() const { return _socket; }

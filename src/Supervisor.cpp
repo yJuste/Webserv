@@ -121,18 +121,24 @@ bool	Supervisor::_supClient( int fd )
 void	Supervisor::_clean()
 {
 	for (size_t i = 0; i < _servers.size(); ++i)
+	{
 		delete _servers[i];
+		_servers[i] = NULL;
+	}
 	_servers.clear();
 	for (size_t i = 0; i < _clients.size(); ++i)
+	{
 		delete _clients[i];
+		_servers[i] = NULL;
+	}
 	_clients.clear();
 }
 
 // Getters
 
-size_t	Supervisor::getSize() const { return _size; }
-struct pollfd	Supervisor::getFdX( int idx ) const { return _fds[idx]; }
+size_t Supervisor::getSize() const { return _size; }
+struct pollfd Supervisor::getFdX( int idx ) const { return _fds[idx]; }
 
 // Setters
 
-void	Supervisor::addClient( Client * client ) { _clients.push_back(client); }
+void Supervisor::addClient( Client * client ) { _clients.push_back(client); }

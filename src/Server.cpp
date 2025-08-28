@@ -12,11 +12,15 @@
 
 Server::Server() : _socket(-1), _host("0.0.0.0"), _port(80), _root(""), _default(false), _maxSize(1048576)
 {
+	_index.push_back("index.html");
+
 	_duplicate["host"] = false;
 	_duplicate["listen"] = false;
-	_duplicate["client_max_body_size"] = false;
+	_duplicate["root"] = false;
 
+	_overwritten["index"] = false;
 	_overwritten["error_page"] = false;
+	_overwritten["client_max_body_size"] = false;
 }
 Server::~Server() { shutdown(); }
 
@@ -81,6 +85,10 @@ void	Server::myConfig( void ) const
 	std::cout << BROWN << " Host              : " << BEIGE << getHost() << RESET << std::endl;
 	std::cout << BROWN << " Port              : " << BEIGE << getPort() << RESET << std::endl;
 	std::cout << BROWN << " Root              : " << BEIGE << getRoot() << RESET << std::endl;
+	std::cout << BROWN << " Index             : " << BEIGE;
+	for ( std::vector<std::string>::const_iterator it = getIndex().begin(); it != getIndex().end(); ++it )
+		std::cout << *it << " ";
+	std::cout << RESET << std::endl;
 	std::cout << BROWN << " Default Server    : " << BEIGE << ( getDefault() ? "\033[32mYes\033[0m" : "\033[31mNo\033[0m" ) << RESET << std::endl;
 	std::cout << BROWN << " Max Body Size     : " << BEIGE << _rounded(getMaxSize()) << " bytes" << RESET << std::endl;
 	std::cout << std::endl << BROWN << " Server Name(s) :" << RESET << std::endl;
@@ -157,35 +165,38 @@ std::string	Server::_rounded( size_t bytes ) const
 
 // Getters
 
-int	Server::getSocket() const { return _socket; }
-const struct sockaddr_in	&Server::getAddress() const { return _address; }
+int Server::getSocket() const { return _socket; }
+const struct sockaddr_in & Server::getAddress() const { return _address; }
 
-const std::string	&Server::getHost() const { return _host; }
-int	Server::getPort() const { return _port; }
-const std::string	&Server::getRoot() const { return _root; }
-bool	Server::getDefault() const { return _default; }
-const std::vector<std::string>	&Server::getNames() const { return _names; }
-const std::map<int, std::string>	&Server::getErrorPages() const { return _errorPages; }
-size_t	Server::getMaxSize() const { return _maxSize; }
-const std::vector<Location>	&Server::getLocations() const { return _locations; }
+const std::string & Server::getHost() const { return _host; }
+int Server::getPort() const { return _port; }
+const std::string & Server::getRoot() const { return _root; }
+bool Server::getDefault() const { return _default; }
+const std::vector<std::string> & Server::getIndex() const { return _index; }
+std::vector<std::string> & Server::getIndex() { return _index; }
+const std::vector<std::string> & Server::getNames() const { return _names; }
+const std::map<int, std::string> & Server::getErrorPages() const { return _errorPages; }
+size_t Server::getMaxSize() const { return _maxSize; }
+const std::vector<Location> & Server::getLocations() const { return _locations; }
 
-const std::map<std::string, bool>	&Server::getDuplicate() const { return _duplicate; }
-const std::map<std::string, bool>	&Server::getOverwritten() const { return _overwritten; }
-bool	Server::getDuplicateX( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _duplicate.find(parameter); return it != _duplicate.end() && it->second; }
-bool	Server::getOverwrittenX( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _overwritten.find(parameter); return it != _overwritten.end() && it->second; }
-const std::vector<std::string>	&Server::getWarnings() const { return _warnings; }
+const std::map<std::string, bool> & Server::getDuplicate() const { return _duplicate; }
+const std::map<std::string, bool> & Server::getOverwritten() const { return _overwritten; }
+bool Server::getDuplicateX( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _duplicate.find(parameter); return it != _duplicate.end() && it->second; }
+bool Server::getOverwrittenX( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _overwritten.find(parameter); return it != _overwritten.end() && it->second; }
+const std::vector<std::string> & Server::getWarnings() const { return _warnings; }
 
 // Setters
 
-void	Server::setHost( const std::string & host ) { _host = host; }
-void	Server::setPort( int port ) { _port = port; }
-void	Server::setRoot( const std::string & root ) { _root = root; }
-void	Server::setDefault( bool def ) { _default = def; }
-void	Server::addName( const std::string & name ) { _names.push_back(name); }
-void	Server::addErrorPage( int code, const std::string & path ) { _errorPages[code] = path; }
-void	Server::setMaxSize( int size ) { _maxSize = size; }
-void	Server::addLocation( const Location & location ) { _locations.push_back(location); }
+void Server::setHost( const std::string & host ) { _host = host; }
+void Server::setPort( int port ) { _port = port; }
+void Server::setRoot( const std::string & root ) { _root = root; }
+void Server::setDefault( bool def ) { _default = def; }
+void Server::addIndex( const std::string & index ) { _index.push_back(index); }
+void Server::addName( const std::string & name ) { _names.push_back(name); }
+void Server::addErrorPage( int code, const std::string & path ) { _errorPages[code] = path; }
+void Server::setMaxSize( int size ) { _maxSize = size; }
+void Server::addLocation( const Location & location ) { _locations.push_back(location); }
 
-void	Server::setDuplicate( const std::string & parameter ) { _duplicate[parameter] = true; }
-void	Server::setOverwritten( const std::string & parameter ) { _overwritten[parameter] = true; }
-void	Server::addWarning( const std::string & warning ) { _warnings.push_back(warning); }
+void Server::setDuplicate( const std::string & parameter ) { _duplicate[parameter] = true; }
+void Server::setOverwritten( const std::string & parameter ) { _overwritten[parameter] = true; }
+void Server::addWarning( const std::string & warning ) { _warnings.push_back(warning); }

@@ -16,6 +16,17 @@
 # include <vector>
 # include <map>
 
+// Global Variables
+
+extern const char * g_extensions[];
+extern const char * g_methods[];
+
+/*	HELP
+
+* The Location class needs arrays for supported extensions and allowed methods.
+
+*/
+
 // ************************************************************************** //
 //                                Location Class                              //
 // ************************************************************************** //
@@ -31,8 +42,8 @@ class	Location
 		std::vector<std::string>		_index;
 		std::map<std::string, std::string>	_cgi;
 		std::string				_upload;
+		std::string				_root;
 
-		std::map<std::string, bool>		_duplicate;
 		std::map<std::string, bool>		_overwritten;
 
 	public:
@@ -47,15 +58,15 @@ class	Location
 
 		const std::string & getPath() const;
 		const std::vector<std::string> & getMethods() const;
+		std::vector<std::string> & getMethods();
 		const std::string & getReturn() const;
 		bool getAutoindex() const;
 		const std::vector<std::string> & getIndex() const;
 		const std::map<std::string, std::string> & getCgi() const;
 		const std::string & getUpload() const;
+		const std::string & getRoot() const;
 
-		const std::map<std::string, bool> & getDuplicate() const;
 		const std::map<std::string, bool> & getOverwritten() const;
-		bool getDuplicateX( const std::string & ) const;
 		bool getOverwrittenX( const std::string & ) const;
 
 		// Setter
@@ -67,8 +78,8 @@ class	Location
 		void setAutoindex( bool );
 		void addCgi( const std::string &, const std::string & );
 		void setUpload( const std::string & str );
+		void setRoot( const std::string & );
 
-		void setDuplicate( const std::string & );
 		void setOverwritten( const std::string & );
 };
 

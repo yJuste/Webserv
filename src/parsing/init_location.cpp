@@ -9,6 +9,7 @@
 
 # include "main.hpp"
 # include "Exceptions.hpp"
+# include "Location.hpp"
 
 const char * g_extensions[] = { ".py", ".php", NULL };
 const char * g_methods[] = { "GET", "POST", "DELETE", NULL };
@@ -40,10 +41,12 @@ void	init_autoindex( std::string str, Location & location )
 	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
-	if (str != "true" && str != "false" && str != "1" && str != "0")
+	if (str != "true" && str != "false"
+		&& str != "1" && str != "0"
+		&& str != "yes" && str != "no")
 		throw InvalidAutoindex();
 
-	location.setAutoindex(str == "true" || str == "1");
+	location.setAutoindex(str == "true" || str == "1" || str == "yes");
 	location.setOverwritten("autoindex");
 }
 
@@ -92,6 +95,7 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 	std::vector<std::string>	ext;
 	const int			count = (sizeof(g_methods) - sizeof(g_methods[0])) / sizeof(g_methods[0]);
 
+	(location.getMethods()).clear();
 	for ( int i = 0; i < count; ++i )
 		ext.push_back(std::string(g_methods[i]));
 	while (it != words.end())
@@ -119,8 +123,8 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 		throw NoEndingSemicolon();
 
 	location.setMethods(methods);
-	location.setDuplicate("methods");
-	location.setDuplicate("allow_methods");
+	location.setOverwritten("methods");
+	location.setOverwritten("allow_methods");
 }
 
 void	init_upload( std::string str, Location & location )
@@ -135,13 +139,21 @@ void	init_upload( std::string str, Location & location )
 	location.setOverwritten("upload");
 }
 
+void	init_root( std::string str, Location & location )
+{
+	if (str.empty() || str[str.size() - 1] != ';')
+		throw NoEndingSemicolon();
+	str.erase(str.size() - 1);
+
+	location.setOverwritten("root");
+	location.setRoot(str.c_str());
+}
+
 void	init_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server, Location & location )
 {
-	try { if (location.getOverwrittenX(*it)) throw OverwrittenParameter(it->c_str()); }
+	try { if (location.getOverwrittenX(*it)) throw OverwrittenParameterLocation(location.getPath().c_str(), it->c_str()); }
 	catch ( std::exception & e ) { server.addWarning(e.what()); }
 
-	if (location.getDuplicateX(*it))
-		throw DuplicateParameter(it->c_str());
 	if (*it == "methods" || *it == "allow_methods")
 		init_methods(words, ++it, location);
 	else if (*it == "return")
@@ -155,7 +167,7 @@ void	init_location( const std::vector<std::string> & words, std::vector<std::str
 	else if (*it == "upload")
 		init_upload(*(++it), location);
 	else if (*it == "root")
-		init_root(*(++it), server);
+		init_root(*(++it), location);
 	else
 		throw InvalidParameter(it->c_str());
 }
@@ -168,7 +180,25 @@ bool	dupLocation( const std::vector<Location> & locations, const std::string & p
 	return false;
 }
 
-void	create_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
+/*
+void	missingImportant( Location & location )
+{
+	try { if (location.getHost() == "0.0.0.0") throw MissingImportantValues("host"); }
+	catch ( std::exception & e ) { server.addWarning(e.what()); }
+	try { if (server.getRoot() == "") throw MissingImportantValues("root"); }
+	catch ( std::exception & e ) { server.addWarning(e.what()); }
+	try { if (server.getLocations().empty()) throw MissingImportantValues("location"); }
+	catch ( std::exception & e ) { server.addWarning(e.what()); }
+	if (server.getNames().empty())
+		server.addName("localhost");
+}
+*/
+void	create_paths( Location & location )
+{
+	(void)location;
+}
+
+Location	create_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
 	if (acstat(it->c_str(), F_OK | R_OK) != 2)
 		throw FailedAcstat(it->c_str());
@@ -191,5 +221,6 @@ void	create_location( const std::vector<std::string> & words, std::vector<std::s
 		init_location(words, it, server, location);
 		++it;
 	}
-	server.addLocation(location);
+	//create_paths(location);
+	return location;
 }
