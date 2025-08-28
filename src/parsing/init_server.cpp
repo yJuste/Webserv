@@ -248,7 +248,10 @@ void	create_paths( Server & server )
 			status = true;
 	}
 	if (!status)
-		throw FailedAcstat(index[0].c_str());
+	{
+		try { throw FailedAcstat(index[0].c_str()); }
+		catch ( std::exception & e ) { server.addWarning(e.what()); }
+	}
 	server.setIndex(index);
 }
 
