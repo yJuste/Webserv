@@ -52,6 +52,7 @@ void	init_autoindex( std::string str, Location & location )
 
 void	init_index( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
 {
+	location.getIndex().clear();
 	while (it != words.end())
 	{
 		std::string	index = *it;
@@ -64,8 +65,6 @@ void	init_index( const std::vector<std::string> & words, std::vector<std::string
 		}
 		if (index.empty())
 			throw NoEndingSemicolon();
-		if (acstat(index.c_str(), F_OK | R_OK) != 1)
-			throw FailedAcstat(index.c_str());
 		location.addIndex(index.c_str());
 		if (semicolon)
 			break ;
@@ -77,16 +76,22 @@ void	init_index( const std::vector<std::string> & words, std::vector<std::string
 	location.setOverwritten("index");
 }
 
-void	init_return( std::string str, Location & location )
+void	init_return( std::vector<std::string>::const_iterator & it, Location & location )
 {
+
+	std::stringstream	ss(*it);
+	int			code;
+
+	if (!(ss >> code))
+		throw InvalidParameterReturn(it->c_str());
+	std::string str = *(++it);
 	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
-	if (acstat(str.c_str(), F_OK | R_OK) != 2)
-		throw FailedAcstat(str.c_str());
 
-	location.setReturn(str.c_str());
+	location.setReturn(code, str.c_str());
 	location.setOverwritten("return");
+	location.setOverwritten("redirect");		// alias
 }
 
 void	init_methods( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
@@ -124,7 +129,7 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 
 	location.setMethods(methods);
 	location.setOverwritten("methods");
-	location.setOverwritten("allow_methods");
+	location.setOverwritten("allow_methods");	// alias
 }
 
 void	init_upload( std::string str, Location & location )
@@ -132,8 +137,6 @@ void	init_upload( std::string str, Location & location )
 	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
-	if (acstat(str.c_str(), F_OK | R_OK) != 2)
-		throw FailedAcstat(str.c_str());
 
 	location.setUpload(str.c_str());
 	location.setOverwritten("upload");
@@ -145,8 +148,10 @@ void	init_root( std::string str, Location & location )
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
 
-	location.setOverwritten("root");
+	location.getRoot().clear();
+
 	location.setRoot(str.c_str());
+	location.setOverwritten("root");
 }
 
 void	init_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server, Location & location )
@@ -156,8 +161,8 @@ void	init_location( const std::vector<std::string> & words, std::vector<std::str
 
 	if (*it == "methods" || *it == "allow_methods")
 		init_methods(words, ++it, location);
-	else if (*it == "return")
-		init_return(*(++it), location);
+	else if (*it == "return" || *it == "redirect")
+		init_return(++it, location);
 	else if (*it == "index")
 		init_index(words, ++it, location);
 	else if (*it == "autoindex")
@@ -180,22 +185,23 @@ bool	dupLocation( const std::vector<Location> & locations, const std::string & p
 	return false;
 }
 
-/*
-void	missingImportant( Location & location )
-{
-	try { if (location.getHost() == "0.0.0.0") throw MissingImportantValues("host"); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
-	try { if (server.getRoot() == "") throw MissingImportantValues("root"); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
-	try { if (server.getLocations().empty()) throw MissingImportantValues("location"); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
-	if (server.getNames().empty())
-		server.addName("localhost");
-}
-*/
 void	create_paths( Location & location )
 {
-	(void)location;
+	location.setRoot(handle_folder(location.getRoot()));
+	location.setUpload(handle_folder(location.getUpload()));
+
+	bool status = false;
+
+	std::vector<std::string> index = location.getIndex();
+	for ( std::vector<std::string>::iterator it = index.begin(); it != index.end(); ++it )
+	{
+		*it = location.getRoot() + *it;
+		if (acstat(it->c_str(), F_OK | R_OK) == 1)
+			status = true;
+	}
+	if (!status)
+		throw FailedAcstat(index[0].c_str());
+	location.setIndex(index);
 }
 
 Location	create_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
@@ -206,6 +212,8 @@ Location	create_location( const std::vector<std::string> & words, std::vector<st
 	Location	location;
 
 	location.setPath(it->c_str());
+	location.setRoot(server.getRoot());
+	location.setUpload(server.getRoot());
 	std::vector<Location> locations = server.getLocations();
 
 	if (dupLocation(server.getLocations(), location.getPath()))
@@ -221,6 +229,6 @@ Location	create_location( const std::vector<std::string> & words, std::vector<st
 		init_location(words, it, server, location);
 		++it;
 	}
-	//create_paths(location);
+	create_paths(location);
 	return location;
 }

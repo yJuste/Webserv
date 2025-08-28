@@ -37,7 +37,7 @@ class	Location
 
 		std::string				_path;
 		std::vector<std::string>		_methods;
-		std::string				_return;
+		std::map<int, std::string>		_return;
 		bool					_autoindex;
 		std::vector<std::string>		_index;
 		std::map<std::string, std::string>	_cgi;
@@ -59,12 +59,14 @@ class	Location
 		const std::string & getPath() const;
 		const std::vector<std::string> & getMethods() const;
 		std::vector<std::string> & getMethods();
-		const std::string & getReturn() const;
+		const std::map<int, std::string> & getReturn() const;
 		bool getAutoindex() const;
 		const std::vector<std::string> & getIndex() const;
+		std::vector<std::string> & getIndex();
 		const std::map<std::string, std::string> & getCgi() const;
 		const std::string & getUpload() const;
 		const std::string & getRoot() const;
+		std::string & getRoot();
 
 		const std::map<std::string, bool> & getOverwritten() const;
 		bool getOverwrittenX( const std::string & ) const;
@@ -73,7 +75,8 @@ class	Location
 
 		void setPath( const std::string & );
 		void setMethods( const std::vector<std::string> & );
-		void setReturn( const std::string & );
+		void setReturn( int, const std::string & );
+		void setIndex( const std::vector<std::string> & );
 		void addIndex( const std::string & );
 		void setAutoindex( bool );
 		void addCgi( const std::string &, const std::string & );

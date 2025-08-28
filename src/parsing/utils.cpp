@@ -33,7 +33,7 @@ int	acstat( const char * path, int mode )
 }
 
 // DEBUG FUNCTION: str_to_ascii
-void	stoa( const std::string& path )
+void	stoa( const std::string & path )
 {
 	std::cout << std::endl;
 	std::cout << "\033[91mDEBUG MODE:\033[0m stoa(): '\033[93m" << path << "\033[0m'.\n";
@@ -48,4 +48,32 @@ void	stoa( const std::string& path )
 			std::cout << "\n";
 	}
 	std::cout << std::endl << std::endl;
+}
+
+// Regarde si le chemin est relatif et si oui, normalise.
+int	relative( const std::string & path )
+{
+	int	i = 0;
+
+	if (path[0] == '.')
+	{
+		if (path[++i] != '/')
+			i = 0;
+		else
+			while (path[i] == '/')
+				++i;
+	}
+	return i;
+}
+
+// Test un dossier et le normalise.
+std::string	handle_folder( std::string s )
+{
+	if (!s.size())
+		s += '.';
+	if (s[s.size() - 1] != '/')
+		s += '/';
+	if (acstat(s.c_str(), F_OK | R_OK) != 2)
+		throw FailedAcstat(s.c_str());
+	return s;
 }

@@ -136,8 +136,8 @@ void	init_root( std::string str, Server & server )
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
 
-	server.setDuplicate("root");
 	server.setRoot(str.c_str());
+	server.setDuplicate("root");
 }
 
 void	init_host( std::string str, Server & server )
@@ -146,8 +146,8 @@ void	init_host( std::string str, Server & server )
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
 
-	server.setDuplicate("host");
 	server.setHost(str);
+	server.setDuplicate("host");
 }
 
 void	init_listen( std::string str, Server & server )
@@ -226,14 +226,7 @@ void	missingImportant( std::vector<Server *> & servers, Server & server )
 
 void	create_paths( Server & server )
 {
-	std::string root = server.getRoot();
-	if (!root.size())
-		root += '.';
-	else if (root[root.size() - 1] != '/')
-		root += '/';
-	server.setRoot(root);
-	if (acstat(root.c_str(), F_OK | R_OK) != 2)
-		throw FailedAcstat(root.c_str());
+	server.setRoot(handle_folder(server.getRoot()));
 
 	std::string page = "";
 
@@ -241,16 +234,8 @@ void	create_paths( Server & server )
 	for (std::map<int, std::string>::const_iterator it = errors.begin(); it != errors.end(); ++it)
 	{
 		std::string str = it->second;
-		size_t i = 0;
-		if (str[0] == '.')
-		{
-			if (str[++i] != '/')
-				i = 0;
-			else
-				while (str[i] == '/')
-					++i;
-		}
-		page = root + str.substr(i);
+		int i = relative(str);
+		page = server.getRoot() + str.substr(i);
 		server.addErrorPage(it->first, page);
 		if (acstat(page.c_str(), F_OK | R_OK) != 1)
 			throw FailedAcstat(page.c_str());
@@ -258,7 +243,7 @@ void	create_paths( Server & server )
 	std::vector<std::string> index = server.getIndex();
 	for ( std::vector<std::string>::const_iterator it = index.begin(); it != index.end(); ++it )
 	{
-		page = root + *it;
+		page = server.getRoot() + *it;
 		if (acstat(page.c_str(), F_OK | R_OK) != 1)
 			throw FailedAcstat(page.c_str());
 	}

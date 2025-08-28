@@ -50,5 +50,7 @@ Location	create_location( const std::vector<std::string> &, std::vector<std::str
 // utils.cpp
 int	acstat( const char *, int );
 void	stoa( const std::string & );
+int	relative( const std::string & );
+std::string	handle_folder( std::string s );
 
 #endif
