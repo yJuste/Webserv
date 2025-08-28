@@ -228,25 +228,28 @@ void	create_paths( Server & server )
 {
 	server.setRoot(handle_folder(server.getRoot()));
 
-	std::string page = "";
-
 	std::map<int, std::string> errors = server.getErrorPages();
 	for (std::map<int, std::string>::const_iterator it = errors.begin(); it != errors.end(); ++it)
 	{
 		std::string str = it->second;
 		int i = relative(str);
-		page = server.getRoot() + str.substr(i);
+		std::string page = server.getRoot() + str.substr(i);
 		server.addErrorPage(it->first, page);
 		if (acstat(page.c_str(), F_OK | R_OK) != 1)
 			throw FailedAcstat(page.c_str());
 	}
+
+	bool status = false;
 	std::vector<std::string> index = server.getIndex();
-	for ( std::vector<std::string>::const_iterator it = index.begin(); it != index.end(); ++it )
+	for ( std::vector<std::string>::iterator it = index.begin(); it != index.end(); ++it )
 	{
-		page = server.getRoot() + *it;
-		if (acstat(page.c_str(), F_OK | R_OK) != 1)
-			throw FailedAcstat(page.c_str());
+		*it = server.getRoot() + *it;
+		if (acstat(it->c_str(), F_OK | R_OK) == 1)
+			status = true;
 	}
+	if (!status)
+		throw FailedAcstat(index[0].c_str());
+	server.setIndex(index);
 }
 
 std::vector<Server *>	create_servers( const std::vector<std::string> & words )

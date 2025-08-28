@@ -198,6 +198,7 @@ void Server::setHost( const std::string & host ) { _host = host; }
 void Server::setPort( int port ) { _port = port; }
 void Server::setRoot( const std::string & root ) { _root = root; }
 void Server::setDefault( bool def ) { _default = def; }
+void Server::setIndex( const std::vector<std::string> & index ) { _index = index; }
 void Server::addIndex( const std::string & index ) { _index.push_back(index); }
 void Server::addName( const std::string & name ) { _names.push_back(name); }
 void Server::addErrorPage( int code, const std::string & path ) { _errorPages[code] = path; }

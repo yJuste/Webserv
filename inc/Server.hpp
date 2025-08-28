@@ -133,6 +133,7 @@ class	Server
 		void setPort( int );
 		void setRoot( const std::string & );
 		void setDefault( bool );
+		void setIndex( const std::vector<std::string> & );
 		void addIndex( const std::string & );
 		void addName( const std::string & );
 		void addErrorPage( int, const std::string & );
