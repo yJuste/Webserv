@@ -65,6 +65,7 @@ class	Location
 		std::vector<std::string> & getIndex();
 		const std::map<std::string, std::string> & getCgi() const;
 		const std::string & getUpload() const;
+		std::string & getUpload();
 		const std::string & getRoot() const;
 		std::string & getRoot();
 

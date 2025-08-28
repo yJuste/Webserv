@@ -138,6 +138,8 @@ void	init_upload( std::string str, Location & location )
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
 
+	location.getUpload().clear();
+
 	location.setUpload(str.c_str());
 	location.setOverwritten("upload");
 }
@@ -188,7 +190,10 @@ bool	dupLocation( const std::vector<Location> & locations, const std::string & p
 void	create_paths( Location & location )
 {
 	location.setRoot(handle_folder(location.getRoot()));
-	location.setUpload(handle_folder(location.getUpload()));
+	if (!location.getUpload().size())
+		location.setUpload(handle_folder(location.getRoot()));
+	else
+		location.setUpload(handle_folder(location.getRoot() + location.getUpload()));
 
 	bool status = false;
 
@@ -213,7 +218,6 @@ Location	create_location( const std::vector<std::string> & words, std::vector<st
 
 	location.setPath(it->c_str());
 	location.setRoot(server.getRoot());
-	location.setUpload(server.getRoot());
 	std::vector<Location> locations = server.getLocations();
 
 	if (dupLocation(server.getLocations(), location.getPath()))

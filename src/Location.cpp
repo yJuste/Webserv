@@ -62,6 +62,7 @@ const std::vector<std::string> & Location::getIndex() const { return _index; }
 std::vector<std::string> & Location::getIndex() { return _index; }
 const std::map<std::string, std::string> & Location::getCgi() const { return _cgi; }
 const std::string & Location::getUpload() const { return _upload; }
+std::string & Location::getUpload() { return _upload; }
 const std::string & Location::getRoot() const { return _root; }
 std::string & Location::getRoot() { return _root; }
 
