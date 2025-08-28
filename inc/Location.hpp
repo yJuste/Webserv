@@ -18,12 +18,12 @@
 
 // Global Variables
 
-extern const char * g_extensions[];
 extern const char * g_methods[];
 
 /*	HELP
 
 * The Location class needs arrays for supported extensions and allowed methods.
+* Cgi works as : cgi [.extension] [executable];
 
 */
 
@@ -41,6 +41,7 @@ class	Location
 		bool					_autoindex;
 		std::vector<std::string>		_index;
 		std::map<std::string, std::string>	_cgi;
+		std::vector<std::string>		_cgi_paths;
 		std::string				_upload;
 		std::string				_root;
 
@@ -64,6 +65,7 @@ class	Location
 		const std::vector<std::string> & getIndex() const;
 		std::vector<std::string> & getIndex();
 		const std::map<std::string, std::string> & getCgi() const;
+		const std::vector<std::string> & getCgiPaths() const;
 		const std::string & getUpload() const;
 		std::string & getUpload();
 		const std::string & getRoot() const;
@@ -80,7 +82,10 @@ class	Location
 		void setIndex( const std::vector<std::string> & );
 		void addIndex( const std::string & );
 		void setAutoindex( bool );
+		void setCgi( const std::map<std::string, std::string> & );
 		void addCgi( const std::string &, const std::string & );
+		void addCgiExt( const std::string & );
+		void addCgiPath( const std::string & );
 		void setUpload( const std::string & str );
 		void setRoot( const std::string & );
 

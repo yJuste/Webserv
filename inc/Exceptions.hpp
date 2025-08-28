@@ -92,7 +92,7 @@ class	DuplicateCgi : public std::exception { private: char _msg[MSG_SIZE]; publi
 
 class	DuplicateParameter : public std::exception { private: char _msg[MSG_SIZE]; public: DuplicateParameter( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: This parameter cannot be duplicated.", s); } const char * what() const throw() { return _msg; } };
 
-class	OverwrittenParameter : public std::exception { private: char _msg[MSG_SIZE]; public: OverwrittenParameter( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[38;5;220mwarning\033[0m: `%s`: Value(s) may be overwritten.", s); } const char * what() const throw() { return _msg; } };
+class	OverwrittenParameter : public std::exception { private: char _msg[MSG_SIZE]; public: OverwrittenParameter( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[38;5;220mwarning\033[0m: `%s`: May overwrite some values.", s); } const char * what() const throw() { return _msg; } };
 
 class	DuplicateLocation : public std::exception { private: char _msg[MSG_SIZE]; public: DuplicateLocation( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: The location with this path already exists.", s); } const char * what() const throw() { return _msg; } };
 
@@ -100,8 +100,10 @@ class	MissingImportantValues : public std::exception { private: char _msg[MSG_SI
 
 class	TooManyConnexions : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Too many connexions on the server."; } };
 
-class	OverwrittenParameterLocation : public std::exception { private: char _msg[MSG_SIZE]; public: OverwrittenParameterLocation( const char * s1, const char * s2 ) { std::snprintf(_msg, sizeof(_msg), "\033[38;5;220mwarning\033[0m: location: `\033[38;5;220m%s\033[0m`: `%s`: Value(s) may be overwritten.", s1, s2); } const char * what() const throw() { return _msg; } };
+class	OverwrittenParameterLocation : public std::exception { private: char _msg[MSG_SIZE]; public: OverwrittenParameterLocation( const char * s1, const char * s2 ) { std::snprintf(_msg, sizeof(_msg), "\033[38;5;220mwarning\033[0m: location: `\033[38;5;220m%s\033[0m`: `%s`: May overwrite some values.", s1, s2); } const char * what() const throw() { return _msg; } };
 
 class	InvalidParameterReturn : public std::exception { private: char _msg[MSG_SIZE]; public: InvalidParameterReturn( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: The first argument has to be a number.", s); } const char * what() const throw() { return _msg; } };
+
+class	NotExtension : public std::exception { private: char _msg[MSG_SIZE]; public: NotExtension( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: Extension should be '.[extension]'.", s); } const char * what() const throw() { return _msg; } };
 
 #endif

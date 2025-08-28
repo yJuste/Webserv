@@ -11,29 +11,82 @@
 # include "Exceptions.hpp"
 # include "Location.hpp"
 
-const char * g_extensions[] = { ".py", ".php", NULL };
 const char * g_methods[] = { "GET", "POST", "DELETE", NULL };
-
-bool	dupCgi( const std::map<std::string, std::string> & cgi, const std::string & extension )
-{
-	std::map<std::string, std::string>::const_iterator it = cgi.find(extension);
-	return it != cgi.end() && !it->second.empty();
-}
 
 void	init_cgi( std::vector<std::string>::const_iterator & it, Location & location )
 {
 	std::string	extension = *(it++);
 	std::string	program = *it;
 
+	if (extension[0] != '.')
+		throw NotExtension(extension.c_str());
 	if (program.empty() || program[program.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	program.erase(program.size() - 1);
 	if (acstat(program.c_str(), F_OK | X_OK) != 1)
 		throw ProgramCgi(program.c_str());
-	if (dupCgi(location.getCgi(), extension))
-		throw DuplicateCgi(extension.c_str());
 
 	location.addCgi(extension, program.c_str());
+
+	location.setOverwritten("cgi");
+	location.setOverwritten("cgi_ext");
+	location.setOverwritten("cgi_path");
+}
+
+void	init_cgi_ext( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
+{
+	while (it != words.end())
+	{
+		std::string	index = *it;
+		bool		semicolon = false;
+
+		if (!index.empty() && index[index.size() - 1] == ';')
+		{
+			index.erase(index.size() - 1);
+			semicolon = true;
+		}
+		if (index.empty())
+			throw NoEndingSemicolon();
+		if (index[0] != '.')
+			throw NotExtension(index.c_str());
+		location.addCgiExt(index);
+		if (semicolon)
+			break ;
+		++it;
+	}
+	if (it == words.end())
+		throw NoEndingSemicolon();
+
+	location.setOverwritten("cgi");
+	location.setOverwritten("cgi_ext");
+	location.setOverwritten("cgi_path");
+}
+
+void	init_cgi_path( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
+{
+	while (it != words.end())
+	{
+		std::string	path = *it;
+		bool		semicolon = false;
+
+		if (!path.empty() && path[path.size() - 1] == ';')
+		{
+			path.erase(path.size() - 1);
+			semicolon = true;
+		}
+		if (path.empty())
+			throw NoEndingSemicolon();
+		location.addCgiPath(path);
+		if (semicolon)
+			break ;
+		++it;
+	}
+	if (it == words.end())
+		throw NoEndingSemicolon();
+
+	location.setOverwritten("cgi");
+	location.setOverwritten("cgi_path");
+	location.setOverwritten("cgi_ext");
 }
 
 void	init_autoindex( std::string str, Location & location )
@@ -43,10 +96,11 @@ void	init_autoindex( std::string str, Location & location )
 	str.erase(str.size() - 1);
 	if (str != "true" && str != "false"
 		&& str != "1" && str != "0"
-		&& str != "yes" && str != "no")
+		&& str != "yes" && str != "no"
+		&& str != "on" && str != "off")
 		throw InvalidAutoindex();
 
-	location.setAutoindex(str == "true" || str == "1" || str == "yes");
+	location.setAutoindex(str == "true" || str == "1" || str == "yes" || str == "on");
 	location.setOverwritten("autoindex");
 }
 
@@ -91,7 +145,7 @@ void	init_return( std::vector<std::string>::const_iterator & it, Location & loca
 
 	location.setReturn(code, str.c_str());
 	location.setOverwritten("return");
-	location.setOverwritten("redirect");		// alias
+	location.setOverwritten("redirect");
 }
 
 void	init_methods( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
@@ -129,7 +183,8 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 
 	location.setMethods(methods);
 	location.setOverwritten("methods");
-	location.setOverwritten("allow_methods");	// alias
+	location.setOverwritten("allow_methods");
+	location.setOverwritten("allowed_methods");
 }
 
 void	init_upload( std::string str, Location & location )
@@ -142,6 +197,7 @@ void	init_upload( std::string str, Location & location )
 
 	location.setUpload(str.c_str());
 	location.setOverwritten("upload");
+	location.setOverwritten("upload_store");
 }
 
 void	init_root( std::string str, Location & location )
@@ -161,7 +217,7 @@ void	init_location( const std::vector<std::string> & words, std::vector<std::str
 	try { if (location.getOverwrittenX(*it)) throw OverwrittenParameterLocation(location.getPath().c_str(), it->c_str()); }
 	catch ( std::exception & e ) { server.addWarning(e.what()); }
 
-	if (*it == "methods" || *it == "allow_methods")
+	if (*it == "methods" || *it == "allow_methods" || *it == "allowed_methods")
 		init_methods(words, ++it, location);
 	else if (*it == "return" || *it == "redirect")
 		init_return(++it, location);
@@ -171,7 +227,11 @@ void	init_location( const std::vector<std::string> & words, std::vector<std::str
 		init_autoindex(*(++it), location);
 	else if (*it == "cgi")
 		init_cgi(++it, location);
-	else if (*it == "upload")
+	else if (*it == "cgi_ext")
+		init_cgi_ext(words, ++it, location);
+	else if (*it == "cgi_path")
+		init_cgi_path(words, ++it, location);
+	else if (*it == "upload" || *it == "upload_store")
 		init_upload(*(++it), location);
 	else if (*it == "root")
 		init_root(*(++it), location);
@@ -198,7 +258,7 @@ void	create_paths( Location & location )
 	bool status = false;
 
 	std::vector<std::string> index = location.getIndex();
-	for ( std::vector<std::string>::iterator it = index.begin(); it != index.end(); ++it )
+	for (std::vector<std::string>::iterator it = index.begin(); it != index.end(); ++it)
 	{
 		*it = location.getRoot() + *it;
 		if (acstat(it->c_str(), F_OK | R_OK) == 1)
@@ -207,13 +267,17 @@ void	create_paths( Location & location )
 	if (!status)
 		throw FailedAcstat(index[0].c_str());
 	location.setIndex(index);
+
+	std::map<std::string, std::string> cgi = location.getCgi();
+	std::vector<std::string> paths = location.getCgiPaths();
+	std::map<std::string, std::string>::iterator it = cgi.begin();
+	for (size_t i = 0; i < paths.size() && it != cgi.end(); ++i, ++it)
+		it->second = paths[i];
+	location.setCgi(cgi);
 }
 
 Location	create_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
-	if (acstat(it->c_str(), F_OK | R_OK) != 2)
-		throw FailedAcstat(it->c_str());
-
 	Location	location;
 
 	location.setPath(it->c_str());
