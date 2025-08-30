@@ -56,11 +56,14 @@
 # endif
 
 /*	HELP
-
-* Server is a RAII class.
-* Warning: Copying is forbidden because it's dangerous to duplicate a fd.
-* Startup() & Shutdown() can only be used once ( they are protected )
-
+ *
+ * Server is a RAII class.
+ *
+ * Startup() assigns a socket.
+ * Startup() & Shutdown() can only be used once ( they are protected ).
+ *
+ * Copying a Server does not copy the socket.
+ *
 */
 
 // ************************************************************************** //
@@ -75,7 +78,7 @@ class	Server
 		struct sockaddr_in		_address;
 
 		std::string			_host;
-		int				_port;
+		std::vector<int>		_port;
 		std::string			_root;
 		bool				_default;
 		std::vector<std::string>	_index;
@@ -84,19 +87,18 @@ class	Server
 		size_t				_maxSize;
 		std::vector<Location>		_locations;
 
-		std::map<std::string, bool>	_duplicate;
 		std::map<std::string, bool>	_overwritten;
 		std::vector<std::string>	_warnings;
 
 		std::string			_rounded( size_t ) const;
 
-		Server( const Server & );
-		Server & operator = ( const Server & );
-
 	public:
 
 		Server();
 		~Server();
+
+		Server( const Server & );
+		Server & operator = ( const Server & );
 
 		// Methode
 
@@ -110,7 +112,9 @@ class	Server
 		const struct sockaddr_in & getAddress() const;
 
 		const std::string & getHost() const;
-		int getPort() const;
+		const std::vector<int> & getPort() const;
+		std::vector<int> & getPort();
+		int getFirstPort() const;
 		bool getDefault() const;
 		const std::vector<std::string> & getIndex() const;
 		std::vector<std::string> & getIndex();
@@ -120,9 +124,7 @@ class	Server
 		const std::string & getRoot() const;
 		const std::vector<Location> & getLocations() const;
 
-		const std::map<std::string, bool> & getDuplicate() const;
 		const std::map<std::string, bool> & getOverwritten() const;
-		bool getDuplicateX( const std::string & ) const;
 		bool getOverwrittenX( const std::string & ) const;
 
 		const std::vector<std::string> & getWarnings() const;
@@ -130,7 +132,7 @@ class	Server
 		// Setter
 
 		void setHost( const std::string & );
-		void setPort( int );
+		void addPort( int );
 		void setRoot( const std::string & );
 		void setDefault( bool );
 		void setIndex( const std::vector<std::string> & );
@@ -140,7 +142,6 @@ class	Server
 		void setMaxSize( int );
 		void addLocation( const Location & );
 
-		void setDuplicate( const std::string & );
 		void setOverwritten( const std::string & );
 
 		void addWarning( const std::string & );

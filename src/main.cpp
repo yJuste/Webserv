@@ -10,11 +10,15 @@
 # include "main.hpp"
 # include "Exceptions.hpp"
 
+// Si la longeur est trop grande par rapport au message, ca bloque attention.
+
 int	main(int argc, char **argv)
 {
 	try
 	{
-		(void)argc;
+		if (argc != 2)
+			throw FailedMainParameter();
+		create_unique_program();
 		std::vector<Server *> servers = configure_file(argv[1]);
 
 		for (size_t i = 0; i < servers.size(); ++i)
@@ -29,5 +33,20 @@ int	main(int argc, char **argv)
 	return 0;
 }
 
-// normalize:
-// ajouter un slash a la fin pour les dossiers
+/*
+ *	By default, the program is running with the port '62034'.
+ */
+void	create_unique_program()
+{
+	int sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock == -1)
+		throw FailedSocket();
+
+	sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(62034);
+	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
+	if (bind(sock, (sockaddr *)&addr, sizeof(addr)) == -1)
+		throw NotUniqueProcessus();
+}

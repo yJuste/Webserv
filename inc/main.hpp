@@ -36,10 +36,15 @@
 //                                  Prototypes                                //
 // ************************************************************************** //
 
+// ----- Main --------
+
+void	create_unique_program();
+
 // ----- Parsing -----
 
 // configure_file.cpp
 std::vector<Server *>	configure_file( const char * );
+std::vector<Server *>	multi_ports( std::vector<Server *> servers );
 
 // init_server.cpp
 std::vector<Server *>	create_servers( const std::vector<std::string> & );

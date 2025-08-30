@@ -16,6 +16,7 @@ SRC =	main.cpp				\
 	Client.cpp				\
 	Supervisor.cpp				\
 	parsing/configure_file.cpp		\
+	parsing/multi_ports.cpp			\
 	parsing/init_server.cpp			\
 	parsing/init_location.cpp		\
 	parsing/utils.cpp			\

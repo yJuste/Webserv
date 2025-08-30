@@ -10,19 +10,36 @@
 # include "Server.hpp"
 # include "Exceptions.hpp"
 
-Server::Server() : _socket(-1), _host("0.0.0.0"), _port(80), _root(""), _default(false), _maxSize(1048576)
+Server::Server() : _socket(-1), _host("0.0.0.0"), _root(""), _default(false), _maxSize(1048576)
 {
 	_index.push_back("index.html");
-
-	_duplicate["host"] = false;
-	_duplicate["listen"] = false;
-	_duplicate["root"] = false;
 
 	_overwritten["index"] = false;
 	_overwritten["error_page"] = false;
 	_overwritten["client_max_body_size"] = false;
 }
 Server::~Server() { shutdown(); }
+
+Server::Server( const Server & s ) { *this = s; }
+
+Server	&Server::operator = ( const Server & s )
+{
+	if (this != &s)
+	{
+		_host = s.getHost();
+		_port = s.getPort();
+		_root = s.getRoot();
+		_default = s.getDefault();
+		_index = s.getIndex();
+		_names = s.getNames();
+		_errorPages = s.getErrorPages();
+		_maxSize = s.getMaxSize();
+		_locations = s.getLocations();
+		_overwritten = s.getOverwritten();
+		_warnings = s.getWarnings();
+	}
+	return *this;
+}
 
 // Methods
 
@@ -57,7 +74,7 @@ void	Server::startup( void )
 	struct sockaddr_in *add = (struct sockaddr_in *)info->ai_addr;
 
 	_address.sin_family = AF_INET;
-	_address.sin_port = htons(getPort());
+	_address.sin_port = htons(getFirstPort());
 	_address.sin_addr = add->sin_addr;
 	freeaddrinfo(info);
 
@@ -83,7 +100,10 @@ void	Server::myConfig( void ) const
 	std::cout << "║                    SERVER CONFIGURATION                    ║" << std::endl;
 	std::cout << "╚════════════════════════════════════════════════════════════╝" << "\033[0m" << std::endl << std::endl;
 	std::cout << BROWN << " Host              : " << BEIGE << getHost() << RESET << std::endl;
-	std::cout << BROWN << " Port              : " << BEIGE << getPort() << RESET << std::endl;
+	std::cout << BROWN << " Port(s)           : " << BEIGE;
+	for ( std::vector<int>::const_iterator it = getPort().begin(); it != getPort().end(); ++it )
+		std::cout << *it << " ";
+	std::cout << RESET << std::endl;
 	std::cout << BROWN << " Root              : " << BEIGE << getRoot() << RESET << std::endl;
 	std::cout << BROWN << " Index             : " << BEIGE;
 	for ( std::vector<std::string>::const_iterator it = getIndex().begin(); it != getIndex().end(); ++it )
@@ -176,7 +196,9 @@ int Server::getSocket() const { return _socket; }
 const struct sockaddr_in & Server::getAddress() const { return _address; }
 
 const std::string & Server::getHost() const { return _host; }
-int Server::getPort() const { return _port; }
+const std::vector<int> & Server::getPort() const { return _port; }
+std::vector<int> & Server::getPort() { return _port; }
+int Server::getFirstPort() const { if (!_port.size()) return -1; return _port[0]; }
 const std::string & Server::getRoot() const { return _root; }
 bool Server::getDefault() const { return _default; }
 const std::vector<std::string> & Server::getIndex() const { return _index; }
@@ -186,16 +208,14 @@ const std::map<int, std::string> & Server::getErrorPages() const { return _error
 size_t Server::getMaxSize() const { return _maxSize; }
 const std::vector<Location> & Server::getLocations() const { return _locations; }
 
-const std::map<std::string, bool> & Server::getDuplicate() const { return _duplicate; }
 const std::map<std::string, bool> & Server::getOverwritten() const { return _overwritten; }
-bool Server::getDuplicateX( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _duplicate.find(parameter); return it != _duplicate.end() && it->second; }
 bool Server::getOverwrittenX( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _overwritten.find(parameter); return it != _overwritten.end() && it->second; }
 const std::vector<std::string> & Server::getWarnings() const { return _warnings; }
 
 // Setters
 
 void Server::setHost( const std::string & host ) { _host = host; }
-void Server::setPort( int port ) { _port = port; }
+void Server::addPort( int port ) { for (size_t i = 0; i < _port.size(); ++i) if (_port[i] == port) return ; _port.push_back(port); }
 void Server::setRoot( const std::string & root ) { _root = root; }
 void Server::setDefault( bool def ) { _default = def; }
 void Server::setIndex( const std::vector<std::string> & index ) { _index = index; }
@@ -205,6 +225,5 @@ void Server::addErrorPage( int code, const std::string & path ) { _errorPages[co
 void Server::setMaxSize( int size ) { _maxSize = size; }
 void Server::addLocation( const Location & location ) { _locations.push_back(location); }
 
-void Server::setDuplicate( const std::string & parameter ) { _duplicate[parameter] = true; }
 void Server::setOverwritten( const std::string & parameter ) { _overwritten[parameter] = true; }
 void Server::addWarning( const std::string & warning ) { _warnings.push_back(warning); }

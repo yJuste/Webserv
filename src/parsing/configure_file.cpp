@@ -72,5 +72,6 @@ std::vector<Server *>	configure_file( const char * s )
 		std::vector<std::string> w = split(line);
 		words.insert(words.end(), w.begin(), w.end());
 	}
-	return create_servers(words);
+	std::vector<Server *> servers = create_servers(words);
+	return multi_ports(servers);
 }
