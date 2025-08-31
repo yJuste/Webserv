@@ -26,6 +26,10 @@ Server	&Server::operator = ( const Server & s )
 {
 	if (this != &s)
 	{
+		_socket = -1;
+		_address.sin_family = AF_INET;
+		_address.sin_port = 0;
+		_address.sin_addr.s_addr = INADDR_ANY;
 		_host = s.getHost();
 		_port = s.getPort();
 		_root = s.getRoot();
