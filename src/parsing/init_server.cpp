@@ -213,7 +213,7 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 		init_root(*(++it), server);
 	else if (*it == "index")
 		init_index(words, ++it, server);
-	else if (*it == "server_name")
+	else if (*it == "server_name" || *it == "server_names") 
 		init_names(words, ++it, server);
 	else if (*it == "error_page")
 		init_error_pages(words, ++it, server);
