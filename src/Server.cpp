@@ -197,7 +197,6 @@ void Server::setNames( const std::vector<std::string> & names ) { _names = names
 void Server::addErrorPage( int code, const std::string & path ) { _errorPages[code] = path; }
 void Server::setMaxSize( int size ) { _maxSize = size; }
 void Server::addLocation( const Location & location ) { _locations.push_back(location); }
-
 void Server::setOverwritten( const std::string & parameter ) { _overwritten[parameter] = true; }
 void Server::addWarning( const std::string & warning ) { _warnings.push_back(warning); }
 

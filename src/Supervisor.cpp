@@ -19,6 +19,8 @@ Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(0), _ser
 	hold(servers);
 }
 
+// Methods
+
 void	Supervisor::hold( const std::vector<Server *> & servers )
 {
 	if (_server_size)
@@ -33,8 +35,6 @@ void	Supervisor::hold( const std::vector<Server *> & servers )
 		_fds[i].events = POLLIN;
 	}
 }
-
-// Method
 
 void	Supervisor::execution( void )
 {
