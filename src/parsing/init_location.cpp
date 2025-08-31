@@ -13,20 +13,27 @@
 
 const char * g_methods[] = { "GET", "POST", "DELETE", NULL };
 
-void	init_cgi( std::vector<std::string>::const_iterator & it, Location & location )
+void	init_cgi_path( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
 {
-	std::string	extension = *(it++);
-	std::string	program = *it;
+	while (it != words.end())
+	{
+		std::string	path = *it;
+		bool		semicolon = false;
 
-	if (extension[0] != '.')
-		throw NotExtension(extension.c_str());
-	if (program.empty() || program[program.size() - 1] != ';')
+		if (!path.empty() && path[path.size() - 1] == ';')
+		{
+			path.erase(path.size() - 1);
+			semicolon = true;
+		}
+		if (path.empty())
+			throw NoEndingSemicolon();
+		location.addCgiPath(path);
+		if (semicolon)
+			break ;
+		++it;
+	}
+	if (it == words.end())
 		throw NoEndingSemicolon();
-	program.erase(program.size() - 1);
-	if (acstat(program.c_str(), F_OK | X_OK) != 1)
-		throw ProgramCgi(program.c_str());
-
-	location.addCgi(extension, program.c_str());
 
 	location.setOverwritten("cgi");
 	location.setOverwritten("cgi_ext");
@@ -62,46 +69,24 @@ void	init_cgi_ext( const std::vector<std::string> & words, std::vector<std::stri
 	location.setOverwritten("cgi_path");
 }
 
-void	init_cgi_path( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
+void	init_cgi( std::vector<std::string>::const_iterator & it, Location & location )
 {
-	while (it != words.end())
-	{
-		std::string	path = *it;
-		bool		semicolon = false;
+	std::string	extension = *(it++);
+	std::string	program = *it;
 
-		if (!path.empty() && path[path.size() - 1] == ';')
-		{
-			path.erase(path.size() - 1);
-			semicolon = true;
-		}
-		if (path.empty())
-			throw NoEndingSemicolon();
-		location.addCgiPath(path);
-		if (semicolon)
-			break ;
-		++it;
-	}
-	if (it == words.end())
+	if (extension[0] != '.')
+		throw NotExtension(extension.c_str());
+	if (program.empty() || program[program.size() - 1] != ';')
 		throw NoEndingSemicolon();
+	program.erase(program.size() - 1);
+	if (acstat(program.c_str(), F_OK | X_OK) != 1)
+		throw ProgramCgi(program.c_str());
+
+	location.addCgi(extension, program.c_str());
 
 	location.setOverwritten("cgi");
-	location.setOverwritten("cgi_path");
 	location.setOverwritten("cgi_ext");
-}
-
-void	init_autoindex( std::string str, Location & location )
-{
-	if (str.empty() || str[str.size() - 1] != ';')
-		throw NoEndingSemicolon();
-	str.erase(str.size() - 1);
-	if (str != "true" && str != "false"
-		&& str != "1" && str != "0"
-		&& str != "yes" && str != "no"
-		&& str != "on" && str != "off")
-		throw InvalidAutoindex();
-
-	location.setAutoindex(str == "true" || str == "1" || str == "yes" || str == "on");
-	location.setOverwritten("autoindex");
+	location.setOverwritten("cgi_path");
 }
 
 void	init_index( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
@@ -126,6 +111,21 @@ void	init_index( const std::vector<std::string> & words, std::vector<std::string
 
 	location.setIndex(tabs);
 	location.setOverwritten("index");
+}
+
+void	init_autoindex( std::string str, Location & location )
+{
+	if (str.empty() || str[str.size() - 1] != ';')
+		throw NoEndingSemicolon();
+	str.erase(str.size() - 1);
+	if (str != "true" && str != "false"
+		&& str != "1" && str != "0"
+		&& str != "yes" && str != "no"
+		&& str != "on" && str != "off")
+		throw InvalidAutoindex();
+
+	location.setAutoindex(str == "true" || str == "1" || str == "yes" || str == "on");
+	location.setOverwritten("autoindex");
 }
 
 void	init_return( std::vector<std::string>::const_iterator & it, Location & location )
@@ -210,24 +210,24 @@ void	init_location( const std::vector<std::string> & words, std::vector<std::str
 	try { if (location.getOverwrittenX(*it)) throw OverwrittenParameterLocation(location.getPath().c_str(), it->c_str()); }
 	catch ( std::exception & e ) { server.addWarning(e.what()); }
 
-	if (*it == "methods" || *it == "allow_methods" || *it == "allowed_methods")
+	if (*it == "root")
+		init_root(*(++it), location);
+	else if (*it == "upload" || *it == "upload_store")
+		init_upload(*(++it), location);
+	else if (*it == "methods" || *it == "allow_methods" || *it == "allowed_methods")
 		init_methods(words, ++it, location);
 	else if (*it == "return" || *it == "redirect")
 		init_return(++it, location);
-	else if (*it == "index")
-		init_index(words, ++it, location);
 	else if (*it == "autoindex")
 		init_autoindex(*(++it), location);
+	else if (*it == "index")
+		init_index(words, ++it, location);
 	else if (*it == "cgi")
 		init_cgi(++it, location);
 	else if (*it == "cgi_ext")
 		init_cgi_ext(words, ++it, location);
 	else if (*it == "cgi_path")
 		init_cgi_path(words, ++it, location);
-	else if (*it == "upload" || *it == "upload_store")
-		init_upload(*(++it), location);
-	else if (*it == "root")
-		init_root(*(++it), location);
 	else
 		throw InvalidParameter(it->c_str());
 }

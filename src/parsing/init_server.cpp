@@ -144,18 +144,6 @@ void	init_root( std::string str, Server & server )
 	server.setOverwritten("root");
 }
 
-void	init_host( std::string str, Server & server )
-{
-	if (str.empty() || str[str.size() - 1] != ';')
-		throw NoEndingSemicolon();
-	str.erase(str.size() - 1);
-
-	if (server.getHost() != "0.0.0.0")
-		throw DuplicateParameter("host");
-
-	server.setHost(str);
-}
-
 void	init_listen( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
 	while (it != words.end())
@@ -198,6 +186,18 @@ void	init_listen( const std::vector<std::string> & words, std::vector<std::strin
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
+}
+
+void	init_host( std::string str, Server & server )
+{
+	if (str.empty() || str[str.size() - 1] != ';')
+		throw NoEndingSemicolon();
+	str.erase(str.size() - 1);
+
+	if (server.getHost() != "0.0.0.0")
+		throw DuplicateParameter("host");
+
+	server.setHost(str);
 }
 
 void	init_server( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )

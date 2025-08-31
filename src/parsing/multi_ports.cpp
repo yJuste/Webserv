@@ -10,7 +10,7 @@
 # include "main.hpp"
 # include "Exceptions.hpp"
 
-std::vector<Server *>	multi_ports( std::vector<Server *> servers )
+std::vector<Server *>	multi_ports( std::vector<Server *> & servers )
 {
 	std::vector<Server *> res = servers;
 	for (size_t i = 0; i < servers.size(); ++i)
