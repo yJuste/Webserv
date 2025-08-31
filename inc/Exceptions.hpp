@@ -40,15 +40,9 @@ class	FailedOpen : public std::exception { public : const char * what() const th
 
 class	FailedAcstat : public std::exception { private: char _msg[MSG_SIZE]; public: FailedAcstat( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: The path is not \033[31mfound or accessible\033[0m.", s); } const char * what() const throw() { return _msg; } };
 
-class	FailedRealpath : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: realpath() failed."; } };
-
-class	FailedGetcwd : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: getcwd() failed."; } };
-
 class	FailedPoll : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: poll() failed."; } };
 
 class	FailedAccept : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: accept() failed."; } };
-
-class	FailedRecv : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: recv() failed."; } };
 
 class	FailedSend : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: send() failed."; } };
 
@@ -76,27 +70,15 @@ class	NoExistingPort : public std::exception { public : const char * what() cons
 
 class	LocationNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'location'."; } };
 
-class	ErrorPageNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Error_page has to be in the format : [nb dir] [nb dir] ..."; } };
-
 class	MaxSizeNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Client max body size has to be a number."; } };
 
 class	Overflow : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: A number has overflowed, please be careful."; } };
 
 class	MethodErrors : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: A method does not exist or is duplicated."; } };
 
-class	RedirXDefault : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Redirect is enabled but no target is defined."; } };
-
-class	DefaultNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'default'."; } };
-
-class	InvalidRedirect : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Invalid boolean value for the parameter 'redirect'."; } };
-
 class	InvalidAutoindex : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Invalid boolean value for the parameter 'autoindex'."; } };
 
-class	ExtensionCgi : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Invalid extension given for the parameter 'cgi' (should be [\033[91m.py\033[0m, \033[91m.php\033[0m])."; } };
-
 class	ProgramCgi : public std::exception { private: char _msg[MSG_SIZE]; public: ProgramCgi( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: Invalid program path for the parameter 'cgi'.", s); } const char * what() const throw() { return _msg; } };
-
-class	DuplicateCgi : public std::exception { private: char _msg[MSG_SIZE]; public: DuplicateCgi( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: This extension already exists.", s); } const char * what() const throw() { return _msg; } };
 
 class	DuplicateParameter : public std::exception { private: char _msg[MSG_SIZE]; public: DuplicateParameter( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: This parameter cannot be duplicated.", s); } const char * what() const throw() { return _msg; } };
 

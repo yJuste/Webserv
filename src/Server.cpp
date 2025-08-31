@@ -167,14 +167,49 @@ void	Server::myConfig( void ) const
 	std::cout << std::endl << BOLD BLUE << "══════════════════════════════════════════════════════════════" << RESET << std::endl << std::endl;
 }
 
+// Getters
+
+int Server::getSocket() const { return _socket; }
+const struct sockaddr_in & Server::getAddress() const { return _address; }
+
+const std::string & Server::getHost() const { return _host; }
+const std::vector<int> & Server::getPort() const { return _port; }
+int Server::getFirstPort() const { if (!_port.size()) return -1; return _port[0]; }
+const std::string & Server::getRoot() const { return _root; }
+bool Server::getDefault() const { return _default; }
+const std::vector<std::string> & Server::getIndex() const { return _index; }
+const std::vector<std::string> & Server::getNames() const { return _names; }
+const std::map<int, std::string> & Server::getErrorPages() const { return _errorPages; }
+size_t Server::getMaxSize() const { return _maxSize; }
+const std::vector<Location> & Server::getLocations() const { return _locations; }
+const std::map<std::string, bool> & Server::getOverwritten() const { return _overwritten; }
+bool Server::getOverwrittenX( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _overwritten.find(parameter); return it != _overwritten.end() && it->second; }
+const std::vector<std::string> & Server::getWarnings() const { return _warnings; }
+
+// Setters
+
+void Server::setHost( const std::string & host ) { _host = host; }
+void Server::setPort( const std::vector<int> & port ) { _port = port; }
+void Server::addPort( int port ) { for (size_t i = 0; i < _port.size(); ++i) if (_port[i] == port) return ; _port.push_back(port); }
+void Server::setRoot( const std::string & root ) { _root = root; }
+void Server::setDefault( bool def ) { _default = def; }
+void Server::setIndex( const std::vector<std::string> & index ) { _index = index; }
+void Server::setNames( const std::vector<std::string> & names ) { _names = names; }
+void Server::addErrorPage( int code, const std::string & path ) { _errorPages[code] = path; }
+void Server::setMaxSize( int size ) { _maxSize = size; }
+void Server::addLocation( const Location & location ) { _locations.push_back(location); }
+
+void Server::setOverwritten( const std::string & parameter ) { _overwritten[parameter] = true; }
+void Server::addWarning( const std::string & warning ) { _warnings.push_back(warning); }
+
 // Private Methods
 
 // return rounded number with its nearest units.
 std::string	Server::_rounded( size_t bytes ) const
 {
 	const char * units[] = {"bytes", "KB", "MB", "GB", "TB"};
-	double		size = static_cast<double>(bytes);
-	int		unit = 0;
+	double size = static_cast<double>(bytes);
+	int unit = 0;
 
 	while ( size >= 1024.0 && unit < 4 )
 	{
@@ -189,41 +224,3 @@ std::string	Server::_rounded( size_t bytes ) const
 	ss << size << " " << units[unit];
 	return ss.str();
 }
-
-// Getters
-
-int Server::getSocket() const { return _socket; }
-const struct sockaddr_in & Server::getAddress() const { return _address; }
-
-const std::string & Server::getHost() const { return _host; }
-const std::vector<int> & Server::getPort() const { return _port; }
-std::vector<int> & Server::getPort() { return _port; }
-int Server::getFirstPort() const { if (!_port.size()) return -1; return _port[0]; }
-const std::string & Server::getRoot() const { return _root; }
-bool Server::getDefault() const { return _default; }
-const std::vector<std::string> & Server::getIndex() const { return _index; }
-std::vector<std::string> & Server::getIndex() { return _index; }
-const std::vector<std::string> & Server::getNames() const { return _names; }
-const std::map<int, std::string> & Server::getErrorPages() const { return _errorPages; }
-size_t Server::getMaxSize() const { return _maxSize; }
-const std::vector<Location> & Server::getLocations() const { return _locations; }
-
-const std::map<std::string, bool> & Server::getOverwritten() const { return _overwritten; }
-bool Server::getOverwrittenX( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _overwritten.find(parameter); return it != _overwritten.end() && it->second; }
-const std::vector<std::string> & Server::getWarnings() const { return _warnings; }
-
-// Setters
-
-void Server::setHost( const std::string & host ) { _host = host; }
-void Server::addPort( int port ) { for (size_t i = 0; i < _port.size(); ++i) if (_port[i] == port) return ; _port.push_back(port); }
-void Server::setRoot( const std::string & root ) { _root = root; }
-void Server::setDefault( bool def ) { _default = def; }
-void Server::setIndex( const std::vector<std::string> & index ) { _index = index; }
-void Server::addIndex( const std::string & index ) { _index.push_back(index); }
-void Server::addName( const std::string & name ) { _names.push_back(name); }
-void Server::addErrorPage( int code, const std::string & path ) { _errorPages[code] = path; }
-void Server::setMaxSize( int size ) { _maxSize = size; }
-void Server::addLocation( const Location & location ) { _locations.push_back(location); }
-
-void Server::setOverwritten( const std::string & parameter ) { _overwritten[parameter] = true; }
-void Server::addWarning( const std::string & warning ) { _warnings.push_back(warning); }

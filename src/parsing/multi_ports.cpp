@@ -20,12 +20,14 @@ std::vector<Server *>	multi_ports( std::vector<Server *> servers )
 		for (size_t j = 1; j < ports.size(); ++j)
 		{
 			Server * server = new Server(*servers[i]);
-			server->getPort().clear();
-			server->addPort(ports[j]);
+			std::vector<int> singlePort;
+			singlePort.push_back(ports[j]);
+			server->setPort(singlePort);
 			res.push_back(server);
 		}
-		servers[i]->getPort().clear();
-		servers[i]->addPort(ports[0]);
+		std::vector<int> firstPort;
+		firstPort.push_back(ports[0]);
+		servers[i]->setPort(firstPort);
 	}
 	return res;
 }

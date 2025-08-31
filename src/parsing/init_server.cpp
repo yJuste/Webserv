@@ -86,6 +86,7 @@ void	init_error_pages( const std::vector<std::string> & words, std::vector<std::
 
 void	init_names( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
+	std::vector<std::string> names = server.getNames();
 	while (it != words.end())
 	{
 		std::string name = *it;
@@ -94,19 +95,21 @@ void	init_names( const std::vector<std::string> & words, std::vector<std::string
 			name.erase(name.size() - 1);
 			if (name.empty())
 				throw NoEndingSemicolon();
-			server.addName(name);
+			names.push_back(name);
 			break ;
 		}
-		server.addName(name);
+		names.push_back(name);
 		++it;
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
+
+	server.setNames(names);
 }
 
 void	init_index( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
-	server.getIndex().clear();
+	std::vector<std::string> tabs;
 	while (it != words.end())
 	{
 		std::string index = *it;
@@ -115,15 +118,16 @@ void	init_index( const std::vector<std::string> & words, std::vector<std::string
 			index.erase(index.size() - 1);
 			if (index.empty())
 				throw NoEndingSemicolon();
-			server.addIndex(index.c_str());
+			tabs.push_back(index.c_str());
 			break ;
 		}
-		server.addIndex(index.c_str());
+		tabs.push_back(index.c_str());
 		++it;
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
 
+	server.setIndex(tabs);
 	server.setOverwritten("index");
 }
 
@@ -234,7 +238,11 @@ void	missingImportant( std::vector<Server *> & servers, Server & server )
 	try { if (server.getLocations().empty()) throw MissingImportantValues("location"); }
 	catch ( std::exception & e ) { server.addWarning(e.what()); }
 	if (server.getNames().empty())
-		server.addName("localhost");
+	{
+		std::vector<std::string> name;
+		name.push_back("localhost");
+		server.setNames(name);
+	}
 	if (!server.getPort().size())
 		throw NoExistingPort();
 }

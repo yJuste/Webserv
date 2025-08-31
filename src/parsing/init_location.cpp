@@ -106,27 +106,25 @@ void	init_autoindex( std::string str, Location & location )
 
 void	init_index( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
 {
-	location.getIndex().clear();
+	std::vector<std::string> tabs;
 	while (it != words.end())
 	{
-		std::string	index = *it;
-		bool		semicolon = false;
-
+		std::string index = *it;
 		if (!index.empty() && index[index.size() - 1] == ';')
 		{
 			index.erase(index.size() - 1);
-			semicolon = true;
-		}
-		if (index.empty())
-			throw NoEndingSemicolon();
-		location.addIndex(index.c_str());
-		if (semicolon)
+			if (index.empty())
+				throw NoEndingSemicolon();
+			tabs.push_back(index.c_str());
 			break ;
+		}
+		tabs.push_back(index.c_str());
 		++it;
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
 
+	location.setIndex(tabs);
 	location.setOverwritten("index");
 }
 
@@ -154,7 +152,6 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 	std::vector<std::string>	ext;
 	const int			count = (sizeof(g_methods) - sizeof(g_methods[0])) / sizeof(g_methods[0]);
 
-	(location.getMethods()).clear();
 	for ( int i = 0; i < count; ++i )
 		ext.push_back(std::string(g_methods[i]));
 	while (it != words.end())
@@ -193,8 +190,6 @@ void	init_upload( std::string str, Location & location )
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
 
-	location.getUpload().clear();
-
 	location.setUpload(str.c_str());
 	location.setOverwritten("upload");
 	location.setOverwritten("upload_store");
@@ -205,8 +200,6 @@ void	init_root( std::string str, Location & location )
 	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
-
-	location.getRoot().clear();
 
 	location.setRoot(str.c_str());
 	location.setOverwritten("root");

@@ -45,6 +45,8 @@ class	Location
 		std::string				_upload;
 		std::string				_root;
 
+		// parsing
+
 		std::map<std::string, bool>		_overwritten;
 
 	public:
@@ -55,32 +57,26 @@ class	Location
 		Location( const Location & );
 		Location & operator = ( const Location & );
 
-		// Getter
+		// Getters
 
 		const std::string & getPath() const;
 		const std::vector<std::string> & getMethods() const;
-		std::vector<std::string> & getMethods();
 		const std::map<int, std::string> & getReturn() const;
 		bool getAutoindex() const;
 		const std::vector<std::string> & getIndex() const;
-		std::vector<std::string> & getIndex();
 		const std::map<std::string, std::string> & getCgi() const;
 		const std::vector<std::string> & getCgiPaths() const;
 		const std::string & getUpload() const;
-		std::string & getUpload();
 		const std::string & getRoot() const;
-		std::string & getRoot();
-
 		const std::map<std::string, bool> & getOverwritten() const;
 		bool getOverwrittenX( const std::string & ) const;
 
-		// Setter
+		// Setters
 
 		void setPath( const std::string & );
 		void setMethods( const std::vector<std::string> & );
 		void setReturn( int, const std::string & );
 		void setIndex( const std::vector<std::string> & );
-		void addIndex( const std::string & );
 		void setAutoindex( bool );
 		void setCgi( const std::map<std::string, std::string> & );
 		void addCgi( const std::string &, const std::string & );
@@ -88,7 +84,6 @@ class	Location
 		void addCgiPath( const std::string & );
 		void setUpload( const std::string & str );
 		void setRoot( const std::string & );
-
 		void setOverwritten( const std::string & );
 };
 

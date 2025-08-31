@@ -10,7 +10,7 @@
 # include "main.hpp"
 # include "Exceptions.hpp"
 
-// Si la longeur est trop grande par rapport au message, ca bloque attention.
+// Si la longeur stipulé sur le message est trop grande par rapport au message, ca bloque attention.
 
 int	main(int argc, char **argv)
 {
@@ -36,7 +36,7 @@ int	main(int argc, char **argv)
 /*
  *	By default, the program is running with the port '62034'.
  */
-void	create_unique_program()
+void	create_unique_program( void )
 {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == -1)

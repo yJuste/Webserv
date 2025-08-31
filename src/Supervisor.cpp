@@ -94,6 +94,14 @@ void	Supervisor::execution( void )
 	}
 }
 
+// Getter
+
+size_t Supervisor::getSize() const { return _size; }
+
+// Setter
+
+void Supervisor::addClient( Client * client ) { _clients.push_back(client); }
+
 // Private Methods
 
 bool	Supervisor::_find( const std::vector<Server *> & servers, int fd )
@@ -118,7 +126,7 @@ bool	Supervisor::_supClient( int fd )
 	return false;
 }
 
-void	Supervisor::_clean()
+void	Supervisor::_clean( void )
 {
 	for (size_t i = 0; i < _servers.size(); ++i)
 	{
@@ -133,12 +141,3 @@ void	Supervisor::_clean()
 	}
 	_clients.clear();
 }
-
-// Getters
-
-size_t Supervisor::getSize() const { return _size; }
-struct pollfd Supervisor::getFdX( int idx ) const { return _fds[idx]; }
-
-// Setters
-
-void Supervisor::addClient( Client * client ) { _clients.push_back(client); }

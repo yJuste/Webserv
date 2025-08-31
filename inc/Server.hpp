@@ -87,9 +87,10 @@ class	Server
 		size_t				_maxSize;
 		std::vector<Location>		_locations;
 
+		// parsing
+
 		std::map<std::string, bool>	_overwritten;
 		std::vector<std::string>	_warnings;
-
 		std::string			_rounded( size_t ) const;
 
 	public:
@@ -100,50 +101,43 @@ class	Server
 		Server( const Server & );
 		Server & operator = ( const Server & );
 
-		// Methode
+		// Methods
 
-		void startup();			// start server (protected)
-		void shutdown();		// close server (protected)
-		void myConfig() const;		// print server configuration
+		void startup();		// start server (protected)
+		void shutdown();	// close server (protected)
+		void myConfig() const;	// print server configuration
 
-		// Getter
+		// Getters
 
 		int getSocket() const;
 		const struct sockaddr_in & getAddress() const;
-
 		const std::string & getHost() const;
 		const std::vector<int> & getPort() const;
-		std::vector<int> & getPort();
 		int getFirstPort() const;
 		bool getDefault() const;
 		const std::vector<std::string> & getIndex() const;
-		std::vector<std::string> & getIndex();
 		const std::vector<std::string> & getNames() const;
 		const std::map<int, std::string> & getErrorPages() const;
 		size_t getMaxSize() const;
 		const std::string & getRoot() const;
 		const std::vector<Location> & getLocations() const;
-
 		const std::map<std::string, bool> & getOverwritten() const;
 		bool getOverwrittenX( const std::string & ) const;
-
 		const std::vector<std::string> & getWarnings() const;
 
-		// Setter
+		// Setters
 
 		void setHost( const std::string & );
+		void setPort( const std::vector<int> & );
 		void addPort( int );
 		void setRoot( const std::string & );
 		void setDefault( bool );
 		void setIndex( const std::vector<std::string> & );
-		void addIndex( const std::string & );
-		void addName( const std::string & );
+		void setNames( const std::vector<std::string> & );
 		void addErrorPage( int, const std::string & );
 		void setMaxSize( int );
 		void addLocation( const Location & );
-
 		void setOverwritten( const std::string & );
-
 		void addWarning( const std::string & );
 };
 

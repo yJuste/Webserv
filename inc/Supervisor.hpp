@@ -69,7 +69,7 @@ class	Supervisor
 		Supervisor( const std::vector<Server *> & );
 		~Supervisor();
 
-		// Method
+		// Methods
 
 		void hold( const std::vector<Server *> & );
 		void execution();
@@ -77,11 +77,12 @@ class	Supervisor
 		// Getter
 
 		size_t getSize() const;
-		struct pollfd getFdX( int ) const;
 
-		// Setter
+		// Setters
 
 		void addClient( Client * );
+
+		// Exceptions
 
 		class NoServerAdded;
 		class SupNoClient;
