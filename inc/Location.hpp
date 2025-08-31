@@ -21,11 +21,11 @@
 extern const char * g_methods[];
 
 /*	HELP
-
-* The Location class needs arrays for supported extensions and allowed methods.
-* Cgi works as : cgi [.extension] [executable];
-
-*/
+ *
+ * The Location class needs arrays for supported extensions and allowed methods.
+ * Cgi works as : cgi [.extension] [executable];
+ *
+ */
 
 // ************************************************************************** //
 //                                Location Class                              //

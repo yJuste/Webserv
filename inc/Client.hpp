@@ -18,11 +18,11 @@
 # include <fcntl.h>
 
 /*	HELP
-
-* Client is a RAII class.
-* Warning: Copying is forbidden because it's dangerous to duplicate a fd.
-
-*/
+ *
+ * Client is a RAII class.
+ * Warning: Copying is forbidden because it's dangerous to duplicate a fd.
+ *
+ */
 
 // ************************************************************************** //
 //                                 Client Class                               //

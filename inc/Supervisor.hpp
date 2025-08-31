@@ -30,16 +30,16 @@
 # include "Client.hpp"
 
 /*	HELP
-
-* The Supervisor class waits for an array of Servers allocated on the heap.
-* Warning: supervisor destroys the vector<Server *> itself ( no need to delete[] )
-* Test it with : curl -v http://IPv4:Port
-* Test leaks : add cycles in execution() ( ~10 seconds to test ):
-
-	size_t cycles = 0;
-	while (_running && cycles++ < 1000000) { ... }
-
-*/
+ *
+ * The Supervisor class waits for an array of Servers allocated on the heap.
+ * Warning: supervisor destroys the vector<Server *> itself ( no need to delete[] )
+ * Test it with : curl -v http://IPv4:Port
+ * Test leaks : add cycles in execution() ( ~10 seconds to test ):
+ *
+ *	size_t cycles = 0;
+ *	while (_running && cycles++ < 1000000) { ... }
+ *
+ */
 
 // ************************************************************************** //
 //                                 Supervisor Class                           //
