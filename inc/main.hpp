@@ -10,13 +10,6 @@
 #ifndef MAIN_HPP
 # define MAIN_HPP
 
-class Server;
-class Poller;
-class HttpRequest;
-class Location;
-
-// Defines
-
 // Standard Libraries
 
 # include <algorithm>
@@ -27,7 +20,8 @@ class Location;
 // Dependences
 
 # include "Exceptions.hpp"
-#include "Poller.hpp"     // Poller
+#include "Poller.hpp"
+# include "Supervisor.hpp"
 
 // Defines
 

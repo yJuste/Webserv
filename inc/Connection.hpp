@@ -6,19 +6,12 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 09:02:10 by layang            #+#    #+#             */
-/*   Updated: 2025/09/02 20:33:38 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/02 20:35:45 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONNECTION_HPP
 # define CONNECTION_HPP
-
-// Standard Libraries
-# include <fcntl.h>
-# include <errno.h>
-#include <iostream>     // std::cerr, std::endl
-#include <cerrno>       // errno (if using)
-#include <cstring>      // strerror (if using)
 
 // Defines
 

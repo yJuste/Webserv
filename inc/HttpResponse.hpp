@@ -6,16 +6,22 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/26 19:34:52 by layang            #+#    #+#             */
-/*   Updated: 2025/09/02 12:07:12 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/02 20:41:39 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef HTTPRESPONSE_HPP
 # define HTTPRESPONSE_HPP
 
+// Dependences
+
 # include "Location.hpp"
 # include "HttpRequest.hpp"
 # include "Server.hpp"
+
+// ************************************************************************** //
+//                                  Prototypes                                //
+// ************************************************************************** //
 
 class HttpResponse {
 private:

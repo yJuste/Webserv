@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 08:18:57 by layang            #+#    #+#             */
-/*   Updated: 2025/09/02 20:29:14 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/02 20:43:44 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,24 +14,16 @@
 # define POLLER_HPP
 
 // Standard Libraries
-# include <string>
-# include <map>
-# include <vector>
-# include <sys/socket.h>
-# include <netinet/in.h>
-# include <fcntl.h>
-# include <errno.h>
+
 # include <poll.h> 
 
-// ************************************************************************** //
-//                                  Dependences                               //
-// ************************************************************************** //
+// Dependences
 
 # include "Connection.hpp"
 # include "Server.hpp"
 
 // ************************************************************************** //
-//                                  Prototypes                                //
+//                                Poller Class                                //
 // ************************************************************************** //
 
 class Poller {

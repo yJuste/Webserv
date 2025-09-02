@@ -32,8 +32,8 @@ int	main(int argc, char **argv)
 		std::cout << "Server running... press Ctrl+C to stop.\n";
 		poller.run(servers);
 	}
+	catch (const std::runtime_error & e) { std::cerr << e.what() << std::endl; }
 	catch (std::exception & e) { std::cerr << e.what() << std::endl; }
-	catch (const std::runtime_error& e) { std::cerr << e.what() << std::endl; }
 	return 0;
 }
 
