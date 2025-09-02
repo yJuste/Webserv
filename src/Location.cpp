@@ -8,6 +8,7 @@
 // ************************************************************************** //
 
 # include "Location.hpp"
+# include "Exceptions.hpp"
 
 Location::Location() : _path(""), _root(""), _upload(""), _autoindex(false)
 {

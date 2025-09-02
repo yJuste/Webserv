@@ -6,20 +6,10 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:06:26 by layang            #+#    #+#             */
-/*   Updated: 2025/09/02 17:44:04 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/02 20:26:10 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>     // std::cerr, std::endl
-#include <string>       // std::string
-#include <sys/socket.h> // recv, send
-#include <cerrno>       // errno (if using)
-#include <cstring>      // strerror (if using)
-
-// #include "HttpRequest.hpp"
-// #include "HttpResponse.hpp"
-// #include "main.hpp"     // for READ_SIZE
-// #include "Server.hpp"
 #include "Connection.hpp"
 
 Connection::Connection(int fd, Server* server) : _fd(fd), _server(server)

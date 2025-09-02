@@ -7,37 +7,9 @@
 //                                                                            //
 // ************************************************************************** //
 
-#include <iostream>
-#include <vector>
-#include <sys/socket.h>   // socket, bind
-#include <netinet/in.h>   // sockaddr_in, htons
-#include <arpa/inet.h>    // htonl
-#include <unistd.h>       // close, read, write
-#include <cstddef>        // size_t
+# include "main.hpp"
 
-#include "main.hpp"
-#include "Exceptions.hpp"
-#include "Server.hpp"     // Server 
-#include "Poller.hpp"     // Poller 
-#include "HttpRequest.hpp"
-#include "Location.hpp"
-
-
-
-void	create_unique_program( void )
-{
-	int sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == -1)
-		throw FailedSocket();
-
-	sockaddr_in addr;
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(62034);
-	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-
-	if (bind(sock, (sockaddr *)&addr, sizeof(addr)) == -1)
-		throw NotUniqueProcessus();
-}
+// Si la longeur stipulé sur le message est trop grande par rapport au message, ca bloque attention.
 
 int	main(int argc, char **argv)
 {
@@ -65,4 +37,17 @@ int	main(int argc, char **argv)
 	return 0;
 }
 
+void	create_unique_program( void )
+{
+	int sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (sock == -1)
+		throw FailedSocket();
 
+	sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(62034);
+	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
+	if (bind(sock, (sockaddr *)&addr, sizeof(addr)) == -1)
+		throw NotUniqueProcessus();
+}

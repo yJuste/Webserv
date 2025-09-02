@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 09:02:10 by layang            #+#    #+#             */
-/*   Updated: 2025/09/01 23:41:36 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/02 20:33:38 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,22 +14,23 @@
 # define CONNECTION_HPP
 
 // Standard Libraries
-# include <string>
-# include <map>
-# include <vector>
-# include <sys/socket.h>
-# include <netinet/in.h>
 # include <fcntl.h>
 # include <errno.h>
-// ************************************************************************** //
-//                                  Dependences                               //
-// ************************************************************************** //
+#include <iostream>     // std::cerr, std::endl
+#include <cerrno>       // errno (if using)
+#include <cstring>      // strerror (if using)
+
+// Defines
+
+# ifndef READ_SIZE
+#  define READ_SIZE 4096
+# endif
+
+// Dependences
 
 # include "HttpRequest.hpp"
 # include "HttpResponse.hpp"
-# include "main.hpp"     // for READ_SIZE
 # include "Server.hpp"
-
 
 // ************************************************************************** //
 //                                  Prototypes                                //

@@ -10,26 +10,35 @@
 #ifndef MAIN_HPP
 # define MAIN_HPP
 
-#include <vector>
-#include <string>
-#include "Exceptions.hpp"
 class Server;
 class Poller;
 class HttpRequest;
 class Location;
 
 // Defines
+
+// Standard Libraries
+
+# include <algorithm>
+# include <sys/stat.h>
+# include <dirent.h>
+# include <stdint.h>
+
+// Dependences
+
+# include "Exceptions.hpp"
+#include "Poller.hpp"     // Poller
+
+// Defines
+
 # ifndef PATH_SIZE
 #  define PATH_SIZE 256
-# endif
-
-# ifndef READ_SIZE
-#  define READ_SIZE 4096
 # endif
 
 # ifndef BUFFER
 #  define BUFFER 256
 # endif
+
 // ************************************************************************** //
 //                                  Prototypes                                //
 // ************************************************************************** //
@@ -38,13 +47,24 @@ class Location;
 void	create_unique_program();
 
 // ----- Parsing -----
+
 // configure_file.cpp
 std::vector<Server *>	configure_file( const char * s);
+
 // multi_ports.cpp
 std::vector<Server *>	multi_ports( std::vector<Server *> & servers );
 
 // init_server.cpp
 std::vector<Server *>	create_servers( const std::vector<std::string> & words );
+
+// ----- Parsing -----
+
+// configure_file.cpp
+std::vector<Server *>	configure_file( const char * );
+std::vector<Server *>	multi_ports( std::vector<Server *> & );
+
+// init_server.cpp
+std::vector<Server *>	create_servers( const std::vector<std::string> & );
 
 // init_location.cpp
 Location	create_location( const std::vector<std::string> &, std::vector<std::string>::const_iterator &, Server & );
@@ -56,7 +76,9 @@ int	relative( const std::string & );
 std::string	handle_folder( std::string s );
 
 // ----- Responding -----
+
 // file_utils.cpp
+
 long getFileSize(const std::string &path);
 std::string generateDirectoryListing(const std::string &path);
 bool userExists(const std::string &username);
