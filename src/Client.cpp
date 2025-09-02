@@ -8,7 +8,6 @@
 // ************************************************************************** //
 
 # include "Client.hpp"
-# include "Exceptions.hpp"
 
 Client::Client() : _socket(-1) {}
 Client::~Client() { _backout(); }

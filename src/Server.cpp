@@ -8,7 +8,6 @@
 // ************************************************************************** //
 
 # include "Server.hpp"
-# include "Exceptions.hpp"
 
 Server::Server() : _socket(-1), _host("0.0.0.0"), _root(""), _default(false), _maxSize(1048576)
 {

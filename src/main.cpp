@@ -8,7 +8,6 @@
 // ************************************************************************** //
 
 # include "main.hpp"
-# include "Exceptions.hpp"
 
 // Si la longeur stipulé sur le message est trop grande par rapport au message, ca bloque attention.
 

@@ -24,6 +24,7 @@
 // Dependences
 
 # include "Location.hpp"
+# include "Exceptions.hpp"
 
 // Ansii
 
