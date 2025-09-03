@@ -8,7 +8,10 @@
 // ************************************************************************** //
 
 # include "Client.hpp"
+<<<<<<< HEAD
 # include "Exceptions.hpp"
+=======
+>>>>>>> main
 
 Client::Client() : _socket(-1) {}
 Client::~Client() { _backout(); }

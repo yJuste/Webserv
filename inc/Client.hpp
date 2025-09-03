@@ -17,6 +17,13 @@
 # include <unistd.h>
 # include <fcntl.h>
 
+<<<<<<< HEAD
+=======
+// Dependences
+
+# include "Exceptions.hpp"
+
+>>>>>>> main
 /*	HELP
  *
  * Client is a RAII class.

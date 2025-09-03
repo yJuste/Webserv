@@ -18,6 +18,7 @@ int	main(int argc, char **argv)
 		if (argc != 2)
 			throw FailedMainParameter();
 		create_unique_program();
+<<<<<<< HEAD
 		std::vector<Server *>	servers;
 		Poller poller;
 
@@ -33,10 +34,28 @@ int	main(int argc, char **argv)
 		poller.run(servers);
 	}
 	catch (const std::runtime_error & e) { std::cerr << e.what() << std::endl; }
+=======
+		std::vector<Server *> servers = configure_file(argv[1]);
+
+		for (size_t i = 0; i < servers.size(); ++i)
+			servers[i]->myConfig();
+
+		Supervisor supervisor;
+
+		supervisor.hold(servers);
+		supervisor.execution();
+	}
+>>>>>>> main
 	catch (std::exception & e) { std::cerr << e.what() << std::endl; }
 	return 0;
 }
 
+<<<<<<< HEAD
+=======
+/*
+ *	By default, the program is running with the port '62034'.
+ */
+>>>>>>> main
 void	create_unique_program( void )
 {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -50,4 +69,8 @@ void	create_unique_program( void )
 
 	if (bind(sock, (sockaddr *)&addr, sizeof(addr)) == -1)
 		throw NotUniqueProcessus();
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> main

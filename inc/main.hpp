@@ -19,8 +19,12 @@
 
 // Dependences
 
+<<<<<<< HEAD
 # include "Exceptions.hpp"
 #include "Poller.hpp"
+=======
+# include "Server.hpp"
+>>>>>>> main
 # include "Supervisor.hpp"
 
 // Defines
@@ -38,11 +42,16 @@
 // ************************************************************************** //
 
 // ----- Main --------
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
 void	create_unique_program();
 
 // ----- Parsing -----
 
 // configure_file.cpp
+<<<<<<< HEAD
 std::vector<Server *>	configure_file( const char * s);
 
 // multi_ports.cpp
@@ -54,6 +63,8 @@ std::vector<Server *>	create_servers( const std::vector<std::string> & words );
 // ----- Parsing -----
 
 // configure_file.cpp
+=======
+>>>>>>> main
 std::vector<Server *>	configure_file( const char * );
 std::vector<Server *>	multi_ports( std::vector<Server *> & );
 
@@ -69,6 +80,7 @@ void	stoa( const std::string & );
 int	relative( const std::string & );
 std::string	handle_folder( std::string s );
 
+<<<<<<< HEAD
 // ----- Responding -----
 
 // file_utils.cpp
@@ -83,4 +95,6 @@ bool saveUploadedFile(const HttpRequest &req, const std::string &uploadDir);
 std::string resolvePath(const Location* loc, const std::string &reqPath);
 std::string readFile(const std::string &path);
 
+=======
+>>>>>>> main
 #endif
