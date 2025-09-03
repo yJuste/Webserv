@@ -8,15 +8,15 @@
 // ************************************************************************** //
 
 # include "Client.hpp"
-<<<<<<< HEAD
-# include "Exceptions.hpp"
-=======
->>>>>>> main
 
-Client::Client() : _socket(-1) {}
+Client::Client() : _socket(-1), _server(0) {}
 Client::~Client() { _backout(); }
 
-Client::Client( int server_socket ) : _socket(-1) { _unit(server_socket); }
+Client::Client(int server_socket, Server* server) 
+    : _socket(-1), _server(server)
+{
+    _unit(server_socket);
+}
 
 // Private Methods
 
@@ -43,3 +43,39 @@ void	Client::_backout( void )
 // Getter
 
 int Client::getSocket() const { return _socket; }
+
+
+// Data treating
+bool Client::hasDataToWrite() const { return !_writebBuffer.empty(); }
+
+bool Client::readFromClient()
+{
+    char buffer[READ_SIZE];
+    int n = recv(_socket, buffer, sizeof(buffer), 0);
+    if (n == 0) return false;
+    else if (n == -1) return true;
+
+    _readBuffer.append(buffer, n);
+    _request.parseRequest(_readBuffer);
+
+    if (_request.isComplete())
+    {
+        HttpResponse response;
+        response.buildResponse(_request, _server);
+        _writebBuffer = response.toString();
+        _readBuffer.clear();
+        _request.reset();
+    }
+    return true;
+}
+
+bool Client::writeToClient()
+{
+    if (_writebBuffer.empty()) return true;
+
+    int n = send(_socket, _writebBuffer.data(), _writebBuffer.size(), 0);
+    if (n <= 0) return false;
+
+    _writebBuffer.erase(0, n);
+    return true;
+}

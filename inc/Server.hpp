@@ -24,10 +24,7 @@
 // Dependences
 
 # include "Location.hpp"
-<<<<<<< HEAD
-=======
 # include "Exceptions.hpp"
->>>>>>> main
 
 // Ansii
 

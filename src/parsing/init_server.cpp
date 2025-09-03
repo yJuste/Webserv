@@ -41,10 +41,6 @@ void	init_max_size( std::string str, Server & server )
 
 	if (!(ss >> nb) || !ss.eof())
 		throw MaxSizeNotGiven();
-<<<<<<< HEAD
-
-=======
->>>>>>> main
 	if (nb > SIZE_MAX / mult)
 		throw Overflow();
 

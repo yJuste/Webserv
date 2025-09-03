@@ -17,13 +17,19 @@
 # include <unistd.h>
 # include <fcntl.h>
 
-<<<<<<< HEAD
-=======
 // Dependences
 
 # include "Exceptions.hpp"
+# include "HttpRequest.hpp"
+# include "HttpResponse.hpp"
+# include "Server.hpp"
 
->>>>>>> main
+// Defines
+
+# ifndef READ_SIZE
+#  define READ_SIZE 4096
+# endif
+
 /*	HELP
  *
  * Client is a RAII class.
@@ -39,7 +45,11 @@ class	Client
 {
 	private:
 
-		int		_socket;
+		int			_socket;
+		std::string _readBuffer;
+		std::string _writebBuffer;
+		HttpRequest _request;
+		Server* _server;
 
 		void		_unit( int );
 		void		_backout();
@@ -51,12 +61,15 @@ class	Client
 
 	public:
 
-		Client( int );
+		Client(int server_socket, Server* server);
 		~Client();
 
 		// Getter
 
 		int getSocket() const;
+		bool hasDataToWrite() const;
+		bool readFromClient();
+		bool writeToClient();
 };
 
 #endif

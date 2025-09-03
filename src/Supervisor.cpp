@@ -8,10 +8,6 @@
 // ************************************************************************** //
 
 # include "Supervisor.hpp"
-<<<<<<< HEAD
-# include "Exceptions.hpp"
-=======
->>>>>>> main
 
 Supervisor::Supervisor() : _size(0), _server_size(0) { std::memset(_fds, 0, sizeof(_fds)); }
 Supervisor::~Supervisor() { _clean(); }
