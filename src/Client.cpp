@@ -69,6 +69,46 @@ bool Client::readFromClient()
     return true;
 }
 
+void Client::readFromClient(const char * buffer, int n)
+{
+    /*     
+    char buffer[READ_SIZE];
+    int n = recv(_socket, buffer, sizeof(buffer), 0);
+    if (n == 0)
+        return false;
+    else if (n == -1)
+        return true; 
+    */
+    //std::cout << "Request received: " << std::endl; ///
+    //std::cout << buffer << std::endl;   ///
+    _readBuffer.append(buffer, n);
+    _request.parseRequest(_readBuffer);
+
+    if (_request.isComplete()) {
+        // print important info
+		if (!_request.hasPrinted())
+			_request.setPrinted(true);
+			
+        std::cout << "Request complete: "
+                  << _request.getMethod() << " "
+                  << _request.getPath() << std::endl;
+        // print headers
+        const std::map<std::string, std::string>& headers = _request.getHeaders();
+        for (std::map<std::string, std::string>::const_iterator it = headers.begin();
+             it != headers.end(); ++it)
+        {
+            std::cout << it->first << ": " << it->second << std::endl;
+        }
+        
+        HttpResponse response;
+        //response.setLocations(_server->getLocations());
+        response.buildResponse(_request, _server);    //
+        _writebBuffer = response.toString(_request);
+        _readBuffer.clear();
+        _request.reset();
+    }
+}
+
 bool Client::writeToClient()
 {
     if (_writebBuffer.empty()) return true;

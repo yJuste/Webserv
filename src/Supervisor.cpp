@@ -54,7 +54,7 @@ void	Supervisor::execution( void )
 			{
 				if (_size >= FDS_SIZE)
 					throw TooManyConnexions();
-				Client * client = new Client(fd);
+				Client * client = new Client(fd, _servers[i]);   ////
 				addClient(client);
 				_fds[_size].fd = client->getSocket();
 				_fds[_size].events = POLLIN;
@@ -79,14 +79,15 @@ void	Supervisor::execution( void )
 				}
 				else
 				{
-					std::string response =
-					"HTTP/1.1 200 OK\r\n"
-					"Content-Type: text/plain\r\n"
-					"Content-Length: 13\r\n"
-					"\r\n"
-					"Hello, world!";
-					if (send(fd, response.c_str(), response.size(), 0) == -1)
-						throw FailedSend();
+					// Client socket → handle read
+                    _clients[i]->readFromClient(buffer, rc);
+                    alive = _clients[i]->writeToClient();
+                    if (!alive)
+                    {
+                        removeFd(fd);
+                        continue;
+                    }
+
 				}
 			}
 		}

@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:06:26 by layang            #+#    #+#             */
-/*   Updated: 2025/09/02 20:26:10 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/04 13:13:05 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,16 +32,31 @@ bool Connection::readFromClient()
         return false;
     else if (n == -1)
         return true;
-    std::cout << "Request received: " << std::endl; ///
-    std::cout << buffer << std::endl;   ///
+    //std::cout << "Request received: " << std::endl; ///
+    //std::cout << buffer << std::endl;   ///
     _readBuffer.append(buffer, n);
     _request.parseRequest(_readBuffer);
 
     if (_request.isComplete()) {
+        // print important info
+		if (!_request.hasPrinted())
+			_request.setPrinted(true);
+			
+        std::cout << "Request complete: "
+                  << _request.getMethod() << " "
+                  << _request.getPath() << std::endl;
+        // print headers
+        const std::map<std::string, std::string>& headers = _request.getHeaders();
+        for (std::map<std::string, std::string>::const_iterator it = headers.begin();
+             it != headers.end(); ++it)
+        {
+            std::cout << it->first << ": " << it->second << std::endl;
+        }
+        
         HttpResponse response;
         //response.setLocations(_server->getLocations());
         response.buildResponse(_request, _server);    //
-        _writebBuffer = response.toString();
+        _writebBuffer = response.toString(_request);
         _readBuffer.clear();
         _request.reset();
     }

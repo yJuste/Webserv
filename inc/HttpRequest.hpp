@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/26 19:36:32 by layang            #+#    #+#             */
-/*   Updated: 2025/09/02 20:41:10 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/04 13:09:18 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,10 @@ class HttpRequest {
 
 		std::map<std::string, std::string> _headers;
 		std::string _body;
+		std::string _headerPart;
 
 		bool _unchunked;
+		bool _printed;
 	public:
 		HttpRequest();
 		~HttpRequest();
@@ -44,6 +46,9 @@ class HttpRequest {
 		std::string getHttpVersion() const;
 		std::string getRequestBody() const;
 		std::string getHeader(const std::string &key) const;
+		std::map<std::string, std::string> getHeaders() const;
+		bool hasPrinted() const;
+		void setPrinted(bool val);
 		bool isComplete();
 		std::string unchunkBody(const std::string &raw);
 };
