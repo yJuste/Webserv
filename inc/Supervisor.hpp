@@ -21,7 +21,7 @@
 # endif
 
 # ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 1024
+#  define BUFFER_SIZE 16384
 # endif
 
 // Dependences
@@ -49,16 +49,17 @@ class	Supervisor
 {
 	private:
 
-		struct pollfd		_fds[FDS_SIZE];
-		size_t			_size;
-		size_t			_server_size;
-
+		std::vector<pollfd>	_fds;
 		std::vector<Server *>	_servers;
 		std::vector<Client *>	_clients;
 
-		bool			_find( const std::vector<Server *> &, int );
-		bool			_supClient( int );
+		// Methods
+
+		void			_addFd( int );
+		bool			_removeClient( int );
 		void			_clean();
+
+		// ~Structor
 
 		Supervisor( const Supervisor & );
 		Supervisor & operator = ( const Supervisor & );
@@ -73,14 +74,6 @@ class	Supervisor
 
 		void hold( const std::vector<Server *> & );
 		void execution();
-
-		// Getter
-
-		size_t getSize() const;
-
-		// Setters
-
-		void addClient( Client * );
 
 		// Exceptions
 

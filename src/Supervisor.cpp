@@ -9,56 +9,47 @@
 
 # include "Supervisor.hpp"
 
-Supervisor::Supervisor() : _size(0), _server_size(0) { std::memset(_fds, 0, sizeof(_fds)); }
+Supervisor::Supervisor() {}
 Supervisor::~Supervisor() { _clean(); }
 
-Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(0), _server_size(0)
-{
-	std::memset(_fds, 0, sizeof(_fds));
-	hold(servers);
-}
+Supervisor::Supervisor( const std::vector<Server *> & servers ) { hold(servers); }
 
 // Methods
 
 void	Supervisor::hold( const std::vector<Server *> & servers )
 {
-	if (_server_size)
+	if (!_servers.empty())
 		return ;
 	_servers = servers;
-	_server_size = _servers.size();
-	_size = _server_size;
-	for (size_t i = 0; i < _server_size; ++i)
+	for (size_t i = 0; i < _servers.size(); ++i)
 	{
 		servers[i]->startup();
-		_fds[i].fd = _servers[i]->getSocket();
-		_fds[i].events = POLLIN;
+		_addFd(_servers[i]->getSocket());
 	}
 }
 
 void	Supervisor::execution( void )
 {
-	if (_server_size == 0)
+	if (_servers.size() == 0)
 		throw NoServerAdded();
 	while (true)
 	{
-		if (poll(_fds, _size, 0) == -1)
+		if (poll(_fds.data(), _fds.size(), 0) == -1)
 			throw FailedPoll();
-		for (size_t i = 0; i < _size; ++i)
+		for (size_t i = 0; i < _fds.size(); ++i)
 		{
 			if (_fds[i].revents == 0)
 				continue ;
 			if (!(_fds[i].revents & POLLIN))
 				continue ;
 			int fd = _fds[i].fd;
-			if (i < _server_size)
+			if (i < _servers.size())
 			{
-				if (_size >= FDS_SIZE)
+				if (_fds.size() >= FDS_SIZE)
 					throw TooManyConnexions();
 				Client * client = new Client(fd);
-				addClient(client);
-				_fds[_size].fd = client->getSocket();
-				_fds[_size].events = POLLIN;
-				++_size;
+				_clients.push_back(client);
+				_addFd(client->getSocket());
 				printf("New client [%d] connexion.\n", client->getSocket());
 			}
 			else
@@ -70,11 +61,9 @@ void	Supervisor::execution( void )
 				else if (rc == 0)
 				{
 					printf("Client [%d] s'est déconnecté.\n", fd);
-					if (!_supClient(fd))
+					if (!_removeClient(fd))
 						throw SupNoClient();
-					_fds[i] = _fds[_size - 1];
-					close(fd);
-					--_size;
+					_fds[i] = _fds[_fds.size() - 1];
 					continue ;
 				}
 				else
@@ -93,25 +82,18 @@ void	Supervisor::execution( void )
 	}
 }
 
-// Getter
-
-size_t Supervisor::getSize() const { return _size; }
-
-// Setter
-
-void Supervisor::addClient( Client * client ) { _clients.push_back(client); }
-
 // Private Methods
 
-bool	Supervisor::_find( const std::vector<Server *> & servers, int fd )
+void	Supervisor::_addFd( int socket )
 {
-	for (size_t i = 0; i < servers.size(); ++i)
-		if (servers[i]->getSocket() == fd)
-			return true;
-	return false;
+	struct pollfd pfd;
+	pfd.fd = socket;
+	pfd.events = POLLIN;
+	pfd.revents = 0;
+	_fds.push_back(pfd);
 }
 
-bool	Supervisor::_supClient( int fd )
+bool	Supervisor::_removeClient( int fd )
 {
 	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
@@ -119,6 +101,9 @@ bool	Supervisor::_supClient( int fd )
 		{
 			delete *it;
 			_clients.erase(it);
+			for (std::vector<pollfd>::iterator pit = _fds.begin(); pit != _fds.end(); ++pit)
+				if (pit->fd == fd)
+					_fds.erase(pit);
 			return true;
 		}
 	}
