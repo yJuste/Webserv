@@ -68,7 +68,7 @@ class	Client
 		int getSocket() const;
 		bool hasDataToWrite() const;
 		void readFromClient(const char * buffer, int n);
-		bool writeToClient();
+		void writeToClient();
 };
 
 #endif

@@ -35,21 +35,36 @@ void	Supervisor::hold( const std::vector<Server *> & servers )
 	}
 }
 
-void	Supervisor::execution( void )
+/* void	Supervisor::execution( void )
 {
 	if (_server_size == 0)
 		throw NoServerAdded();
 	while (true)
 	{
-		if (poll(_fds, _size, 0) == -1)
+		if (poll(_fds, _size, -1) == -1)  // -1: Block until events
 			throw FailedPoll();
 		for (size_t i = 0; i < _size; ++i)
 		{
+			int fd = _fds[i].fd;
 			if (_fds[i].revents == 0)
 				continue ;
-			if (!(_fds[i].revents & POLLIN))
-				continue ;
-			int fd = _fds[i].fd;
+			// ---- Error or hang-up events --
+			if (_fds[i].revents & (POLLERR | POLLHUP | POLLNVAL))
+            {
+                if (i >= _server_size) // client fd
+                {
+                    size_t idx = i - _server_size;
+                    delete _clients[idx];
+                    _clients.erase(_clients.begin() + idx);
+                }
+                close(fd);
+                _fds[i] = _fds[_size - 1];
+                --_size;
+                continue;
+            }
+			// if (!(_fds[i].revents & POLLIN))
+			// 	continue ;
+
 			if (i < _server_size)
 			{
 				if (_size >= FDS_SIZE)
@@ -96,7 +111,95 @@ void	Supervisor::execution( void )
 			}
 		}
 	}
+} */
+
+void Supervisor::execution(void)
+{
+    if (_server_size == 0)
+        throw NoServerAdded();
+
+    while (true)
+    {
+        int ret = poll(_fds, _size, 10);
+        if (ret < 0)
+            throw FailedPoll();
+
+        for (size_t i = 0; i < _size; ++i)
+        {
+            int fd = _fds[i].fd;
+            short revents = _fds[i].revents;
+
+            if (revents == 0)
+                continue;
+
+            // ---- Error or hang-up events ----
+            if (revents & (POLLERR | POLLHUP | POLLNVAL))
+            {
+                if (i >= _server_size)
+                {
+                    size_t idx = i - _server_size;
+                    delete _clients[idx];
+                    _clients.erase(_clients.begin() + idx);
+                }
+                close(fd);
+                _fds[i] = _fds[_size - 1];
+                --_size;
+                continue;
+            }
+
+            // ---- Readable events ----
+            if (revents & POLLIN)
+            {
+                if (i < _server_size)
+                {
+                    // Listening socket → accept new client
+                    int clientFd = accept(fd, NULL, NULL);
+                    if (clientFd >= 0)
+                    {
+                        if (_size >= FDS_SIZE)
+                            throw TooManyConnexions();
+
+                        Client* client = new Client(clientFd, _servers[i]);
+                        _clients.push_back(client);
+                        _fds[_size].fd = clientFd;
+                        _fds[_size].events = POLLIN;
+                        ++_size;
+
+                        printf("New client [%d] connected.\n", clientFd);
+                    }
+                }
+                else
+                {
+                    // Client socket → handle data
+                    size_t idx = i - _server_size;
+                    Client* client = _clients[idx];
+
+                    char buffer[BUFFER_SIZE];
+                    int rc = recv(fd, buffer, sizeof(buffer), 0);
+
+                    if (rc == 0) // client disconnected
+                    {
+                        printf("Client [%d] disconnected.\n", fd);
+                        delete client;
+                        _clients.erase(_clients.begin() + idx);
+                        close(fd);
+                        _fds[i] = _fds[_size - 1];
+                        --_size;
+                        continue;
+                    }
+					else if (rc < 0)
+						continue;
+					else
+					{
+						client->readFromClient(buffer, rc);
+					}
+					client->writeToClient();
+                }
+            }
+        }
+    }
 }
+
 
 // Getter
 

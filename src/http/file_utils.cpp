@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/31 17:42:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/05 11:21:34 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/05 12:40:55 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,6 +216,7 @@ std::string resolvePath(const Location* loc, const std::string &reqPath)
 {
     std::string root = loc->getRoot();
 
+    std::cout << "     ----****Path resolving ****---- " << root << std::endl;
     if (root.empty())
     {
         root = getCurrentWorkingDirectory(); 
@@ -257,20 +258,6 @@ std::string resolvePath(const Location* loc, const std::string &reqPath)
     return finalPath;
 }
 
-
-/* std::string readFile(const std::string &path)
-{
-	std::ifstream file(path.c_str());
-	if (!file)
-		return "";
-	std::ostringstream oss;
-	std::string line;
-	while (std::getline(file, line))
-		oss << line << "\n";
-	file.close();
-	return oss.str();
-} */
-
 std::string readFile(const std::string &path)
 {
     std::ifstream file(path.c_str(), std::ios::in | std::ios::binary);
@@ -279,4 +266,47 @@ std::string readFile(const std::string &path)
     std::ostringstream ss;
     ss << file.rdbuf();
     return ss.str();
+}
+
+std::string getContentType(const std::string &path)
+{
+	if (path.length() >= 5 && path.substr(path.length() - 5) == ".html")
+		return "text/html; charset=UTF-8";
+	if (path.length() >= 4 && path.substr(path.length() - 4) == ".htm")
+		return "text/html; charset=UTF-8";
+	if (path.length() >= 4 && path.substr(path.length() - 4) == ".css")
+		return "text/css; charset=UTF-8";
+	if (path.length() >= 3 && path.substr(path.length() - 3) == ".js")
+		return "application/javascript; charset=UTF-8";
+	if (path.length() >= 4 && path.substr(path.length() - 4) == ".jpg")
+		return "image/jpeg";
+	if (path.length() >= 5 && path.substr(path.length() - 5) == ".jpeg")
+		return "image/jpeg";
+	if (path.length() >= 4 && path.substr(path.length() - 4) == ".png")
+		return "image/png";
+	if (path.length() >= 4 && path.substr(path.length() - 4) == ".gif")
+		return "image/gif";
+	return "text/plain; charset=UTF-8";
+}
+
+
+int	acstat_file( const char * path, int mode )
+{
+	struct stat	buf;
+
+	if (stat(path, &buf) == -1)
+		return -1;
+	if (access(path, mode) == -1)
+		return -1;
+	if (S_ISREG(buf.st_mode))
+		return 1;
+	if (S_ISDIR(buf.st_mode))
+	{
+		DIR *dir = opendir(path);
+		if (!dir)
+			return -1;
+		closedir(dir);
+		return 2;
+	}
+	return -1;
 }

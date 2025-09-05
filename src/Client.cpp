@@ -20,7 +20,7 @@ Client::Client(int server_socket, Server* server)
 
 // Private Methods
 
-void	Client::_unit( int server_socket )
+/* void	Client::_unit( int server_socket )
 {
 	if (_socket != -1)
 		return ;
@@ -29,7 +29,32 @@ void	Client::_unit( int server_socket )
 		throw FailedAccept();
 	if (fcntl(_socket, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
 		throw FailedFcntl();
+} */
+
+void Client::_unit(int server_socket)
+{
+    if (_socket != -1)
+        return;
+
+    // Try to accept a new connection, do not throw an exception if it fails
+    int new_socket = accept(server_socket, NULL, NULL);
+    if (new_socket < 0)
+    {
+        _socket = -1; // Mark as not connected
+        return;       // If accept fails, just return
+    }
+
+    _socket = new_socket;
+
+    // Set the socket to non-blocking mode with close-on-exec
+    if (fcntl(_socket, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
+    {
+        close(_socket);
+        _socket = -1;
+        throw FailedFcntl();
+    }
 }
+
 
 void	Client::_backout( void )
 {
@@ -67,7 +92,7 @@ void Client::readFromClient(const char * buffer, int n)
         // print important info
 		if (!_request.hasPrinted())
 			_request.setPrinted(true);
-			
+		std::cout << "      ----****  new request ****----: " << std::endl;	
         std::cout << "Request complete: "
                   << _request.getMethod() << " "
                   << _request.getPath() << std::endl;
@@ -88,13 +113,30 @@ void Client::readFromClient(const char * buffer, int n)
     }
 }
 
-bool Client::writeToClient()
+/* void Client::writeToClient()
 {
-    if (_writebBuffer.empty()) return true;
+    if (_writebBuffer.empty()) return;
 
     int n = send(_socket, _writebBuffer.data(), _writebBuffer.size(), 0);
-    if (n == 0) return false;
+    // if (n == 0) return false;
 
-    _writebBuffer.erase(0, n);
-    return true;
+    // _writebBuffer.erase(0, n);
+    // return true;
+
+    if (n > 0)
+        _writebBuffer.erase(0, n);
+
+} */
+
+void Client::writeToClient()
+{
+    while (!_writebBuffer.empty())
+    {
+        int n = send(_socket, _writebBuffer.data(), _writebBuffer.size(), 0);
+        if (n > 0)
+            _writebBuffer.erase(0, n);
+        else
+            break;
+    }
 }
+

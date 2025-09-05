@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/05 11:20:14 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/05 11:41:23 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,100 +16,6 @@ HttpResponse::HttpResponse()
 : _status(200), _statusText("OK") {}
 
 HttpResponse::~HttpResponse() {}
-
-/* void HttpResponse::executeCGI(const HttpRequest &req, const Location &loc)
-{
-	int inPipe[2];   // parent proc write to CGI
-	int outPipe[2];  // CGI output to parent proc
-
-	if (pipe(inPipe) < 0 || pipe(outPipe) < 0)
-	{
-		setStatus(500, "Internal Server Error");
-		setBody("Failed to create pipes for CGI");
-		return;
-	}
-
-	pid_t pid = fork();
-	if (pid < 0)
-	{
-		setStatus(500, "Internal Server Error");
-		setBody("Failed to fork CGI process");
-		return;
-	}
-	if (pid == 0)
-	{ // Child process
-		close(inPipe[1]);
-		close(outPipe[0]);
-
-		dup2(inPipe[0], 0);   // CGI/uploa stdin
-		dup2(outPipe[1], 1);  // CGI stdout
-		close(inPipe[0]);
-		close(outPipe[1]);
-
-		// 构建 execve 参数
-		const char *cgiPath = loc.getCgi().begin()->second.c_str(); // suppose only one CGI
-		const char *argv[] = { cgiPath, req.getRequestBody().c_str(), NULL };
-		char *envp[] = { NULL }; // add env vars，like CONTENT_LENGTH, REQUEST_METHOD
-
-		execve(cgiPath, (char * const*)argv, envp);
-		_exit(1); // execve failed
-	}
-	// Parent process
-	close(inPipe[0]);
-	close(outPipe[1]);
-
-	// write request body to CGI stdin
-	write(inPipe[1], req.getRequestBody().c_str(), req.getRequestBody().size());
-	close(inPipe[1]);
-
-	// read CGI stdout
-	char buffer[4096];
-	std::string cgiOutput;
-	ssize_t n;
-	while ((n = read(outPipe[0], buffer, sizeof(buffer))) > 0) {
-		cgiOutput.append(buffer, n);
-	}
-	close(outPipe[0]);
-
-	// wait for child proc to finish
-	int status;
-	waitpid(pid, &status, 0);
-
-	// simply parse CGI output：headers and body
-	size_t pos = cgiOutput.find("\r\n\r\n");
-	if (pos != std::string::npos) {
-		std::string rawHeaders = cgiOutput.substr(0, pos);
-		_body = cgiOutput.substr(pos + 4);
-
-		std::istringstream headerStream(rawHeaders);
-		std::string line;
-		while (std::getline(headerStream, line)) {
-			size_t colon = line.find(':');
-			if (colon != std::string::npos) {
-				std::string key = line.substr(0, colon);
-				std::string value = line.substr(colon + 1);
-				if (!value.empty() && value[0] == ' ') value.erase(0,1);
-				_headers[key] = value;
-			}
-		}
-	} else {
-		// CGI output without header
-		_body = cgiOutput;
-	}
-
-	// set default status
-	if (!_headers.count("Status"))
-		setStatus(200, "OK");
-	else {
-		// Status like: "200 OK"
-		std::istringstream ss(_headers["Status"]);
-		int code;
-		std::string text;
-		ss >> code;
-		std::getline(ss, text);
-		setStatus(code, text);
-	}
-} */
 
 // find location in server
 const Location* HttpResponse::findLocation(const std::string &path, const Server* server) const
@@ -223,10 +129,13 @@ std::string HttpResponse::toString(const HttpRequest &req) const
 void HttpResponse::handlePost(const HttpRequest &req, const Location *loc)
 {
 	std::string path = req.getPath();
+	std::cout << "Path after POST : " << path << std::endl;
 	std::string contentType = req.getHeader("Content-Type");
+	std::cout << "contentType after POST : " << contentType << std::endl;
 
 	// upload file
-	if (!loc->getUpload().empty() && contentType.find("multipart/form-data") != std::string::npos)
+	if (path == "/upload" && !loc->getUpload().empty() &&
+	    contentType.find("multipart/form-data") != std::string::npos)
 	{
 		bool success = saveUploadedFile(req, loc->getUpload());
 		if (success) {
@@ -240,7 +149,8 @@ void HttpResponse::handlePost(const HttpRequest &req, const Location *loc)
 	}
 
 	// register
-	if (path == "/register" && contentType == "application/x-www-form-urlencoded")
+	if (path == "/register" &&
+	    contentType.find("application/x-www-form-urlencoded") != std::string::npos)
 	{
 		std::string username = getFormValue(req.getRequestBody(), "username");
 		std::string password = getFormValue(req.getRequestBody(), "password");
@@ -257,7 +167,8 @@ void HttpResponse::handlePost(const HttpRequest &req, const Location *loc)
 	}
 
 	// login
-	if (path == "/login" && contentType == "application/x-www-form-urlencoded")
+	if (path == "/login" &&
+	    contentType.find("application/x-www-form-urlencoded") != std::string::npos)
 	{
 		std::string username = getFormValue(req.getRequestBody(), "username");
 		std::string password = getFormValue(req.getRequestBody(), "password");
@@ -271,6 +182,17 @@ void HttpResponse::handlePost(const HttpRequest &req, const Location *loc)
 		}
 		return;
 	}
+
+	// JSON API
+	// if (path == "/api" &&
+	//     contentType.find("application/json") != std::string::npos)
+	// {
+	// 	std::string body = req.getRequestBody();
+	// 	// TODO: parse JSON body here
+	// 	setStatus(200, "OK");
+	// 	setBody("JSON request received: " + body);
+	// 	return;
+	// }
 
 	setStatus(404, "Not Found");
 	setBody("POST route not found");
@@ -334,7 +256,7 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
     std::string filePath = resolvePath(loc, req.getPath());
 	std::cout << "Checking loc: " << loc->getPath() << std::endl;
     // 6. Check if the path exists
-    int status = acstat(filePath.c_str(), F_OK | R_OK);
+    int status = acstat_file(filePath.c_str(), F_OK | R_OK);
 	std::cout << "Checking path: " << filePath << ", status = " << status << std::endl;
     if (status == 1) { // Regular file
         setStatus(200, "OK");
@@ -359,7 +281,7 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 			// }
 			
 			std::cout << "Trying index file: " << indexPath << std::endl;
-			int s = acstat(indexPath.c_str(), F_OK | R_OK);
+			int s = acstat_file(indexPath.c_str(), F_OK | R_OK);
 			std::cout << "acstat returned: " << s << std::endl;
 
 			if (s == 1) {
