@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/26 19:34:52 by layang            #+#    #+#             */
-/*   Updated: 2025/09/02 20:41:39 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/05 11:20:33 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,16 @@
 # include "Location.hpp"
 # include "HttpRequest.hpp"
 # include "Server.hpp"
+#include "file_utils.hpp"
 
+#include <string>
+#include <vector>
+#include <map>
+#include <sstream>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 // ************************************************************************** //
 //                                  Prototypes                                //
 // ************************************************************************** //
@@ -44,7 +53,7 @@ private:
 	void setHeader(const std::string &key, const std::string &value);
 
 	// build full HTTP response
-	std::string toString() const;
+	std::string toString(const HttpRequest &req) const;
 	void handlePost(const HttpRequest &req, const Location *loc);
 	void buildResponse(HttpRequest &req, const Server* server);
 	

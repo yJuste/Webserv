@@ -19,7 +19,6 @@
 
 // Dependences
 
-# include "Exceptions.hpp"
 # include "HttpRequest.hpp"
 # include "HttpResponse.hpp"
 # include "Server.hpp"
@@ -68,7 +67,7 @@ class	Client
 
 		int getSocket() const;
 		bool hasDataToWrite() const;
-		bool readFromClient();
+		void readFromClient(const char * buffer, int n);
 		bool writeToClient();
 };
 

@@ -6,15 +6,11 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/27 19:13:27 by layang            #+#    #+#             */
-/*   Updated: 2025/09/04 13:11:18 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/05 11:21:56 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpRequest.hpp"
-#include <string>
-#include <map>
-#include <sstream>
-#include <cstdlib>
 
 HttpRequest::HttpRequest()
 	: _method(""), _path(""), _httpVersion(""), _body(""), _headerPart(""),

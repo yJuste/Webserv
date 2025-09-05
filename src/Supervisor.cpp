@@ -81,10 +81,14 @@ void	Supervisor::execution( void )
 				{
 					// Client socket → handle read
                     _clients[i]->readFromClient(buffer, rc);
-                    alive = _clients[i]->writeToClient();
+                    bool alive = _clients[i]->writeToClient();
                     if (!alive)
                     {
-                        removeFd(fd);
+                        if (!_supClient(fd))
+							throw SupNoClient();
+						_fds[i] = _fds[_size - 1];
+						close(fd);
+						--_size;
                         continue;
                     }
 

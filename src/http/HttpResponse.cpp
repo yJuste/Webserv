@@ -6,22 +6,11 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/02 18:19:30 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/05 11:20:14 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpResponse.hpp"
-#include "Location.hpp"
-#include "Server.hpp"
-#include "main.hpp"
-#include <string>
-#include <vector>
-#include <map>
-#include <sstream>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <sys/stat.h>
 
 HttpResponse::HttpResponse()
 : _status(200), _statusText("OK") {}
@@ -179,36 +168,39 @@ std::string HttpResponse::buildHeaders() const
 	return buildHeaders() + _body;
 } */
 
-std::string HttpResponse::toString() const
+std::string HttpResponse::toString(const HttpRequest &req) const
 {
-    std::ostringstream response;
+	std::ostringstream response;
 
-    // Status line
-    response << "HTTP/1.1 " << _status << " " << _statusText << "\r\n";
+	// Status line
+	response << "HTTP/1.1 " << _status << " " << _statusText << "\r\n";
 
-    // Required headers
-    if (_headers.find("Content-Type") == _headers.end())
-        response << "Content-Type: text/html; charset=UTF-8\r\n";
+	// Required headers
+	if (_headers.find("Content-Type") == _headers.end())
+	{
+		std::string type = getContentType(req.getPath());
+		response << "Content-Type: " << type << "; charset=UTF-8\r\n";		
+	}
 
-    // Content-Length header
-    std::ostringstream oss;
-    oss << _body.size();
-    response << "Content-Length: " << oss.str() << "\r\n";
+	// Content-Length header
+	std::ostringstream oss;
+	oss << _body.size();
+	response << "Content-Length: " << oss.str() << "\r\n";
 
-    // Other custom headers
-    for (std::map<std::string, std::string>::const_iterator it = _headers.begin();
-         it != _headers.end(); ++it)
-    {
-        response << it->first << ": " << it->second << "\r\n";
-    }
+	// Other custom headers
+	for (std::map<std::string, std::string>::const_iterator it = _headers.begin();
+			it != _headers.end(); ++it)
+	{
+		response << it->first << ": " << it->second << "\r\n";
+	}
 
-    // Empty line separates headers and body
-    response << "\r\n";
+	// Empty line separates headers and body
+	response << "\r\n";
 
-    // Body
-    response << _body;
+	// Body
+	response << _body;
 
-    return response.str();
+	return response.str();
 }
 
 

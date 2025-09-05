@@ -6,22 +6,11 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/31 17:42:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/02 18:00:57 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/05 11:21:34 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "main.hpp"          // acstat, READ_SIZE, project macros
-#include "HttpRequest.hpp"
-#include "Location.hpp"
-#include <sys/stat.h>        // stat
-#include <dirent.h>          // DIR, opendir, readdir, closedir
-#include <fstream>           // ifstream, ofstream
-#include <sstream>           // ostringstream
-#include <string>            // std::string
-#include <vector>            // std::vector
-#include <unistd.h>          // F_OK, R_OK, X_OK
-#include <iostream>
-#include <map>
+#include "main.hpp"
 
 std::string getCurrentWorkingDirectory() {
     char cwd[PATH_MAX];

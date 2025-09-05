@@ -48,27 +48,6 @@ int Client::getSocket() const { return _socket; }
 // Data treating
 bool Client::hasDataToWrite() const { return !_writebBuffer.empty(); }
 
-bool Client::readFromClient()
-{
-    char buffer[READ_SIZE];
-    int n = recv(_socket, buffer, sizeof(buffer), 0);
-    if (n == 0) return false;
-    else if (n == -1) return true;
-
-    _readBuffer.append(buffer, n);
-    _request.parseRequest(_readBuffer);
-
-    if (_request.isComplete())
-    {
-        HttpResponse response;
-        response.buildResponse(_request, _server);
-        _writebBuffer = response.toString();
-        _readBuffer.clear();
-        _request.reset();
-    }
-    return true;
-}
-
 void Client::readFromClient(const char * buffer, int n)
 {
     /*     
@@ -114,7 +93,7 @@ bool Client::writeToClient()
     if (_writebBuffer.empty()) return true;
 
     int n = send(_socket, _writebBuffer.data(), _writebBuffer.size(), 0);
-    if (n <= 0) return false;
+    if (n == 0) return false;
 
     _writebBuffer.erase(0, n);
     return true;
