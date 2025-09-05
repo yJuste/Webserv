@@ -6,12 +6,32 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/27 19:13:27 by layang            #+#    #+#             */
-/*   Updated: 2025/09/05 11:21:56 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/04 13:10:41 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpRequest.hpp"
 
+// 假设 maxBodySize 是服务器允许的最大请求体大小
+/* 
+const size_t maxBodySize = 10 * 1024 * 1024; // 10 MB
+
+int n = recv(_fd, buffer, sizeof(buffer), 0);
+if (n <= 0)
+    return (n == 0 ? false : true);
+
+// 如果 body 太大就丢弃
+if (_readBuffer.size() + n > maxBodySize) {
+    _request.discardBody();  // 清空 body
+    setStatus(413, "Payload Too Large"); // HTTP 413
+    return true;
+}
+
+// 追加到 _readBuffer
+_readBuffer.append(buffer, n);
+_request.parseRequest(_readBuffer);
+
+ */
 HttpRequest::HttpRequest()
 	: _method(""), _path(""), _httpVersion(""), _body(""), _headerPart(""),
 	  _unchunked("false"), _printed(false)
@@ -22,37 +42,44 @@ HttpRequest::~HttpRequest()
 {
 }
 
-// member functions
 /* void HttpRequest::parseRequest(const std::string &rawRequest)
 {
-	//std::cout << "Request received: " << std::endl;
-	//std::cout << rawRequest << std::endl;
-	
-	// 1. parse method, path, httpVersion
-	std::istringstream request(rawRequest);
-	request >> _method >> _path >> _httpVersion;
-	
-    // 2. split and parse headers
-	std::string line;
-	while (std::getline(request, line) && line != "\r")
-	{
-		if (line.empty() || line == "\r")
-			break;
-		size_t colonPos = line.find(':');
-		if (colonPos != std::string::npos)
-		{
-			std::string key = line.substr(0, colonPos);
-			std::string value = line.substr(colonPos + 1);
-			key.erase(key.find_last_not_of(" \t\r\n") + 1);
-			value.erase(0, value.find_first_not_of(" \t\r\n"));
-			value.erase(value.find_last_not_of(" \t\r\n") + 1);
-			_headers[key] = value;
-		}
-	}
-	// 3. save _body（probably not finished）
-	std::string remaining;
-	std::getline(request, remaining, '\0');
-	_body += remaining;
+    // 1. Parse request line: method, path, HTTP version
+    std::istringstream request(rawRequest);
+    request >> _method >> _path >> _httpVersion;
+
+    // Remove any trailing '\r' from _path and _httpVersion
+    if (!_path.empty() && _path[_path.size() - 1] == '\r')
+        _path = _path.substr(0, _path.size() - 1);
+    if (!_httpVersion.empty() && _httpVersion[_httpVersion.size() - 1] == '\r')
+        _httpVersion = _httpVersion.substr(0, _httpVersion.size() - 1);
+
+    // 2. Parse headers
+    std::string line;
+    while (std::getline(request, line) && line != "\r")
+    {
+        if (line.empty() || line == "\r")
+            break;
+
+        size_t colonPos = line.find(':');
+        if (colonPos != std::string::npos)
+        {
+            std::string key = line.substr(0, colonPos);
+            std::string value = line.substr(colonPos + 1);
+
+            // Trim whitespace from key and value
+            key.erase(key.find_last_not_of(" \t\r\n") + 1);
+            value.erase(0, value.find_first_not_of(" \t\r\n"));
+            value.erase(value.find_last_not_of(" \t\r\n") + 1);
+
+            _headers[key] = value;
+        }
+    }
+
+    // 3. Read the body (if any)
+    std::string remaining;
+    std::getline(request, remaining, '\0'); // read until EOF
+    _body += remaining;
 } */
 
 void HttpRequest::parseRequest(const std::string &rawRequest)
@@ -63,7 +90,7 @@ void HttpRequest::parseRequest(const std::string &rawRequest)
         return; // headers not complete
 
     std::string _headerPart = rawRequest.substr(0, headerEnd);
-    _body = rawRequest.substr(headerEnd + 4); // after header
+    _body = rawRequest.substr(headerEnd + 4); // body 是 header 之后的内容
 
     // only parse headerPart 
     std::istringstream request(_headerPart);
@@ -99,6 +126,7 @@ void HttpRequest::parseRequest(const std::string &rawRequest)
     }
 }
 
+
 void HttpRequest::discardBody()
 {
 	_body.clear();
@@ -115,7 +143,6 @@ void HttpRequest::reset()
     _unchunked = false;
     _printed = false; 
 }
-
 
 std::string HttpRequest::getMethod() const
 {

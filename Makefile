@@ -2,7 +2,7 @@ NAME = webserv
 
 # Flags
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
 
 # Directories
 SRC_DIR = src
@@ -13,16 +13,17 @@ OBJ_DIR = obj
 SRC =	main.cpp				\
 	Server.cpp				\
 	Location.cpp				\
-	Client.cpp				\
-	Supervisor.cpp				\
 	parsing/configure_file.cpp		\
-	parsing/multi_ports.cpp			\
 	parsing/init_server.cpp			\
 	parsing/init_location.cpp		\
 	parsing/utils.cpp			\
+	parsing/multi_ports.cpp			\
+	http/Connection.cpp			\
 	http/file_utils.cpp    \
 	http/HttpRequest.cpp   \
 	http/HttpResponse.cpp  \
+	http/Poller.cpp  \
+
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 

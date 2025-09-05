@@ -7,9 +7,16 @@
 //                                                                            //
 // ************************************************************************** //
 
-# include "main.hpp"
-# include "Exceptions.hpp"
-# include "Location.hpp"
+#include <unistd.h>   // F_OK, X_OK
+#include <sstream>    // std::stringstream
+#include <vector>
+#include <string>
+#include <algorithm>
+
+#include "main.hpp"
+#include "Server.hpp"
+#include "Location.hpp"
+#include "Exceptions.hpp"
 
 const char * g_methods[] = { "GET", "POST", "DELETE", NULL };
 

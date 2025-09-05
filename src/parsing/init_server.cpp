@@ -7,8 +7,13 @@
 //                                                                            //
 // ************************************************************************** //
 
-# include "main.hpp"
-# include "Exceptions.hpp"
+#include <sstream>
+#include <vector>
+#include <string>
+#include <limits>
+#include "Server.hpp"
+#include "main.hpp"
+#include "Exceptions.hpp"
 
 void	init_max_size( std::string str, Server & server )
 {
@@ -41,7 +46,7 @@ void	init_max_size( std::string str, Server & server )
 
 	if (!(ss >> nb) || !ss.eof())
 		throw MaxSizeNotGiven();
-	if (nb > SIZE_MAX / mult)
+	if (nb > std::numeric_limits<size_t>::max()  / mult)
 		throw Overflow();
 
 	server.setMaxSize(nb * mult);

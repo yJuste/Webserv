@@ -13,7 +13,6 @@
 // Standard Libraries
 
 # include <cstdio>
-
 // Defines
 
 # ifndef MSG_SIZE

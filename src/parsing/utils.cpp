@@ -8,7 +8,11 @@
 // ************************************************************************** //
 
 # include "main.hpp"
-# include "Exceptions.hpp"
+#include <sys/stat.h>   // stat, S_ISREG, S_ISDIR
+#include <dirent.h>     // DIR*, opendir, closedir
+#include <unistd.h>     // access
+#include <iostream>
+#include <iomanip>      // std::setw
 
 // handle file/folder accessibilty. (access + stat)
 int	acstat( const char * path, int mode )

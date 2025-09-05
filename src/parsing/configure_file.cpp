@@ -7,8 +7,10 @@
 //                                                                            //
 // ************************************************************************** //
 
-# include "main.hpp"
-# include "Exceptions.hpp"
+#include "main.hpp"
+#include <fstream>
+#include <unistd.h>
+#include <sstream>
 
 bool	is_commentary( const std::string & line )
 {

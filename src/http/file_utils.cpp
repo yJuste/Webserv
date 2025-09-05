@@ -6,11 +6,13 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/31 17:42:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/05 12:40:55 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/04 11:15:40 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "main.hpp"
+#include "main.hpp"          // acstat, READ_SIZE, project macros
+//#include "HttpRequest.hpp"
+//#include "Location.hpp"
 
 std::string getCurrentWorkingDirectory() {
     char cwd[PATH_MAX];
@@ -216,7 +218,6 @@ std::string resolvePath(const Location* loc, const std::string &reqPath)
 {
     std::string root = loc->getRoot();
 
-    std::cout << "     ----****Path resolving ****---- " << root << std::endl;
     if (root.empty())
     {
         root = getCurrentWorkingDirectory(); 
@@ -257,6 +258,20 @@ std::string resolvePath(const Location* loc, const std::string &reqPath)
     std::cout << "" << std::endl;
     return finalPath;
 }
+
+
+/* std::string readFile(const std::string &path)
+{
+	std::ifstream file(path.c_str());
+	if (!file)
+		return "";
+	std::ostringstream oss;
+	std::string line;
+	while (std::getline(file, line))
+		oss << line << "\n";
+	file.close();
+	return oss.str();
+} */
 
 std::string readFile(const std::string &path)
 {

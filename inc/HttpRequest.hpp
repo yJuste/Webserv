@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/26 19:36:32 by layang            #+#    #+#             */
-/*   Updated: 2025/09/05 11:22:06 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/04 12:30:51 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,16 @@
 # define HTTPREQUEST_HPP
 
 // Standard Libraries
+// TO do
+// CONTROL THE _body size, for big file upload, no need to save in the _body
+// to treat prob of multipart/form-data, changer parser into only for headers
+//change print method in Connection.cpp
+# include <string>
+# include <map>
+# include <sstream>
+# include <cstdlib>
 
-#include <string>
-#include <map>
-#include <sstream>
-#include <cstdlib>
+
 // ************************************************************************** //
 //                                  Prototypes                                //
 // ************************************************************************** //
