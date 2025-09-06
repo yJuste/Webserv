@@ -88,8 +88,6 @@ class	DuplicateLocation : public std::exception { private: char _msg[MSG_SIZE]; 
 
 class	MissingImportantValues : public std::exception { private: char _msg[MSG_SIZE]; public: MissingImportantValues( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: Important value for server operation.", s); } const char * what() const throw() { return _msg; } };
 
-class	TooManyConnexions : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Too many connexions on the server."; } };
-
 class	OverwrittenParameterLocation : public std::exception { private: char _msg[MSG_SIZE]; public: OverwrittenParameterLocation( const char * s1, const char * s2 ) { std::snprintf(_msg, sizeof(_msg), "\033[38;5;220mwarning\033[0m: location: `\033[38;5;220m%s\033[0m`: `%s`: May overwrite some values.", s1, s2); } const char * what() const throw() { return _msg; } };
 
 class	InvalidParameterReturn : public std::exception { private: char _msg[MSG_SIZE]; public: InvalidParameterReturn( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: The first argument has to be a number.", s); } const char * what() const throw() { return _msg; } };

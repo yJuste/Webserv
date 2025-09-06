@@ -16,15 +16,30 @@ Client::Client( int server_socket, Server * server ) : _socket(-1), _server(serv
 
 // Methods
 
-void	Client::read( const char * buf, int n )
+void	Client::read( const std::string & buf )
 {
-	(void)buf;
-	(void)n;
+	_clean();
+	_request.parse(buf);
+	if (!_request.isComplete())
+		return ;
+	Print::debug(APPLE_GREEN, "Client", "New request.");
+	if (!_request.getPrinted())
+		_request.setPrinted(true);
+	Print::debug(APPLE_GREEN, "Client", "Request completed :");
+	Print::enval(APPLE_GREEN, "Method", RESET, _request.getMethod());
+	Print::enval(APPLE_GREEN, "Path", RESET, _request.getPath());
+	Print::enval(APPLE_GREEN, "Version", RESET, _request.getVersion());
+        for (std::map<std::string, std::string>::const_iterator it = _request.getHeaders().begin(); it != _request.getHeaders().end(); ++it)
+		Print::enval(APPLE_GREEN, it->first + ":", RESET, it->second);
 }
 
 void	Client::write( void )
 {
-	while (!_wbuf.empty())
+	/*Response	response;
+
+	response.buildResponse(_request, _server);
+	_wbuf = response.toString(_request);
+	*/while (!_wbuf.empty())
 	{
 		int n = send(_socket, _wbuf.data(), _wbuf.size(), 0);
 		if (n > 0)
@@ -45,6 +60,12 @@ void	Client::_unit( int server_socket )
 		throw FailedAccept();
 	if (fcntl(_socket, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
 		throw FailedFcntl();
+}
+
+void	Client::_clean( void )
+{
+	_wbuf.clear();
+        _request.reset();
 }
 
 void	Client::_backout( void )

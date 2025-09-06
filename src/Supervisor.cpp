@@ -49,7 +49,10 @@ void	Supervisor::execution( void )
 			if (i < _server_size)
 			{
 				if (_size >= FDS_SIZE)
-					throw TooManyConnexions();
+				{
+					Print::debug(RED, "error", "Too many connexions on a server.");
+					continue ;
+				}
 				Client * client = new Client(fd, _servers[i]);
 				_clients.push_back(client);
 				_addFd(client->getSocket());
@@ -73,7 +76,7 @@ void	Supervisor::execution( void )
 					--_size;
 					continue ;
 				}
-				client->read(buffer, rc);
+				client->read(buffer);
 				client->write();
 			}
 		}

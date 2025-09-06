@@ -20,6 +20,7 @@ SRC =	main.cpp				\
 	parsing/init_server.cpp			\
 	parsing/init_location.cpp		\
 	parsing/utils.cpp			\
+	http/Request.cpp			\
 	utils/Print.cpp				\
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
@@ -50,7 +51,7 @@ fclean: clean
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(dir $@)
 	@echo $(BROWN) "Compiling ➤ $<" $(RESET)
-	@$(CC) $(CFLAGS) $< -c -o $@ -I $(INC_DIR)
+	@$(CC) $(CFLAGS) $< -c -o $@ -I $(INC_DIR) -I $(INC_DIR)/utils -I $(INC_DIR)/http
 
 re: fclean all
 

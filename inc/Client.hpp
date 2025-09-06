@@ -21,6 +21,7 @@
 
 # include "Exceptions.hpp"
 # include "Server.hpp"
+# include "Request.hpp"
 
 /*	HELP
  *
@@ -38,14 +39,14 @@ class	Client
 	private:
 
 		int			_socket;
-
-		std::string		_rbuf;
-		std::string		_wbuf;
-		//HttpRequest		_request;
 		Server *		_server;
 
-		void		_unit( int );
-		void		_backout();
+		std::string		_wbuf;
+		Request			_request;
+
+		void _unit( int );
+		void _clean();
+		void _backout();
 
 		Client();
 
@@ -59,7 +60,7 @@ class	Client
 
 		// Methods
 
-		void read( const char *, int );
+		void read( const std::string & );
 		void write();
 
 		// Getter
