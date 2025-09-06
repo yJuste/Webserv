@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/04 10:39:02 by layang            #+#    #+#             */
-/*   Updated: 2025/09/04 10:49:41 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/06 14:21:26 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@
 // file_utils.cpp
 std::string getCurrentWorkingDirectory();
 long getFileSize(const std::string &path);
-std::string generateDirectoryListing(const std::string &path);
+std::string generateDirectoryListing(const std::string &dirPath, const std::string &reqPath);
 bool userExists(const std::string &username);
 std::string getFormValue(const std::string &body, const std::string &key);
 bool saveUser(const std::string &username, const std::string &password);

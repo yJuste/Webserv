@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/06 12:33:52 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/06 14:20:56 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -406,13 +406,8 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 			it != indexList.end(); ++it)
 		{
 			std::cout << "Passing to index file: " << *it << std::endl;
-			std::string indexPath = *it;
-			// if (acstat(indexPath.c_str(), F_OK | R_OK) == 1) {
-			// 	setStatus(200, "OK");
-			// 	setBody(readFile(indexPath));
-			// 	return;  // index file found
-			// }
-			
+			std::string indexPath = filePath;
+			indexPath += *it;
 			std::cout << "Trying index file: " << indexPath << std::endl;
 			int s = acstat_file(indexPath.c_str(), F_OK | R_OK);
 			std::cout << "acstat returned: " << s << std::endl;
@@ -426,10 +421,11 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
     		}
 		}
 
-		// autoindex
+		// autoindexgenerateDirectoryListing
 		if (loc->getAutoindex()) {
+			setHeader("Content-Type", "text/html");
 			setStatus(200, "OK");
-			setBody(generateDirectoryListing(filePath));
+			setBody(generateDirectoryListing(filePath, req.getPath()));
 			return;
 		}
         // Directory exists but no index file → return 404

@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/31 17:42:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/06 12:47:22 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/06 14:23:17 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ long getFileSize(const std::string &path)
 }
 
 
-std::string generateDirectoryListing(const std::string &path)
+/* std::string generateDirectoryListing(const std::string &path)
 {
 	DIR *dir;
 	struct dirent *entry;
@@ -52,14 +52,47 @@ std::string generateDirectoryListing(const std::string &path)
 		std::string name(entry->d_name);
 		if (name == ".")
 			continue;
-		html << "<li><a href=\"" << name << "\">"
-				<< name << "</a></li>\n";
+        html << "<li><a href=\"" << name << "\">" << name << "</a></li>\n";
 	}
 	closedir(dir);
 
 	html << "</ul></body></html>\n";
 	return html.str();
+} */
+
+std::string generateDirectoryListing(const std::string &dirPath, const std::string &reqPath)
+{
+    DIR *dir;
+    struct dirent *entry;
+    std::ostringstream html;
+
+    dir = opendir(dirPath.c_str());
+    if (!dir)
+        return "<html><body><h1>403 Forbidden</h1></body></html>";
+
+    html << "<html><head><title>Index of " << reqPath
+         << "</title></head><body>\n";
+    html << "<h1>Index of " << reqPath << "</h1><ul>\n";
+
+    while ((entry = readdir(dir)) != NULL)
+    {
+        std::string name(entry->d_name);
+        if (name == ".")
+            continue;
+
+        std::string href = reqPath;
+        if (href[href.size() - 1] != '/')
+            href += '/';
+        href += name;
+
+        html << "<li><a href=\"" << href << "\">" << name << "</a></li>\n";
+    }
+    closedir(dir);
+
+    html << "</ul></body></html>\n";
+    return html.str();
 }
+
 
 bool userExists(const std::string &username)
 {
