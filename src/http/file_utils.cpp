@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/31 17:42:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/04 11:15:40 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/06 12:47:22 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -218,6 +218,7 @@ std::string resolvePath(const Location* loc, const std::string &reqPath)
 {
     std::string root = loc->getRoot();
 
+    std::cout << "---------" << std::endl;
     if (root.empty())
     {
         root = getCurrentWorkingDirectory(); 
@@ -231,7 +232,7 @@ std::string resolvePath(const Location* loc, const std::string &reqPath)
             root = getCurrentWorkingDirectory() + "/" + root;
         std::cout << "Root after making absolute if needed: " << root << std::endl;
 
-         if (root[root.size() - 1] != '/')
+        if (root[root.size() - 1] != '/')
             root += '/';
         std::cout << "Root after ensuring trailing '/': " << root << std::endl;
     }
@@ -244,7 +245,7 @@ std::string resolvePath(const Location* loc, const std::string &reqPath)
     std::cout << "Location path: " << locPath << std::endl;
 
     // remove location path prefix
-    if (locPath != "/" && path.find(locPath) == 0)
+    if (reqPath == "/" && locPath != "/" && path.find(locPath) == 0)
         path = path.substr(locPath.size());
     std::cout << "Path after removing location prefix: " << path << std::endl;
 
@@ -255,7 +256,7 @@ std::string resolvePath(const Location* loc, const std::string &reqPath)
 
     std::string finalPath = root + path;
     std::cout << "Final resolved path: " << finalPath << std::endl;
-    std::cout << "" << std::endl;
+    std::cout << "---------" << std::endl;
     return finalPath;
 }
 

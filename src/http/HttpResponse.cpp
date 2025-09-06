@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/05 11:38:34 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/06 12:33:52 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -346,10 +346,49 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
         return;
     }
 
-    // 5. Build the full file path to serve
+	// 5. Handle DELETE requests (restricted only /upload+ JSON response)
+	if (req.getMethod() == "DELETE") {
+
+		if (loc->getPath() != "/upload") {
+			setStatus(403, "Forbidden");
+			setHeader("Content-Type", "application/json");
+			setBody("{\"status\":\"error\",\"message\":\"DELETE allowed only in /upload\"}");
+			return;
+		}
+
+		std::string filePath = resolvePath(loc, req.getPath());
+		int status = acstat_file(filePath.c_str(), F_OK | R_OK);
+		if (status == 1) {
+			// Regular file → try to delete
+			if (std::remove(filePath.c_str()) == 0) {
+				setStatus(200, "OK");
+				setHeader("Content-Type", "application/json");
+				setBody("{\"status\":\"deleted\",\"path\":\"" + req.getPath() + "\"}");
+			} else {
+				setStatus(500, "Internal Server Error");
+				setHeader("Content-Type", "application/json");
+				setBody("{\"status\":\"error\",\"message\":\"Failed to delete file\"}");
+			}
+			return;
+		} else if (status == 2) {
+			// Directory → return 405 Method Not Allowed (or optionally remove)
+			setStatus(405, "Method Not Allowed");
+			setHeader("Content-Type", "application/json");
+			setBody("{\"status\":\"error\",\"message\":\"Cannot delete directory\"}");
+			return;
+		} else {
+			// File not found
+			setStatus(404, "Not Found");
+			setHeader("Content-Type", "application/json");
+			setBody("{\"status\":\"error\",\"message\":\"File not found\"}");
+			return;
+		}
+	}
+
+    // 6. Build the full file path to serve
     std::string filePath = resolvePath(loc, req.getPath());
 	std::cout << "Checking loc: " << loc->getPath() << std::endl;
-    // 6. Check if the path exists
+    // 7. Check if the path exists
     int status = acstat_file(filePath.c_str(), F_OK | R_OK);
 	std::cout << "Checking path: " << filePath << ", status = " << status << std::endl;
     if (status == 1) { // Regular file
