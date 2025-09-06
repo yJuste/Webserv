@@ -225,12 +225,8 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 		throw InvalidParameter(it->c_str());
 }
 
-void	missingImportant( std::vector<Server *> & servers, Server & server )
+void	missingImportant( Server & server )
 {
-	server.setDefault(true);
-	for (std::vector<Server *>::const_iterator cit = servers.begin(); cit != servers.end(); ++cit)
-		if (cit != servers.end() - 1 && (*cit)->getHost() == server.getHost() && (*cit)->getPort() == server.getPort())
-			server.setDefault(false);
 	try { if (server.getHost() == "0.0.0.0") throw MissingImportantValues("host"); }
 	catch ( std::exception & e ) { server.addWarning(e.what()); }
 	try { if (server.getRoot() == "") throw MissingImportantValues("root"); }
@@ -243,7 +239,7 @@ void	missingImportant( std::vector<Server *> & servers, Server & server )
 		name.push_back("localhost");
 		server.setNames(name);
 	}
-	if (!server.getPort().size())
+	if (server.getAllPort().empty())
 		throw NoExistingPort();
 }
 
@@ -304,7 +300,7 @@ std::vector<Server *>	create_servers( const std::vector<std::string> & words )
 				init_server(words, it, *server);
 				++it;
 			}
-			missingImportant(servers, *server);
+			missingImportant(*server);
 			create_paths(*server);
 		}
 		else

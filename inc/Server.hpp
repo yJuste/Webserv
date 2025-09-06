@@ -25,36 +25,7 @@
 
 # include "Location.hpp"
 # include "Exceptions.hpp"
-
-// Ansii
-
-# ifndef BLUE
-#  define BLUE "\033[38;5;74m"
-# endif
-
-# ifndef BEIGE
-#  define BEIGE "\033[38;5;230m"
-# endif
-
-# ifndef YELLOW
-#  define YELLOW "\033[38;5;220m"
-# endif
-
-# ifndef BROWN
-#  define BROWN "\033[38;5;137m"
-# endif
-
-# ifndef GREEN
-#  define GREEN "\033[38;5;154m"
-# endif
-
-# ifndef RESET
-#  define RESET "\033[0m"
-# endif
-
-# ifndef BOLD
-#  define BOLD "\033[1m"
-# endif
+# include "Print.hpp"
 
 /*	HELP
  *
@@ -113,8 +84,8 @@ class	Server
 		int getSocket() const;
 		const struct sockaddr_in & getAddress() const;
 		const std::string & getHost() const;
-		const std::vector<int> & getPort() const;
-		int getFirstPort() const;
+		const std::vector<int> & getAllPort() const;
+		int getPort() const;
 		bool getDefault() const;
 		const std::vector<std::string> & getIndex() const;
 		const std::vector<std::string> & getNames() const;

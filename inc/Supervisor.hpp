@@ -57,7 +57,12 @@ class	Supervisor
 
 		void			_addFd( int );
 		bool			_removeClient( int );
+		void			_debug( const std::string &, int );
 		void			_clean();
+
+		// Getter
+
+		const Client * getClient( int ) const;
 
 		// ~Structor
 

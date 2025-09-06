@@ -32,6 +32,7 @@ void	Supervisor::execution( void )
 {
 	if (_servers.size() == 0)
 		throw NoServerAdded();
+	Print::header("DEBUG INFO", APPLE_GREEN);
 	while (true)
 	{
 		if (poll(_fds.data(), _fds.size(), 0) == -1)
@@ -50,20 +51,20 @@ void	Supervisor::execution( void )
 				Client * client = new Client(fd);
 				_clients.push_back(client);
 				_addFd(client->getSocket());
-				printf("New client [%d] connexion.\n", client->getSocket());
+				Print::debug(client->getSocket(), "Logged in.");
 			}
 			else
 			{
+				const Client * client = getClient(i);
 				char buffer[BUFFER_SIZE];
 				int rc = recv(fd, buffer, sizeof(buffer), 0);
 				if (rc == -1)
 					continue ;
 				else if (rc == 0)
 				{
-					printf("Client [%d] s'est déconnecté.\n", fd);
+					Print::debug(client->getSocket(), "Logged out.");
 					if (!_removeClient(fd))
 						throw SupNoClient();
-					_fds[i] = _fds[_fds.size() - 1];
 					continue ;
 				}
 				else
@@ -80,6 +81,16 @@ void	Supervisor::execution( void )
 			}
 		}
 	}
+}
+
+// Getter
+
+const Client * Supervisor::getClient( int idx ) const
+{
+	for (std::vector<Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
+		if ((*it)->getSocket() == _fds[idx].fd)
+			return *it;
+	return NULL;
 }
 
 // Private Methods
@@ -101,10 +112,14 @@ bool	Supervisor::_removeClient( int fd )
 		{
 			delete *it;
 			_clients.erase(it);
-			for (std::vector<pollfd>::iterator pit = _fds.begin(); pit != _fds.end(); ++pit)
+			for (std::vector<struct pollfd>::iterator pit = _fds.begin(); pit != _fds.end(); ++pit)
+			{
 				if (pit->fd == fd)
+				{
 					_fds.erase(pit);
-			return true;
+					return true;
+				}
+			}
 		}
 	}
 	return false;
