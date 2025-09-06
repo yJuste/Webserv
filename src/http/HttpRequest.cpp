@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/27 19:13:27 by layang            #+#    #+#             */
-/*   Updated: 2025/09/04 13:10:41 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/06 17:48:46 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,8 @@ _request.parseRequest(_readBuffer);
 
  */
 HttpRequest::HttpRequest()
-	: _method(""), _path(""), _httpVersion(""), _body(""), _headerPart(""),
-	  _unchunked("false"), _printed(false)
+	: _method(""), _path(""), _query_str(""), _httpVersion(""), _body(""), _headerPart(""),
+	  _unchunked(false), _printed(false)
 {
 }
 
@@ -89,26 +89,37 @@ void HttpRequest::parseRequest(const std::string &rawRequest)
     if (headerEnd == std::string::npos)
         return; // headers not complete
 
-    std::string _headerPart = rawRequest.substr(0, headerEnd);
-    _body = rawRequest.substr(headerEnd + 4); // body 是 header 之后的内容
+    _headerPart = rawRequest.substr(0, headerEnd);
+    _body = rawRequest.substr(headerEnd + 4); // body is after header
 
     // only parse headerPart 
     std::istringstream request(_headerPart);
 
     // 1. Request line
     request >> _method >> _path >> _httpVersion;
-	if (!_path.empty() && _path[_path.size() - 1] == '\r')
-		_path = _path.substr(0, _path.size() - 1);
+    if (!_path.empty() && _path[_path.size() - 1] == '\r')
+        _path = _path.substr(0, _path.size() - 1);
 
-	if (!_httpVersion.empty() && _httpVersion[_httpVersion.size() - 1] == '\r')
-		_httpVersion = _httpVersion.substr(0, _httpVersion.size() - 1);
+    if (!_httpVersion.empty() && _httpVersion[_httpVersion.size() - 1] == '\r')
+        _httpVersion = _httpVersion.substr(0, _httpVersion.size() - 1);
 
-    // 2. Headers
+    // separate query string
+    size_t qpos = _path.find('?');
+    if (qpos != std::string::npos) {
+        _query_str = _path.substr(qpos + 1);   // save query string
+        _path = _path.substr(0, qpos);         // keep only path
+    } else {
+        _query_str.clear();
+    }
+
+    // 2. parse Headers
     std::string line;
-    std::getline(request, line); // jump request line
     while (std::getline(request, line))
     {
-        if (line.empty() || line == "\r")
+        if (!line.empty() && line[line.size() - 1] == '\r')
+            line = line.substr(0, line.size() - 1);
+
+        if (line.empty())
             break;
 
         size_t colonPos = line.find(':');
@@ -117,15 +128,15 @@ void HttpRequest::parseRequest(const std::string &rawRequest)
             std::string key = line.substr(0, colonPos);
             std::string value = line.substr(colonPos + 1);
 
-            key.erase(key.find_last_not_of(" \t\r\n") + 1);
-            value.erase(0, value.find_first_not_of(" \t\r\n"));
-            value.erase(value.find_last_not_of(" \t\r\n") + 1);
+            // trim spaces
+            key.erase(key.find_last_not_of(" \t") + 1);
+            value.erase(0, value.find_first_not_of(" \t"));
+            value.erase(value.find_last_not_of(" \t") + 1);
 
             _headers[key] = value;
         }
     }
 }
-
 
 void HttpRequest::discardBody()
 {
@@ -136,6 +147,7 @@ void HttpRequest::reset()
 {
     _method.clear();
     _path.clear();
+    _query_str.clear();
     _httpVersion.clear();
     _headers.clear();
     _body.clear();
@@ -152,6 +164,11 @@ std::string HttpRequest::getMethod() const
 std::string HttpRequest::getPath() const
 {
 	return this->_path;
+}
+
+std::string HttpRequest::getQueryString() const
+{
+    return _query_str;
 }
 
 std::string HttpRequest::getHttpVersion() const

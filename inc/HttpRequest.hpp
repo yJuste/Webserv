@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/26 19:36:32 by layang            #+#    #+#             */
-/*   Updated: 2025/09/04 12:30:51 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/06 16:40:33 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ class HttpRequest {
 	private:
 		std::string _method;
 		std::string _path;
+		std::string _query_str;
 		std::string _httpVersion;
 
 		std::map<std::string, std::string> _headers;
@@ -49,6 +50,7 @@ class HttpRequest {
 		void discardBody();
 		std::string getMethod() const;
 		std::string getPath() const;
+		std::string getQueryString() const;
 		std::string getHttpVersion() const;
 		std::string getRequestBody() const;
 		std::string getHeader(const std::string &key) const;

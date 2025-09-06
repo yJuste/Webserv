@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:06:26 by layang            #+#    #+#             */
-/*   Updated: 2025/09/05 13:50:17 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/06 17:54:12 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,11 @@ bool Connection::readFromClient()
         std::cout << "      ----****  new request ****----: " << std::endl;
         std::cout << "Request complete: "
                   << _request.getMethod() << " "
-                  << _request.getPath() << std::endl;
+                  << _request.getPath();
+        if (!_request.getQueryString().empty())
+            std::cout << "?" << _request.getQueryString();
+
+        std::cout << " " << _request.getHttpVersion() << std::endl;
         // print headers
         const std::map<std::string, std::string>& headers = _request.getHeaders();
         for (std::map<std::string, std::string>::const_iterator it = headers.begin();

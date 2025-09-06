@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/26 19:34:52 by layang            #+#    #+#             */
-/*   Updated: 2025/09/05 11:20:37 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/06 17:06:39 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,12 +50,14 @@ private:
 	void setHeader(const std::string &key, const std::string &value);
 
 	// build full HTTP response
+	void executeCGI(const HttpRequest &req,
+                              	const Location &loc,
+                              	const std::string &filePath,
+                              	const Server &server);
 	std::string toString(const HttpRequest &req) const;
 	void handlePost(const HttpRequest &req, const Location *loc);
 	void buildResponse(HttpRequest &req, const Server* server);
-	
-	// execute CGI，build HttpResponse
-    //void executeCGI(const HttpRequest &req, const Location &loc);
+
 };
 
 #endif

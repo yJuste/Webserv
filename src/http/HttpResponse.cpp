@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/06 14:20:56 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/06 17:30:49 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,99 +17,151 @@ HttpResponse::HttpResponse()
 
 HttpResponse::~HttpResponse() {}
 
-/* void HttpResponse::executeCGI(const HttpRequest &req, const Location &loc)
+void HttpResponse::executeCGI(const HttpRequest &req,
+                              const Location &loc,
+                              const std::string &filePath,
+                              const Server &server)
 {
-	int inPipe[2];   // parent proc write to CGI
-	int outPipe[2];  // CGI output to parent proc
+    int inPipe[2];   // Parent writes request body → CGI stdin
+    int outPipe[2];  // CGI stdout → Parent reads
 
-	if (pipe(inPipe) < 0 || pipe(outPipe) < 0)
-	{
-		setStatus(500, "Internal Server Error");
-		setBody("Failed to create pipes for CGI");
-		return;
-	}
+    if (pipe(inPipe) < 0 || pipe(outPipe) < 0)
+    {
+        setStatus(500, "Internal Server Error");
+        setBody("Failed to create pipes for CGI");
+        return;
+    }
 
-	pid_t pid = fork();
-	if (pid < 0)
-	{
-		setStatus(500, "Internal Server Error");
-		setBody("Failed to fork CGI process");
-		return;
-	}
-	if (pid == 0)
-	{ // Child process
-		close(inPipe[1]);
-		close(outPipe[0]);
+    pid_t pid = fork();
+    if (pid < 0)
+    {
+        setStatus(500, "Internal Server Error");
+        setBody("Failed to fork CGI process");
+        return;
+    }
 
-		dup2(inPipe[0], 0);   // CGI/uploa stdin
-		dup2(outPipe[1], 1);  // CGI stdout
-		close(inPipe[0]);
-		close(outPipe[1]);
+    if (pid == 0)
+    {
+        // --- CHILD PROCESS ---
+        close(inPipe[1]);   // Child does not write to stdin pipe
+        close(outPipe[0]);  // Child does not read from stdout pipe
 
-		// 构建 execve 参数
-		const char *cgiPath = loc.getCgi().begin()->second.c_str(); // suppose only one CGI
-		const char *argv[] = { cgiPath, req.getRequestBody().c_str(), NULL };
-		char *envp[] = { NULL }; // add env vars，like CONTENT_LENGTH, REQUEST_METHOD
+        // Redirect pipes
+        dup2(inPipe[0], 0);   // stdin ← inPipe
+        dup2(outPipe[1], 1);  // stdout → outPipe
+        close(inPipe[0]);
+        close(outPipe[1]);
 
-		execve(cgiPath, (char * const*)argv, envp);
-		_exit(1); // execve failed
-	}
-	// Parent process
-	close(inPipe[0]);
-	close(outPipe[1]);
+        // 1. Detect script extension (.py, .php, .pl, .sh, .js, etc.)
+        std::string ext;
+        size_t dotPos = filePath.rfind('.');
+        if (dotPos != std::string::npos)
+            ext = filePath.substr(dotPos);
 
-	// write request body to CGI stdin
-	write(inPipe[1], req.getRequestBody().c_str(), req.getRequestBody().size());
-	close(inPipe[1]);
+        const std::map<std::string, std::string> &cgiMap = loc.getCgi();
+        std::map<std::string, std::string>::const_iterator it = cgiMap.find(ext);
+        if (it == cgiMap.end()) {
+            _exit(1); // No matching CGI interpreter
+        }
 
-	// read CGI stdout
-	char buffer[4096];
-	std::string cgiOutput;
-	ssize_t n;
-	while ((n = read(outPipe[0], buffer, sizeof(buffer))) > 0) {
-		cgiOutput.append(buffer, n);
-	}
-	close(outPipe[0]);
+        const char *cgiPath = it->second.c_str(); // interpreter (e.g. /usr/bin/python3)
+        const char *scriptPath = filePath.c_str(); // actual CGI script
 
-	// wait for child proc to finish
-	int status;
-	waitpid(pid, &status, 0);
+        // 2. Build argv[] for execve, argv[0] = interpreter, argv[1] = script file
+        const char *argv[] = { cgiPath, scriptPath, NULL };
 
-	// simply parse CGI output：headers and body
-	size_t pos = cgiOutput.find("\r\n\r\n");
-	if (pos != std::string::npos) {
-		std::string rawHeaders = cgiOutput.substr(0, pos);
-		_body = cgiOutput.substr(pos + 4);
+        // 3. Build environment variables (envp)
+		
+        std::vector<char *> envp = buildCgiEnv(req, filePath, server);
 
+        // 4. Replace process with CGI interpreter
+        execve(cgiPath, (char * const*)argv, (char * const*)&envp[0]);
+
+        // If execve fails
+        _exit(1);
+    }
+
+    // --- PARENT PROCESS ---
+    close(inPipe[0]);   // Parent does not read stdin
+    close(outPipe[1]);  // Parent does not write stdout
+
+    // Write request body (for POST)
+    if (req.getMethod() == "POST")
+    {
+        write(inPipe[1], req.getRequestBody().c_str(), req.getRequestBody().size());
+    }
+    close(inPipe[1]);
+
+    // Read CGI output
+    char buffer[4096];
+    std::string cgiOutput;
+    ssize_t n;
+    while ((n = read(outPipe[0], buffer, sizeof(buffer))) > 0) {
+        cgiOutput.append(buffer, n);
+    }
+    close(outPipe[0]);
+
+    // Wait for child
+    int status;
+    waitpid(pid, &status, 0);
+
+    // 5. Parse CGI output (headers + body)
+	std::string rawHeaders;
+	std::string body;
+
+	size_t headerEndPos = std::string::npos;
+
+	// Try to find \r\n\r\n or \n\n
+	size_t rnPos = cgiOutput.find("\r\n\r\n");
+	size_t nPos  = cgiOutput.find("\n\n");
+
+	if (rnPos != std::string::npos)
+		headerEndPos = rnPos;
+	else if (nPos != std::string::npos)
+		headerEndPos = nPos;
+
+	if (headerEndPos != std::string::npos) {
+		rawHeaders = cgiOutput.substr(0, headerEndPos);
+
+		// body start right after the separator
+		size_t bodyStart = (headerEndPos == rnPos) ? headerEndPos + 4 : headerEndPos + 2;
+		body = cgiOutput.substr(bodyStart);
+
+		// parse headers line by line safely
 		std::istringstream headerStream(rawHeaders);
 		std::string line;
 		while (std::getline(headerStream, line)) {
+			if (!line.empty() && line[line.size() - 1] == '\r') {
+				line.erase(line.size() - 1, 1); // remove trailing '\r'
+			}
 			size_t colon = line.find(':');
 			if (colon != std::string::npos) {
 				std::string key = line.substr(0, colon);
 				std::string value = line.substr(colon + 1);
-				if (!value.empty() && value[0] == ' ') value.erase(0,1);
+				if (!value.empty() && value[0] == ' ')
+					value.erase(0, 1);
 				_headers[key] = value;
 			}
 		}
 	} else {
-		// CGI output without header
-		_body = cgiOutput;
+		// No headers found → everything is body
+		body = cgiOutput;
 	}
+	// assign body
+	_body = body;
 
-	// set default status
-	if (!_headers.count("Status"))
-		setStatus(200, "OK");
-	else {
-		// Status like: "200 OK"
-		std::istringstream ss(_headers["Status"]);
-		int code;
-		std::string text;
-		ss >> code;
-		std::getline(ss, text);
-		setStatus(code, text);
-	}
-} */
+    // Set default or CGI-provided status
+    if (!_headers.count("Status"))
+        setStatus(200, "OK");
+    else {
+        std::istringstream ss(_headers["Status"]);
+        int code;
+        std::string text;
+        ss >> code;
+        std::getline(ss, text);
+        setStatus(code, text);
+    }
+}
 
 // find location in server
 const Location* HttpResponse::findLocation(const std::string &path, const Server* server) const
@@ -391,7 +443,26 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
     // 7. Check if the path exists
     int status = acstat_file(filePath.c_str(), F_OK | R_OK);
 	std::cout << "Checking path: " << filePath << ", status = " << status << std::endl;
-    if (status == 1) { // Regular file
+    if (status == 1) {
+		std::cout << "--------------  cgi/file  ------------" << std::endl;
+		std::string ext;
+		size_t dotPos = filePath.rfind('.');
+		if (dotPos != std::string::npos)
+			ext = filePath.substr(dotPos);  // e.g., ".php"
+
+		const std::map<std::string, std::string> &cgiMap = loc->getCgi();
+		std::map<std::string, std::string>::const_iterator it = cgiMap.find(ext);
+		if (it != cgiMap.end()) {
+			std::cout << "\n-!- CGI: " << ext
+					<< " using interpreter: " << it->second << std::endl;
+
+			executeCGI(req, *loc, filePath, *server);
+			//std::string scriptOutput = "Test: CGI using ****\n";
+			//setStatus(200, "OK");
+			//setBody(scriptOutput);
+			return;
+		}
+		// Regular file
         setStatus(200, "OK");
         setBody(readFile(filePath));
         return;
@@ -420,7 +491,8 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 				return;
     		}
 		}
-
+		std::cout << "--------------  Autoindex/404  ------------" << std::endl;
+		
 		// autoindexgenerateDirectoryListing
 		if (loc->getAutoindex()) {
 			setHeader("Content-Type", "text/html");

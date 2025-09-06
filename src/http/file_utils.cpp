@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/31 17:42:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/06 14:23:17 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/06 17:09:27 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -336,6 +336,43 @@ std::string getContentType(const std::string &path)
 	if (path.length() >= 4 && path.substr(path.length() - 4) == ".gif")
 		return "image/gif";
 	return "text/plain; charset=UTF-8";
+}
+
+std::string portsToString(const std::vector<int> &ports) {
+    std::ostringstream oss;
+    for (size_t i = 0; i < ports.size(); ++i) {
+        if (i != 0) oss << ",";
+        oss << ports[i];
+    }
+    return oss.str();
+}
+
+// Build environment variables (envp) for CGI
+std::vector<char*> buildCgiEnv(const HttpRequest &req,
+                               const std::string &filePath,
+                               const Server &server)
+{
+    std::vector<std::string> env;
+
+    env.push_back("GATEWAY_INTERFACE=CGI/1.1");
+    env.push_back("SERVER_PROTOCOL=HTTP/1.1");
+    env.push_back("REQUEST_METHOD=" + req.getMethod());
+    env.push_back("SCRIPT_FILENAME=" + filePath);
+    env.push_back("SCRIPT_NAME=" + req.getPath());
+    env.push_back("QUERY_STRING=" + req.getQueryString());
+
+    env.push_back("CONTENT_LENGTH=" + pushToString(req.getRequestBody().size())); 
+    env.push_back("CONTENT_TYPE=" + req.getHeader("Content-Type"));
+
+    env.push_back("SERVER_NAME=" + req.getHeader("Host"));
+    env.push_back("SERVER_PORT=" + portsToString(server.getPort()));  // use server config
+
+    std::vector<char*> envp;
+    for (size_t i = 0; i < env.size(); ++i)
+        envp.push_back(const_cast<char*>(env[i].c_str()));
+    envp.push_back(NULL);
+
+    return envp;
 }
 
 
