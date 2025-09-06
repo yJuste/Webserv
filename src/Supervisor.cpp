@@ -21,11 +21,13 @@ void	Supervisor::hold( const std::vector<Server *> & servers )
 	if (!_servers.empty())
 		return ;
 	_servers = servers;
+	_server_size = servers.size();
 	for (size_t i = 0; i < _servers.size(); ++i)
 	{
 		servers[i]->startup();
 		_addFd(_servers[i]->getSocket());
 	}
+	_size = _fds.size();
 }
 
 void	Supervisor::execution( void )
@@ -35,62 +37,47 @@ void	Supervisor::execution( void )
 	Print::header("DEBUG INFO", APPLE_GREEN);
 	while (true)
 	{
-		if (poll(_fds.data(), _fds.size(), 0) == -1)
+		if (poll(_fds.data(), _size, 0) == -1)
 			throw FailedPoll();
-		for (size_t i = 0; i < _fds.size(); ++i)
+		for (size_t i = 0; i < _size; ++i)
 		{
 			if (_fds[i].revents == 0)
 				continue ;
 			if (!(_fds[i].revents & POLLIN))
 				continue ;
 			int fd = _fds[i].fd;
-			if (i < _servers.size())
+			if (i < _server_size)
 			{
-				if (_fds.size() >= FDS_SIZE)
+				if (_size >= FDS_SIZE)
 					throw TooManyConnexions();
-				Client * client = new Client(fd);
+				Client * client = new Client(fd, _servers[i]);
 				_clients.push_back(client);
 				_addFd(client->getSocket());
-				Print::debug(client->getSocket(), "Logged in.");
+				++_size;
+				Print::debug(APPLE_GREEN, client->getSocket(), "Logged in.");
 			}
 			else
 			{
-				const Client * client = getClient(i);
-				char buffer[BUFFER_SIZE];
+				size_t idx = i - _server_size;
+				Client * client = _clients[idx];
+				char buffer[BUFFER_SIZE] = {0};
 				int rc = recv(fd, buffer, sizeof(buffer), 0);
 				if (rc == -1)
 					continue ;
 				else if (rc == 0)
 				{
-					Print::debug(client->getSocket(), "Logged out.");
-					if (!_removeClient(fd))
-						throw SupNoClient();
+					Print::debug(RED, client->getSocket(), "Logged out.");
+					delete client;
+					_clients.erase(_clients.begin() + idx);
+					_fds[i] = _fds[_size - 1];
+					--_size;
 					continue ;
 				}
-				else
-				{
-					std::string response =
-					"HTTP/1.1 200 OK\r\n"
-					"Content-Type: text/plain\r\n"
-					"Content-Length: 13\r\n"
-					"\r\n"
-					"Hello, world!";
-					if (send(fd, response.c_str(), response.size(), 0) == -1)
-						throw FailedSend();
-				}
+				client->read(buffer, rc);
+				client->write();
 			}
 		}
 	}
-}
-
-// Getter
-
-const Client * Supervisor::getClient( int idx ) const
-{
-	for (std::vector<Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
-		if ((*it)->getSocket() == _fds[idx].fd)
-			return *it;
-	return NULL;
 }
 
 // Private Methods
@@ -102,27 +89,6 @@ void	Supervisor::_addFd( int socket )
 	pfd.events = POLLIN;
 	pfd.revents = 0;
 	_fds.push_back(pfd);
-}
-
-bool	Supervisor::_removeClient( int fd )
-{
-	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-	{
-		if ((*it)->getSocket() == fd)
-		{
-			delete *it;
-			_clients.erase(it);
-			for (std::vector<struct pollfd>::iterator pit = _fds.begin(); pit != _fds.end(); ++pit)
-			{
-				if (pit->fd == fd)
-				{
-					_fds.erase(pit);
-					return true;
-				}
-			}
-		}
-	}
-	return false;
 }
 
 void	Supervisor::_clean( void )

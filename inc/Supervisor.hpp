@@ -53,16 +53,13 @@ class	Supervisor
 		std::vector<Server *>	_servers;
 		std::vector<Client *>	_clients;
 
+		size_t			_size;
+		size_t			_server_size;
+
 		// Methods
 
 		void			_addFd( int );
-		bool			_removeClient( int );
-		void			_debug( const std::string &, int );
 		void			_clean();
-
-		// Getter
-
-		const Client * getClient( int ) const;
 
 		// ~Structor
 
@@ -83,11 +80,8 @@ class	Supervisor
 		// Exceptions
 
 		class NoServerAdded;
-		class SupNoClient;
 };
 
 class	Supervisor::NoServerAdded : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Supervisor cannot monitor without a server."; } };
-
-class	Supervisor::SupNoClient : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Cannot find the client to suppress."; } };
 
 #endif

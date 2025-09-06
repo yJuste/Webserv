@@ -15,12 +15,12 @@ SRC =	main.cpp				\
 	Location.cpp				\
 	Client.cpp				\
 	Supervisor.cpp				\
-	Print.cpp				\
 	parsing/configure_file.cpp		\
 	parsing/multi_ports.cpp			\
 	parsing/init_server.cpp			\
 	parsing/init_location.cpp		\
 	parsing/utils.cpp			\
+	utils/Print.cpp				\
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 

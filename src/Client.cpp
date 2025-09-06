@@ -9,10 +9,30 @@
 
 # include "Client.hpp"
 
-Client::Client() : _socket(-1) {}
+Client::Client() : _socket(-1), _server(0) {}
 Client::~Client() { _backout(); }
 
-Client::Client( int server_socket ) : _socket(-1) { _unit(server_socket); }
+Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server) { _unit(server_socket); }
+
+// Methods
+
+void	Client::read( const char * buf, int n )
+{
+	(void)buf;
+	(void)n;
+}
+
+void	Client::write( void )
+{
+	while (!_wbuf.empty())
+	{
+		int n = send(_socket, _wbuf.data(), _wbuf.size(), 0);
+		if (n > 0)
+			_wbuf.erase(0, n);
+		else
+			Print::debug(RED, "Client", "The client encountered errors during writing.");
+	}
+}
 
 // Private Methods
 

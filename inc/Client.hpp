@@ -20,6 +20,7 @@
 // Dependences
 
 # include "Exceptions.hpp"
+# include "Server.hpp"
 
 /*	HELP
  *
@@ -36,7 +37,12 @@ class	Client
 {
 	private:
 
-		int		_socket;
+		int			_socket;
+
+		std::string		_rbuf;
+		std::string		_wbuf;
+		//HttpRequest		_request;
+		Server *		_server;
 
 		void		_unit( int );
 		void		_backout();
@@ -48,8 +54,13 @@ class	Client
 
 	public:
 
-		Client( int );
+		Client( int, Server * );
 		~Client();
+
+		// Methods
+
+		void read( const char *, int );
+		void write();
 
 		// Getter
 

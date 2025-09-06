@@ -71,7 +71,7 @@ class	Print
 
 		template <typename T> static std::ostream & value( const std::string &, const T & );
 		template <typename T> static std::ostream & enval( const std::string &, const std::string &, const std::string &, const T & );
-		template <typename T> static std::ostream & debug( const T &, const std::string & );
+		template <typename T> static std::ostream & debug( const std::string &, const T &, const std::string & );
 };
 
 template <typename T>
@@ -90,12 +90,12 @@ std::ostream	& Print::value( const std::string & COLOR, const T & value )
 }
 
 template <typename T>
-std::ostream	& Print::debug( const T & type, const std::string & message )
+std::ostream	& Print::debug( const std::string & COLOR, const T & type, const std::string & message )
 {
 	if (typeid(type) == typeid(int))
-		return std::cout << "[" << APPLE_GREEN << type << RESET << "]: " << message << std::endl;
+		return std::cout << "[" << COLOR << type << RESET << "]: " << message << std::endl;
 	else
-		return std::cout << APPLE_GREEN << type << RESET << ": " << message << std::endl;
+		return std::cout << COLOR << type << RESET << ": " << message << std::endl;
 }
 
 #endif
