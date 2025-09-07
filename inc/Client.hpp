@@ -10,18 +10,12 @@
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
-// Standard Libraries
-
-# include <iostream>
-# include <netdb.h>
-# include <unistd.h>
-# include <fcntl.h>
-
 // Dependences
 
-# include "Exceptions.hpp"
 # include "Server.hpp"
 # include "Request.hpp"
+# include "Response.hpp"
+# include "Exceptions.hpp"
 
 /*	HELP
  *

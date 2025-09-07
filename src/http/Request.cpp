@@ -30,14 +30,14 @@ Request	& Request::operator = ( const Request & r )
 	return *this;
 }
 
-void	Request::parse( const std::string & rawRequest )
+void	Request::parse( const std::string & raw )
 {
-	size_t headerEnd = rawRequest.find("\r\n\r\n");
+	size_t headerEnd = raw.find("\r\n\r\n");
 	if (headerEnd == std::string::npos)
 		return ;
 
-	_headerPart = rawRequest.substr(0, headerEnd);
-	_body = rawRequest.substr(headerEnd + 4);
+	_headerPart = raw.substr(0, headerEnd);
+	_body = raw.substr(headerEnd + 4);
 
 	std::stringstream request(_headerPart);
 	request >> _method >> _path >> _version;
@@ -70,7 +70,7 @@ bool	Request::isComplete( void )
 		{
 			if (!_unchunked)
 			{
-				_body = unchunkBody(_body);
+				_body = _unchunkBody(_body);
 				_unchunked = true;
 			}
 			return true;
@@ -82,19 +82,19 @@ bool	Request::isComplete( void )
 
 void	Request::reset( void )
 {
+	_headerPart.clear();
+	_body.clear();
 	_method.clear();
 	_path.clear();
 	_version.clear();
 	_headers.clear();
-	_body.clear();
-	_headerPart.clear();
 	_unchunked = false;
 	_printed = false; 
 }
 
 // Private methods
 
-std::string	Request::unchunkBody( const std::string & raw )
+std::string	Request::_unchunkBody( const std::string & raw )
 {
 	std::string result;
 	size_t pos = 0;
@@ -117,7 +117,6 @@ std::string	Request::unchunkBody( const std::string & raw )
 		result.append(raw.substr(pos, chunkSize));
 		pos += chunkSize + 2;
 	}
-
 	return result;
 }
 

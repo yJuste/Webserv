@@ -22,10 +22,10 @@ void	Client::read( const std::string & buf )
 	_request.parse(buf);
 	if (!_request.isComplete())
 		return ;
-	Print::debug(APPLE_GREEN, "Client", "New request.");
+	Print::debug(APPLE_GREEN, getSocket(), "New request.");
 	if (!_request.getPrinted())
 		_request.setPrinted(true);
-	Print::debug(APPLE_GREEN, "Client", "Request completed :");
+	Print::debug(APPLE_GREEN, getSocket(), "Request completed :");
 	Print::enval(APPLE_GREEN, "Method", RESET, _request.getMethod());
 	Print::enval(APPLE_GREEN, "Path", RESET, _request.getPath());
 	Print::enval(APPLE_GREEN, "Version", RESET, _request.getVersion());
@@ -35,11 +35,12 @@ void	Client::read( const std::string & buf )
 
 void	Client::write( void )
 {
-	/*Response	response;
+	Response	response;
 
-	response.buildResponse(_request, _server);
-	_wbuf = response.toString(_request);
-	*/while (!_wbuf.empty())
+	response.build(_request, _server);
+	_wbuf = response.reconstitution(_request, _server);
+	Print::debug(BLUE, "Response", "Reconstitution done.");
+	while (!_wbuf.empty())
 	{
 		int n = send(_socket, _wbuf.data(), _wbuf.size(), 0);
 		if (n > 0)
@@ -47,6 +48,7 @@ void	Client::write( void )
 		else
 			Print::debug(RED, "Client", "The client encountered errors during writing.");
 	}
+	Print::debug(BLUE, "Response", "Sent.");
 }
 
 // Private Methods

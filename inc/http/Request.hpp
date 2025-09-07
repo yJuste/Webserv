@@ -12,8 +12,6 @@
 
 // Standard Libraries
 
-# include <iostream>
-# include <string>
 # include <sstream>
 # include <map>
 
@@ -31,13 +29,11 @@ class	Request
 		std::string				_method;
 		std::string				_path;
 		std::string				_version;
+		std::map<std::string, std::string>	_headers;
 		bool					_unchunked;
 		bool					_printed;
 
-		std::map<std::string, std::string>	_headers;
-
-		std::string unchunkBody( const std::string & );
-		void printCRLF( const std::string & );
+		std::string _unchunkBody( const std::string & );
 
 	public:
 

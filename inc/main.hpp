@@ -10,17 +10,11 @@
 #ifndef MAIN_HPP
 # define MAIN_HPP
 
-// Standard Libraries
-
-# include <algorithm>
-# include <sys/stat.h>
-# include <dirent.h>
-# include <stdint.h>
-
 // Dependences
 
 # include "Server.hpp"
 # include "Supervisor.hpp"
+# include "utils.hpp"
 
 // Defines
 
@@ -51,11 +45,5 @@ std::vector<Server *>	create_servers( const std::vector<std::string> & );
 
 // init_location.cpp
 Location	create_location( const std::vector<std::string> &, std::vector<std::string>::const_iterator &, Server & );
-
-// utils.cpp
-int	acstat( const char *, int );
-void	stoa( const std::string & );
-int	relative( const std::string & );
-std::string	handle_folder( std::string s );
 
 #endif

@@ -21,6 +21,8 @@ SRC =	main.cpp				\
 	parsing/init_location.cpp		\
 	parsing/utils.cpp			\
 	http/Request.cpp			\
+	http/Response.cpp			\
+	http/utils.cpp				\
 	utils/Print.cpp				\
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
