@@ -74,23 +74,42 @@
 
     <script>
         function sendDelete() {
-            var path = document.getElementById("deletePath").value;
-            if (!path) { alert("Please enter a file path to delete"); return; }
+            var path = document.getElementById("deletePath").value.trim();
+            if (!path) {
+                alert("Please enter a file path to delete");
+                return;
+            }
 
             fetch(path, { method: "DELETE" })
                 .then(response => {
-                    if (response.status === 200 || response.status === 204) {
-                        document.getElementById("deleteResult").innerText = "Deleted successfully!";
-                    } else {
-                        return response.text().then(text => {
-                            document.getElementById("deleteResult").innerText =
-                                "Error " + response.status + ": " + text;
+                    // Attempt to parse JSON response
+                    return response.json()
+                        .then(data => {
+                            if (data.status === "deleted") {
+                                document.getElementById("deleteResult").innerText = "Success: " + data.path + " deleted.";
+                                alert("Success: " + data.path + " deleted.");
+                            } else if (data.status === "error") {
+                                document.getElementById("deleteResult").innerText = "Error: " + data.message;
+                                alert("Error: " + data.message);
+                            } else {
+                                document.getElementById("deleteResult").innerText = "Unknown response";
+                            }
+                        })
+                        .catch(() => {
+                            // fallback: if response is not JSON
+                            response.text().then(text => {
+                                document.getElementById("deleteResult").innerText =
+                                    "Error " + response.status + ": " + text;
+                            });
                         });
-                    }
                 })
-                .catch(err => { document.getElementById("deleteResult").innerText = "Request failed: " + err; });
+                .catch(err => {
+                    document.getElementById("deleteResult").innerText = "Request failed: " + err;
+                    alert("Request failed: " + err);
+                });
         }
     </script>
+
 
     <!-- Autoindex Test Button -->
     <div class="form-container">
