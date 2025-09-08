@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:06:26 by layang            #+#    #+#             */
-/*   Updated: 2025/09/06 17:54:12 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/08 12:50:25 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,18 @@ bool Connection::readFromClient()
              it != headers.end(); ++it)
         {
             std::cout << it->first << ": " << it->second << std::endl;
+        }
+        if (!_request.getRequestBody().empty()) {
+            std::string body = _request.getRequestBody();
+            std::string firstLine;
+
+            size_t pos = body.find('\n');
+            if (pos != std::string::npos)
+                firstLine = body.substr(0, pos);
+            else
+                firstLine = body;
+
+            std::cout << "---Request Body first line: " << firstLine << std::endl;
         }
         
         HttpResponse response;

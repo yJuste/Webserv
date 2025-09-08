@@ -68,6 +68,51 @@
         </form>
     </div>
 
+        <!-- Delete File Form -->
+    <div class="form-container">
+        <h2>Delete a File</h2>
+        <input type="text" id="deletePath" placeholder="File path (e.g. /upload/test.txt)" required><br>
+        <button onclick="sendDelete()">Delete</button>
+        <p id="deleteResult"></p>
+    </div>
+
+    <script>
+        function sendDelete() {
+            var path = document.getElementById("deletePath").value;
+            if (!path) {
+                alert("Please enter a file path to delete");
+                return;
+            }
+
+            fetch(path, { method: "DELETE" })
+                .then(response => {
+                    if (response.status === 200 || response.status === 204) {
+                        document.getElementById("deleteResult").innerText = "Deleted successfully!";
+                    } else {
+                        return response.text().then(text => {
+                            document.getElementById("deleteResult").innerText =
+                                "Error " + response.status + ": " + text;
+                        });
+                    }
+                })
+                .catch(err => {
+                    document.getElementById("deleteResult").innerText = "Request failed: " + err;
+                });
+        }
+    </script>
+
+    <!-- Autoindex Test Button -->
+    <div class="form-container">
+        <h2>Test Autoindex</h2>
+        <button onclick="goAutoindex()">Go to /files/</button>
+    </div>
+
+    <script>
+    function goAutoindex() {
+        window.location.href = "/files/";
+    }
+    </script>
+
     <!-- Links -->
     <a href="/">Home</a>
     <a href="/index.html">Reload Index</a>

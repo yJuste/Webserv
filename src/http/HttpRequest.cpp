@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/27 19:13:27 by layang            #+#    #+#             */
-/*   Updated: 2025/09/06 17:48:46 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/08 13:22:41 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,12 +108,14 @@ void HttpRequest::parseRequest(const std::string &rawRequest)
     if (qpos != std::string::npos) {
         _query_str = _path.substr(qpos + 1);   // save query string
         _path = _path.substr(0, qpos);         // keep only path
+        std::cout << "\n? Parsed query string: " << _query_str << std::endl;  //log
     } else {
         _query_str.clear();
     }
 
     // 2. parse Headers
     std::string line;
+    std::getline(request, line); // jump request line
     while (std::getline(request, line))
     {
         if (!line.empty() && line[line.size() - 1] == '\r')

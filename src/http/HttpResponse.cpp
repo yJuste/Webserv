@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/06 17:30:49 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/08 16:18:49 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,9 +71,13 @@ void HttpResponse::executeCGI(const HttpRequest &req,
         const char *argv[] = { cgiPath, scriptPath, NULL };
 
         // 3. Build environment variables (envp)
+		std::cerr << "\n-!- start build ENV: " << std::endl;  // test
+        std::vector<std::string> env = buildCgiEnv(req, filePath, server);
 		
-        std::vector<char *> envp = buildCgiEnv(req, filePath, server);
-
+		std::vector<char*> envp;
+		for (size_t i = 0; i < env.size(); ++i)
+			envp.push_back(&env[i][0]); // point to inner buffer of std::string 
+		envp.push_back(NULL);
         // 4. Replace process with CGI interpreter
         execve(cgiPath, (char * const*)argv, (char * const*)&envp[0]);
 
@@ -101,6 +105,9 @@ void HttpResponse::executeCGI(const HttpRequest &req,
     }
     close(outPipe[0]);
 
+	std::cerr << "-!- DEBUG CGI OUTPUT BEGIN -----\n";  //test
+	std::cerr << cgiOutput << "\n";
+	std::cerr << "----- DEBUG CGI OUTPUT END -----\n";
     // Wait for child
     int status;
     waitpid(pid, &status, 0);
@@ -147,9 +154,19 @@ void HttpResponse::executeCGI(const HttpRequest &req,
 		// No headers found → everything is body
 		body = cgiOutput;
 	}
-	// assign body
-	_body = body;
 
+    // --- Add headers to HTTP response ---
+    if (!_headers.count("Content-Type"))
+        _headers["Content-Type"] = "text/html"; // default fallback
+
+    for (std::map<std::string, std::string>::iterator it = _headers.begin();
+         it != _headers.end(); ++it)
+    {
+        setHeader(it->first, it->second);
+    }
+	//_body = body;
+    setBody(body);
+	
     // Set default or CGI-provided status
     if (!_headers.count("Status"))
         setStatus(200, "OK");
@@ -386,18 +403,6 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
         return;
     }
 
-	// 4. Handle POST requests
-    if (req.getMethod() == "POST") {
-		//For example, handle uploads or size limits
-		if (req.getRequestBody().size() > server->getMaxSize()) {
-		    setStatus(413, "Payload Too Large");
-			req.discardBody();
-		    return;
-		}
-        handlePost(req, loc);
-        return;
-    }
-
 	// 5. Handle DELETE requests (restricted only /upload+ JSON response)
 	if (req.getMethod() == "DELETE") {
 
@@ -462,9 +467,16 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 			//setBody(scriptOutput);
 			return;
 		}
-		// Regular file
-        setStatus(200, "OK");
-        setBody(readFile(filePath));
+		// Regular file (GET)
+        if (req.getMethod() == "GET") {
+            setStatus(200, "OK");
+            setBody(readFile(filePath));
+            return;
+        }
+
+        // POST → 405
+        setStatus(405, "Method Not Allowed");
+        setBody("POST not allowed on static file");
         return;
     } 
     else if (status == 2) { // Directory
@@ -504,9 +516,24 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
         setStatus(404, "Not Found");
         const std::map<int, std::string> &errPages = server->getErrorPages();
         if (errPages.find(404) != errPages.end())
+		{
             setBody(readFile(errPages.find(404)->second));
+			setHeader("Content-Type", "text/html");
+		}
         else
             setBody("Directory exists but no index file, File not found");
+        return;
+    }
+
+	// 4. Handle POST requests
+    if (req.getMethod() == "POST") {
+		//For example, handle uploads or size limits
+		if (req.getRequestBody().size() > server->getMaxSize()) {
+		    setStatus(413, "Payload Too Large");
+			req.discardBody();
+		    return;
+		}
+        handlePost(req, loc);
         return;
     }
 
@@ -514,7 +541,10 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
     setStatus(404, "Not Found");
     const std::map<int, std::string> &errPages = server->getErrorPages();
     if (errPages.find(404) != errPages.end())
+	{
         setBody(readFile(errPages.find(404)->second));
+		setHeader("Content-Type", "text/html");
+	}
     else
         setBody("Path does not exist, File not found");
 }

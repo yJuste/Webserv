@@ -10,14 +10,12 @@
             margin: 50px;
             text-align: center;
         }
-        h1 {
-            color: #333;
-        }
+        h1 { color: #333; }
         .form-container {
             margin: 20px auto;
             padding: 20px;
             border: 1px solid #ddd;
-            width: 300px;
+            width: 320px;
             background-color: #fff;
             border-radius: 8px;
         }
@@ -26,14 +24,12 @@
             padding: 8px;
             margin: 5px 0;
         }
-        input[type=submit] {
+        input[type=submit], button {
             padding: 8px 16px;
             margin-top: 10px;
         }
-        a {
-            display: block;
-            margin-top: 15px;
-        }
+        a { display: block; margin-top: 15px; }
+        textarea { width: 95%; height: 100px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -68,7 +64,7 @@
         </form>
     </div>
 
-        <!-- Delete File Form -->
+    <!-- Delete File Form -->
     <div class="form-container">
         <h2>Delete a File</h2>
         <input type="text" id="deletePath" placeholder="File path (e.g. /upload/test.txt)" required><br>
@@ -79,10 +75,7 @@
     <script>
         function sendDelete() {
             var path = document.getElementById("deletePath").value;
-            if (!path) {
-                alert("Please enter a file path to delete");
-                return;
-            }
+            if (!path) { alert("Please enter a file path to delete"); return; }
 
             fetch(path, { method: "DELETE" })
                 .then(response => {
@@ -95,9 +88,7 @@
                         });
                     }
                 })
-                .catch(err => {
-                    document.getElementById("deleteResult").innerText = "Request failed: " + err;
-                });
+                .catch(err => { document.getElementById("deleteResult").innerText = "Request failed: " + err; });
         }
     </script>
 
@@ -108,15 +99,32 @@
     </div>
 
     <script>
-    function goAutoindex() {
-        window.location.href = "/files/";
-    }
+        function goAutoindex() { window.location.href = "/files/"; }
     </script>
 
+    <!-- CGI Test Form -->
+    <div class="form-container">
+        <h2>Test CGI Scripts</h2>
+        <input type="text" id="cgiName" placeholder="Enter name" value="Alice">
+        <div>
+            <button onclick="goCgi('/cgi/test_3.py')">Test Python CGI (.py)</button>
+            <button onclick="goCgi('/cgi/test.php')">Test PHP CGI (.php)</button>
+            <button onclick="goCgi('/cgi/test.pl')">Test Perl CGI (.pl)</button>
+            <button onclick="goCgi('/cgi/test.sh')">Test Bash CGI (.sh)</button>
+            <button onclick="goCgi('/cgi/test.js')">Test Node.js CGI (.js)</button>
+        </div>
+
+        <script>
+        function goCgi(scriptPath) {
+            var name = encodeURIComponent(document.getElementById('cgiName').value);
+            window.location.href = scriptPath + '?name=' + name;
+        }
+        </script>
+    </div>
+
+
     <!-- Links -->
-    <a href="/">Home</a>
-    <a href="/index.html">Reload Index</a>
-    <a href="/detective_cool.gif">View GIF</a>
+    <a href="/gif_view.html">View GIF</a>
 
 </body>
 </html>

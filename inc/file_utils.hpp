@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/04 10:39:02 by layang            #+#    #+#             */
-/*   Updated: 2025/09/06 17:09:05 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/08 14:03:42 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ std::string pushToString(T value) {
     return oss.str();
 }
 std::string portsToString(const std::vector<int> &ports);
-std::vector<char*> buildCgiEnv(const HttpRequest &req,
+std::vector<std::string> buildCgiEnv(const HttpRequest &req,
                                const std::string &filePath,
                                const Server &server);
 int	acstat_file( const char * path, int mode );
