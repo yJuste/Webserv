@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/11 12:29:08 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/11 15:02:47 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -346,17 +346,6 @@ void HttpResponse::handlePost(const HttpRequest &req, const Location *loc)
 		return;
 	}
 
-	// JSON API
-	// if (path == "/api" &&
-	//     contentType.find("application/json") != std::string::npos)
-	// {
-	// 	std::string body = req.getRequestBody();
-	// 	// TODO: parse JSON body here
-	// 	setStatus(200, "OK");
-	// 	setBody("JSON request received: " + body);
-	// 	return;
-	// }
-
 	setStatus(404, "Not Found");
 	setBody("POST route not found");
 }
@@ -447,6 +436,7 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 		//For example, handle uploads or size limits
 		if (req.getRequestBody().size() > server->getMaxSize()) {
 		    setStatus(413, "Payload Too Large");
+			setBody("Failed to save uploaded file: > 1M");
 			req.discardBody();
 		    return;
 		}
