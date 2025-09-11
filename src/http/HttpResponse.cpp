@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/08 16:18:49 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/11 12:29:08 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -442,6 +442,18 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 		}
 	}
 
+	// 4. Handle POST requests
+    if (req.getMethod() == "POST") {
+		//For example, handle uploads or size limits
+		if (req.getRequestBody().size() > server->getMaxSize()) {
+		    setStatus(413, "Payload Too Large");
+			req.discardBody();
+		    return;
+		}
+        handlePost(req, loc);
+        return;
+    }
+
     // 6. Build the full file path to serve
     std::string filePath = resolvePath(loc, req.getPath());
 	std::cout << "Checking loc: " << loc->getPath() << std::endl;
@@ -522,18 +534,6 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 		}
         else
             setBody("Directory exists but no index file, File not found");
-        return;
-    }
-
-	// 4. Handle POST requests
-    if (req.getMethod() == "POST") {
-		//For example, handle uploads or size limits
-		if (req.getRequestBody().size() > server->getMaxSize()) {
-		    setStatus(413, "Payload Too Large");
-			req.discardBody();
-		    return;
-		}
-        handlePost(req, loc);
         return;
     }
 
