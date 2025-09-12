@@ -9,28 +9,30 @@
 
 # include "Client.hpp"
 
-Client::Client() : _socket(-1), _server(0) {}
-Client::~Client() { _backout(); }
+Client::Client() : _socket(-1), _server(NULL), _color(Print::getColor(-1)) {}
+Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
-Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server) { _unit(server_socket); }
+Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server)
+{
+	_unit(server_socket);
+	_color = Print::getColor(_socket);
+	Print::debug(_color, getSocket(), "Logged in.");
+}
 
 // Methods
 
 void	Client::read( const std::string & buf )
 {
 	_clean();
+	Print::debug(_color, getSocket(), "New request.");
 	_request.parse(buf);
 	if (!_request.isComplete())
 		return ;
-	Print::debug(APPLE_GREEN, getSocket(), "New request.");
 	if (!_request.getPrinted())
 		_request.setPrinted(true);
-	Print::debug(APPLE_GREEN, getSocket(), "Request completed :");
-	Print::enval(APPLE_GREEN, "Method", RESET, _request.getMethod());
-	Print::enval(APPLE_GREEN, "Path", RESET, _request.getPath());
-	Print::enval(APPLE_GREEN, "Version", RESET, _request.getVersion());
-        for (std::map<std::string, std::string>::const_iterator it = _request.getHeaders().begin(); it != _request.getHeaders().end(); ++it)
-		Print::enval(APPLE_GREEN, it->first + ":", RESET, it->second);
+	Print::debug(_color, getSocket(), "Request completed :");
+	Print::enval(_color, "    | Method", RESET, _request.getMethod());
+	Print::enval(_color, "    | Path", RESET, _request.getPath());
 }
 
 void	Client::write( void )
@@ -39,7 +41,7 @@ void	Client::write( void )
 
 	response.build(_request, _server);
 	_wbuf = response.reconstitution(_request, _server);
-	Print::debug(BLUE, "Response", "Reconstitution done.");
+	Print::debug(_color, getSocket(), "Reconstitution done.");
 	while (!_wbuf.empty())
 	{
 		int n = send(_socket, _wbuf.data(), _wbuf.size(), 0);
@@ -48,7 +50,7 @@ void	Client::write( void )
 		else
 			Print::debug(RED, "Client", "The client encountered errors during writing.");
 	}
-	Print::debug(BLUE, "Response", "Sent.");
+	Print::debug(_color, getSocket(), "Sent.");
 }
 
 // Private Methods

@@ -34,6 +34,7 @@ class	Client
 
 		int			_socket;
 		Server *		_server;
+		const char *		_color;
 
 		std::string		_wbuf;
 		Request			_request;

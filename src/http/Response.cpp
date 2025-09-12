@@ -51,7 +51,7 @@ std::string	Response::reconstitution( const Request & req, const Server * server
 		response << it->first << ": " << it->second << "\r\n";
 	response << "\r\n";
 	response << _body;
-	std::cout << "\033[31m" << response.str() << std::endl;
+	//std::cout << "\033[31m" << response.str() << std::endl;
 	return response.str();
 }
 

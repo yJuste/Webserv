@@ -57,7 +57,6 @@ void	Supervisor::execution( void )
 				_clients.push_back(client);
 				_addFd(client->getSocket());
 				++_size;
-				Print::debug(APPLE_GREEN, client->getSocket(), "Logged in.");
 			}
 			else
 			{
@@ -69,7 +68,6 @@ void	Supervisor::execution( void )
 					continue ;
 				else if (rc == 0)
 				{
-					Print::debug(RED, client->getSocket(), "Logged out.");
 					delete client;
 					_clients.erase(_clients.begin() + idx);
 					_fds[i] = _fds[_size - 1];

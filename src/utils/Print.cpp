@@ -9,6 +9,8 @@
 
 # include "Print.hpp"
 
+const char * Print::_palette[g_palette_size];
+
 void	Print::header( const std::string & title, const std::string & COLOR )
 {
 	int padding = (60 - title.size()) / 2;
@@ -41,4 +43,25 @@ void	Print::entry( const std::string & COLOR, const std::string & title )
 void	Print::endl( void )
 {
 	std::cout << RESET << std::endl;
+}
+
+const char *	Print::getColor( int socket )
+{
+	size_t index = static_cast<size_t>(socket) % (sizeof(_palette) / sizeof(_palette[0]));
+	return _palette[index];
+}
+
+void	Print::newPalette( void )
+{
+	std::srand(static_cast<unsigned int>(std::time(NULL)));
+
+	for (size_t i = 0; i < g_palette_size; ++i)
+		_palette[i] = g_palette[i];
+	for (size_t i = g_palette_size - 1; i > 0; --i)
+	{
+		size_t j = std::rand() % (i + 1);
+		const char * tmp = _palette[i];
+		_palette[i] = _palette[j];
+		_palette[j] = tmp;
+	}
 }

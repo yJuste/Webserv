@@ -16,7 +16,7 @@
 # include <iomanip>
 # include <sstream>
 
-// Ansii
+// Colors
 
 # ifndef BLUE
 #  define BLUE "\033[38;5;74m"
@@ -50,6 +50,66 @@
 #  define BOLD "\033[1m"
 # endif
 
+// vivid
+
+# ifndef VIVID_RED
+#  define VIVID_RED "\033[38;5;196m"
+# endif
+
+# ifndef VIVID_GREEN
+#  define VIVID_GREEN "\033[38;5;46m"
+# endif
+
+# ifndef VIVID_YELLOW
+#  define VIVID_YELLOW "\033[38;5;226m"
+# endif
+
+# ifndef VIVID_BLUE
+#  define VIVID_BLUE "\033[38;5;27m"
+# endif
+
+# ifndef VIVID_MAGENTA
+#  define VIVID_MAGENTA "\033[38;5;201m"
+# endif
+
+# ifndef VIVID_CYAN
+#  define VIVID_CYAN "\033[38;5;51m"
+# endif
+
+# ifndef VIVID_ORANGE
+#  define VIVID_ORANGE "\033[38;5;208m"
+# endif
+
+# ifndef VIVID_PINK
+#  define VIVID_PINK "\033[38;5;213m"
+# endif
+
+# ifndef VIVID_PURPLE
+#  define VIVID_PURPLE "\033[38;5;93m"
+# endif
+
+# ifndef VIVID_LIME
+#  define VIVID_LIME "\033[38;5;118m"
+# endif
+
+// palette
+
+static const char * g_palette[] =
+{
+    VIVID_RED,
+    VIVID_GREEN,
+    VIVID_YELLOW,
+    VIVID_BLUE,
+    VIVID_MAGENTA,
+    VIVID_CYAN,
+    VIVID_ORANGE,
+    VIVID_PINK,
+    VIVID_PURPLE,
+    VIVID_LIME
+};
+
+const size_t g_palette_size = sizeof(g_palette) / sizeof(g_palette[0]);
+
 /*	HELP
  *
  * Print Class is for printing information or debug.
@@ -62,7 +122,14 @@
 
 class	Print
 {
+	private:
+
+		static const char * _palette[];
+
 	public:
+
+		static void newPalette();
+		static const char * getColor( int );
 
 		static void header( const std::string &, const std::string & );
 		static void subPart( const std::string &, const std::string & );
@@ -93,7 +160,7 @@ template <typename T>
 std::ostream	& Print::debug( const std::string & COLOR, const T & type, const std::string & message )
 {
 	if (typeid(type) == typeid(int))
-		return std::cout << "[" << COLOR << type << RESET << "]: " << message << std::endl;
+		return std::cout << " " << COLOR << type << "  | " << RESET << message << std::endl;
 	else
 		return std::cout << COLOR << type << RESET << ": " << message << std::endl;
 }
