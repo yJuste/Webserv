@@ -9,10 +9,10 @@
 
 # include "Supervisor.hpp"
 
-Supervisor::Supervisor() {}
+Supervisor::Supervisor() : _size(0), _server_size(0) {}
 Supervisor::~Supervisor() { _clean(); }
 
-Supervisor::Supervisor( const std::vector<Server *> & servers ) { hold(servers); }
+Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(0), _server_size(0) { hold(servers); }
 
 // Methods
 

@@ -14,8 +14,6 @@ Location::Location() : _path(""), _root(""), _upload(""), _autoindex(false)
 	for (int i = 0; g_methods[i]; ++i)
 		_methods.push_back(g_methods[i]);
 
-	_index.push_back("index.html");
-
 	_overwritten["root"] = false;
 	_overwritten["upload"] = false;
 	_overwritten["upload_store"] = false;

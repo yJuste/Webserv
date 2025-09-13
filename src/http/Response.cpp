@@ -46,12 +46,12 @@ std::string	Response::reconstitution( const Request & req, const Server * server
 	std::stringstream ss;
 	ss << _body.size();
 	response << "Content-Length: " << ss.str() << "\r\n";
+	response << "Connection: keep-alive" << "\r\n";
 
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
 		response << it->first << ": " << it->second << "\r\n";
 	response << "\r\n";
 	response << _body;
-	//std::cout << "\033[31m" << response.str() << std::endl;
 	return response.str();
 }
 

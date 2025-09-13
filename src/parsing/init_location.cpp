@@ -257,7 +257,9 @@ void	create_paths( Location & location )
 		if (acstat(it->c_str(), F_OK | R_OK) == 1)
 			status = true;
 	}
-	if (!status)
+	if (index.empty())
+		index.push_back("index.html");
+	else if (!status)
 		throw FailedAcstat(index[0].c_str());
 	location.setIndex(index);
 
