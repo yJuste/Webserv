@@ -14,6 +14,7 @@
 
 # include <sstream>
 # include <map>
+# include <cstdlib>
 
 // ************************************************************************** //
 //                                Request Class                               //

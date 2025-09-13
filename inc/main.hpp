@@ -10,6 +10,11 @@
 #ifndef MAIN_HPP
 # define MAIN_HPP
 
+// Standard Library
+
+# include <stdint.h>
+# include <algorithm>
+
 // Dependences
 
 # include "Server.hpp"

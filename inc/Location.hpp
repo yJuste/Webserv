@@ -12,6 +12,8 @@
 
 // Standard Libraries
 
+# include <string>
+# include <vector>
 # include <map>
 
 // Global Variables

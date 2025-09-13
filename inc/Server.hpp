@@ -15,6 +15,8 @@
 # include <unistd.h>
 # include <netdb.h>
 # include <fcntl.h>
+# include <vector>
+# include <cstring>
 
 // Dependences
 

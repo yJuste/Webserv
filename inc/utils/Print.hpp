@@ -15,6 +15,9 @@
 # include <iostream>
 # include <iomanip>
 # include <sstream>
+# include <typeinfo>
+# include <cstdlib>
+# include <ctime>
 
 // Colors
 
