@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 09:02:10 by layang            #+#    #+#             */
-/*   Updated: 2025/09/03 19:03:22 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/13 11:36:30 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,13 +32,13 @@
 class Connection {
 	private:
 		int	_fd;
-		//std::vector<Location> _locations;
 		Server* _server;
 		std::string _readBuffer;
 		std::string _writebBuffer;
 		HttpRequest _request;
 	public:
 		Connection(int fd, Server* server);
+		~Connection();
 		// Member functions
 		bool hasDataToWrite() const;
 		int getFd() const;

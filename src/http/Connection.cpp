@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:06:26 by layang            #+#    #+#             */
-/*   Updated: 2025/09/08 12:50:25 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/13 11:33:58 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@ int Connection::getFd() const
 {
 	return _fd;
 }
+
+Connection::~Connection() {}
 
 bool Connection::hasDataToWrite() const {
     return !_writebBuffer.empty();

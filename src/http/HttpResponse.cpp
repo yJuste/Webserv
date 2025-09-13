@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/11 15:02:47 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/13 11:50:04 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,13 +75,22 @@ void HttpResponse::executeCGI(const HttpRequest &req,
         std::vector<std::string> env = buildCgiEnv(req, filePath, server);
 		
 		std::vector<char*> envp;
-		for (size_t i = 0; i < env.size(); ++i)
-			envp.push_back(&env[i][0]); // point to inner buffer of std::string 
+		std::vector<char*> buffers;  // for delete[] safely, in case reuse the envp after env[] are already be deleted
+		// for (size_t i = 0; i < env.size(); ++i)
+		// 	envp.push_back(&env[i][0]); // point to inner buffer of std::string 
+		for (size_t i = 0; i < env.size(); ++i) {
+			char* copy = new char[env[i].size() + 1]; // +1 to put '\0'
+			std::strcpy(copy, env[i].c_str());
+			envp.push_back(copy);
+			buffers.push_back(copy); // save the pointers to delete[] if needed
+		}
 		envp.push_back(NULL);
         // 4. Replace process with CGI interpreter
         execve(cgiPath, (char * const*)argv, (char * const*)&envp[0]);
 
         // If execve fails
+		for (size_t i = 0; i < buffers.size(); ++i)
+   			delete[] buffers[i];  //to delete[]
         _exit(1);
     }
 
@@ -399,6 +408,7 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 			setStatus(403, "Forbidden");
 			setHeader("Content-Type", "application/json");
 			setBody("{\"status\":\"error\",\"message\":\"DELETE allowed only in /upload\"}");
+
 			return;
 		}
 
