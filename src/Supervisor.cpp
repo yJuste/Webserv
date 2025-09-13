@@ -22,22 +22,24 @@ void	Supervisor::hold( const std::vector<Server *> & servers )
 		return ;
 	_servers = servers;
 	_server_size = servers.size();
-	for (size_t i = 0; i < _servers.size(); ++i)
+	_size = _server_size;
+	for (size_t i = 0; i < _server_size; ++i)
 	{
 		servers[i]->startup();
-		_addFd(_servers[i]->getSocket());
+		_fds[i].fd = _servers[i]->getSocket();
+		_fds[i].events = POLLIN;
+		_fds[i].revents = 0;
 	}
-	_size = _fds.size();
 }
 
 void	Supervisor::execution( void )
 {
-	if (_servers.size() == 0)
+	if (_server_size == 0)
 		throw NoServerAdded();
 	Print::header("DEBUG INFO", APPLE_GREEN);
 	while (true)
 	{
-		if (poll(_fds.data(), _size, 0) == -1)
+		if (poll(_fds, _size, 0) == -1)
 			throw FailedPoll();
 		for (size_t i = 0; i < _size; ++i)
 		{
@@ -55,21 +57,21 @@ void	Supervisor::execution( void )
 				}
 				Client * client = new Client(fd, _servers[i]);
 				_clients.push_back(client);
-				_addFd(client->getSocket());
+				_fds[_size].fd = client->getSocket();
+				_fds[_size].events = POLLIN;
+				_fds[_size].revents = 0;
 				++_size;
 			}
 			else
 			{
-				size_t idx = i - _server_size;
-				Client * client = _clients[idx];
+				Client * client = _getClient(fd);
 				char buffer[BUFFER_SIZE] = {0};
 				int rc = recv(fd, buffer, sizeof(buffer), 0);
 				if (rc == -1)
 					continue ;
 				else if (rc == 0)
 				{
-					delete client;
-					_clients.erase(_clients.begin() + idx);
+					_supClient(fd);
 					_fds[i] = _fds[_size - 1];
 					--_size;
 					continue ;
@@ -83,13 +85,26 @@ void	Supervisor::execution( void )
 
 // Private Methods
 
-void	Supervisor::_addFd( int socket )
+Client * Supervisor::_getClient( int fd )
 {
-	struct pollfd pfd;
-	pfd.fd = socket;
-	pfd.events = POLLIN;
-	pfd.revents = 0;
-	_fds.push_back(pfd);
+	for (std::vector<Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
+		if ((*it)->getSocket() == fd)
+			return *it;
+	return NULL;
+}
+
+Client * Supervisor::_supClient( int fd )
+{
+	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		if ((*it)->getSocket() == fd)
+		{
+			delete *it;
+			_clients.erase(it);
+			return *it;
+		}
+	}
+	return NULL;
 }
 
 void	Supervisor::_clean( void )

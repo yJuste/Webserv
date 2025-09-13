@@ -49,7 +49,7 @@ class	Supervisor
 {
 	private:
 
-		std::vector<pollfd>	_fds;
+		struct pollfd		_fds[FDS_SIZE];
 		std::vector<Server *>	_servers;
 		std::vector<Client *>	_clients;
 
@@ -58,7 +58,8 @@ class	Supervisor
 
 		// Methods
 
-		void			_addFd( int );
+		Client *		_getClient( int );
+		Client *		_supClient( int );
 		void			_clean();
 
 		// ~Structor
