@@ -168,7 +168,7 @@ void	init_listen( const std::vector<std::string> & words, std::vector<std::strin
 		{
 			host = str.substr(0, sep);
 			if (host == "localhost")
-				host = "0.0.0.0";
+				host = "127.0.0.1";
 			port = str.substr(sep + 1);
 			server.setHost(host);
 			server.setOverwritten("host");
@@ -199,7 +199,7 @@ void	init_host( std::string str, Server & server )
 	str.erase(str.size() - 1);
 
 	if (str == "localhost")
-		str = "0.0.0.0";
+		str = "127.0.0.1";
 
 	server.setHost(str);
 	server.setOverwritten("host");

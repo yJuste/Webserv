@@ -83,8 +83,6 @@ void	Server::startup( void )
 	_address.sin_addr = add->sin_addr;
 	freeaddrinfo(info);
 
-	std::cout << getHost() << ":" << getPort() << std::endl;
-
 	if (bind(_socket, (const struct sockaddr *)&_address, sizeof(_address)) == -1)
 		throw FailedBind();
 	if (listen(_socket, 10) == -1)
@@ -103,7 +101,7 @@ void	Server::shutdown( void )
 void	Server::myConfig( void ) const
 {
 	Print::header("SERVER CONFIGURATION", BLUE);
-	Print::enval(BROWN, "Host", BEIGE, getHost());
+	Print::enval(BROWN, "Host", BEIGE, getHost() == "127.0.0.1" ? "localhost" : getHost() );
 	Print::enval(BROWN, "Port(s)", BEIGE, getPort());
 	Print::enval(BROWN, "Root", BEIGE, getRoot());
 	Print::entry(BROWN, "Index");
