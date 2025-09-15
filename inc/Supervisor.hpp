@@ -75,8 +75,8 @@ class	Supervisor
 
 		// Methods
 
-		void hold( const std::vector<Server *> & );
-		void execution();
+		void hold( const std::vector<Server *> & );	// fournir les serveurs.
+		void execution();	// lance les serveurs sur le web.
 
 		// Exceptions
 

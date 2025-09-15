@@ -8,32 +8,43 @@
 // ************************************************************************** //
 
 # include "Response.hpp"
+# include "Request.hpp"
+# include "Client.hpp"
 
-Response::Response() : _status(200, "OK"), _body("") {}
+Response::Response() : _req(NULL), _server(NULL), _client(NULL), _status(200, "OK"), _body("") {}
 Response::~Response() {}
 
-// Method
-
-void	Response::build( Request & req, const Server * server )
+Response::Response( Request * req ) : _req(req), _status(200, "OK"), _body("")
 {
-	const Location * loc = _findLocation(req.getPath(), server);
+	_client = _req->getClient();
+	_server = _client->getServer();
+}
+
+// Methods
+
+std::string	Response::build( void )
+{
+	const Location * loc = _findLocation();
 	if (!loc)
 	{
 		_setStatus(404, "Not Found");
-		const std::map<int, std::string> & pages = server->getErrorPages();
+		const std::map<int, std::string> & pages = _server->getErrorPages();
 		if (pages.find(404) != pages.end())
 			_setBody(readFile(pages.at(404)));
 		else
 			_setBody("No matching location");
-		return ;
+		std::cout << "No location found" << std::endl;
+		Print::debug(_client->getColor(), _client->getSocket(), "New request.");
+		return _reconstitution();
 	}
 	_setBody(readFile(loc->getIndex()[0]));
+	return _reconstitution();
 }
 
-std::string	Response::reconstitution( const Request & req, const Server * server ) const
+std::string	Response::_reconstitution( void ) const
 {
 	std::stringstream response;
-	const Location * loc = _findLocation(req.getPath(), server);
+	const Location * loc = _findLocation();
 
 	response << "HTTP/1.1 " << _status.first << " " << _status.second << "\r\n";
 
@@ -44,12 +55,10 @@ std::string	Response::reconstitution( const Request & req, const Server * server
 	}
 
 	std::stringstream ss;
+
 	ss << _body.size();
 	response << "Content-Length: " << ss.str() << "\r\n";
 	response << "Connection: keep-alive" << "\r\n";
-
-	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
-		response << it->first << ": " << it->second << "\r\n";
 	response << "\r\n";
 	response << _body;
 	return response.str();
@@ -57,13 +66,13 @@ std::string	Response::reconstitution( const Request & req, const Server * server
 
 // Private Methods
 
-const Location *	Response::_findLocation( const std::string & path, const Server * server ) const
+const Location *	Response::_findLocation( void ) const
 {
-	const std::vector<Location> & locations = server->getLocations();
+	const std::vector<Location> & locations = _server->getLocations();
 	const Location * best = NULL;
 
 	for (size_t i = 0; i < locations.size(); ++i)
-		if (path.find(locations[i].getPath()) == 0)
+		if (_req->getPath().find(locations[i].getPath()) == 0)
 			if (!best || locations[i].getPath().size() > best->getPath().size())
 				best = &locations[i];
 	return best;

@@ -13,9 +13,9 @@
 // Dependences
 
 # include "Server.hpp"
+# include "Exceptions.hpp"
 # include "Request.hpp"
 # include "Response.hpp"
-# include "Exceptions.hpp"
 
 /*	HELP
  *
@@ -37,10 +37,9 @@ class	Client
 		const char *		_color;
 
 		std::string		_wbuf;
-		Request			_request;
+		Request *		_request;
 
 		void _unit( int );
-		void _clean();
 		void _backout();
 
 		Client();
@@ -55,12 +54,14 @@ class	Client
 
 		// Methods
 
-		void read( const std::string & );
-		void write();
+		void read( const std::string & );	// lit une requete.
+		void write();	// envoie la requete.
 
-		// Getter
+		// Getters
 
 		int getSocket() const;
+		const Server * getServer() const;
+		const char * getColor() const;
 };
 
 #endif

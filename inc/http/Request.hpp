@@ -16,6 +16,8 @@
 # include <map>
 # include <cstdlib>
 
+class Client;
+
 // ************************************************************************** //
 //                                Request Class                               //
 // ************************************************************************** //
@@ -23,6 +25,8 @@
 class	Request
 {
 	private:
+
+		const Client *				_client;
 
 		std::string				_headerPart;
 		std::string				_body;
@@ -34,11 +38,17 @@ class	Request
 		bool					_unchunked;
 		bool					_printed;
 
+		// Methods
+
 		std::string _unchunkBody( const std::string & );
+		bool _isComplete();
+		void _reset();
+
+		Request();
 
 	public:
 
-		Request();
+		Request( const Client * );
 		~Request();
 
 		Request( const Request & );
@@ -46,12 +56,11 @@ class	Request
 
 		// Method
 
-		void parse( const std::string & );
-		bool isComplete();
-		void reset();
+		int create( const std::string & );	// forme la requete.
 
 		// Getters
 
+		const Client * getClient() const;
 		const std::string & getHeaderPart() const;
 		const std::string & getBody() const;
 		const std::string & getMethod() const;

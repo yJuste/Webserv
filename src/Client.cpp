@@ -9,13 +9,14 @@
 
 # include "Client.hpp"
 
-Client::Client() : _socket(-1), _server(NULL), _color(Print::getColor(-1)) {}
+Client::Client() : _socket(-1), _server(NULL), _color(Print::getColor(-1)), _request(NULL) {}
 Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
 Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server)
 {
 	_unit(server_socket);
 	_color = Print::getColor(_socket);
+	_request = new Request(this);
 	Print::debug(_color, getSocket(), "Logged in.");
 }
 
@@ -23,24 +24,20 @@ Client::Client( int server_socket, Server * server ) : _socket(-1), _server(serv
 
 void	Client::read( const std::string & buf )
 {
-	_clean();
 	Print::debug(_color, getSocket(), "New request.");
-	_request.parse(buf);
-	if (!_request.isComplete())
+	_wbuf.clear();
+	if (_request->create(buf) == 2)
 		return ;
-	if (!_request.getPrinted())
-		_request.setPrinted(true);
 	Print::debug(_color, getSocket(), "Request completed :");
-	Print::enval(_color, "    | Method", RESET, _request.getMethod());
-	Print::enval(_color, "    | Path", RESET, _request.getPath());
+	Print::enval(_color, "    | Method", RESET, _request->getMethod());
+	Print::enval(_color, "    | Path", RESET, _request->getPath());
 }
 
 void	Client::write( void )
 {
-	Response	response;
+	Response	response(_request);
 
-	response.build(_request, _server);
-	_wbuf = response.reconstitution(_request, _server);
+	_wbuf = response.build();
 	Print::debug(_color, getSocket(), "Reconstitution done.");
 	while (!_wbuf.empty())
 	{
@@ -66,12 +63,6 @@ void	Client::_unit( int server_socket )
 		throw FailedFcntl();
 }
 
-void	Client::_clean( void )
-{
-	_wbuf.clear();
-        _request.reset();
-}
-
 void	Client::_backout( void )
 {
 	if (_socket != -1)
@@ -79,8 +70,11 @@ void	Client::_backout( void )
 		close(_socket);
 		_socket = -1;
 	}
+	delete _request;
 }
 
-// Getter
+// Getters
 
 int Client::getSocket() const { return _socket; }
+const Server * Client::getServer() const { return _server; }
+const char * Client::getColor() const { return _color; }

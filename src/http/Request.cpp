@@ -9,8 +9,10 @@
 
 # include "Request.hpp"
 
-Request::Request() : _headerPart(""), _body(""), _method(""), _path(""), _version(""), _unchunked(false), _printed(false) {}
+Request::Request() : _client(NULL), _headerPart(""), _body(""), _method(""), _path(""), _version(""), _unchunked(false), _printed(false) {}
 Request::~Request() {}
+
+Request::Request( const Client * client ) : _client(client), _headerPart(""), _body(""), _method(""), _path(""), _version(""), _unchunked(false), _printed(false) {}
 
 Request::Request( const Request & r ) { *this = r; }
 
@@ -18,6 +20,7 @@ Request	& Request::operator = ( const Request & r )
 {
 	if (this != &r)
 	{
+		_client = r.getClient();
 		_headerPart = r.getHeaderPart();
 		_body = r.getBody();
 		_method = r.getMethod();
@@ -30,11 +33,12 @@ Request	& Request::operator = ( const Request & r )
 	return *this;
 }
 
-void	Request::parse( const std::string & raw )
+int	Request::create( const std::string & raw )
 {
+	_reset();
 	size_t headerEnd = raw.find("\r\n\r\n");
 	if (headerEnd == std::string::npos)
-		return ;
+		return 1;
 
 	_headerPart = raw.substr(0, headerEnd);
 	_body = raw.substr(headerEnd + 4);
@@ -53,43 +57,11 @@ void	Request::parse( const std::string & raw )
 		value.erase(value.find_last_not_of(" \t\r\n") + 1);
 		_headers[key] = value;
 	}
-}
-
-bool	Request::isComplete( void )
-{
-	if (_headers.count("Content-Length"))
-	{
-		std::stringstream ss(_headers["Content-Length"]);
-		size_t len = 0;
-		ss >> len;
-		return _body.size() >= len;
-	}
-	if (_headers.count("Transfer-Encoding") && _headers["Transfer-Encoding"] == "chunked")
-	{
-		if (_body.find("0\r\n\r\n") != std::string::npos)
-		{
-			if (!_unchunked)
-			{
-				_body = _unchunkBody(_body);
-				_unchunked = true;
-			}
-			return true;
-		}
-		return false;
-	}
-	return true;
-}
-
-void	Request::reset( void )
-{
-	_headerPart.clear();
-	_body.clear();
-	_method.clear();
-	_path.clear();
-	_version.clear();
-	_headers.clear();
-	_unchunked = false;
-	_printed = false; 
+	if (!_isComplete())
+		return 2;
+	if (!getPrinted())
+		setPrinted(true);
+	return 0;
 }
 
 // Private methods
@@ -120,8 +92,46 @@ std::string	Request::_unchunkBody( const std::string & raw )
 	return result;
 }
 
+bool	Request::_isComplete( void )
+{
+	if (_headers.count("Content-Length"))
+	{
+		std::stringstream ss(_headers["Content-Length"]);
+		size_t len = 0;
+		ss >> len;
+		return _body.size() >= len;
+	}
+	if (_headers.count("Transfer-Encoding") && _headers["Transfer-Encoding"] == "chunked")
+	{
+		if (_body.find("0\r\n\r\n") != std::string::npos)
+		{
+			if (!_unchunked)
+			{
+				_body = _unchunkBody(_body);
+				_unchunked = true;
+			}
+			return true;
+		}
+		return false;
+	}
+	return true;
+}
+
+void	Request::_reset( void )
+{
+	_headerPart.clear();
+	_body.clear();
+	_method.clear();
+	_path.clear();
+	_version.clear();
+	_headers.clear();
+	_unchunked = false;
+	_printed = false; 
+}
+
 // Getters
 
+const Client * Request::getClient() const { return _client; }
 const std::string & Request::getHeaderPart() const { return _headerPart; }
 const std::string & Request::getBody() const { return _body; }
 const std::string & Request::getMethod() const { return _method; }

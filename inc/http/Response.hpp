@@ -12,9 +12,17 @@
 
 // Dependences
 
-# include "Request.hpp"
 # include "Server.hpp"
 # include "utils.hpp"
+
+class Client;
+class Request;
+
+/*	HELP
+ *
+ * Response Class find the nearest location possible.
+ *
+ */
 
 // ************************************************************************** //
 //                               Response Class                               //
@@ -24,6 +32,10 @@ class	Response
 {
 	private:
 
+		Request *				_req;
+		const Server *				_server;
+		const Client *				_client;
+
 		std::pair<int, std::string>		_status;
 
 		std::map<std::string, std::string>	_headers;
@@ -31,7 +43,8 @@ class	Response
 
 		// Methods
 
-		const Location * _findLocation( const std::string &, const Server *) const;
+		std::string _reconstitution() const;
+		const Location * _findLocation() const;
 		std::string getContentType( const std::string & ) const;
 
 		// Setters
@@ -39,18 +52,19 @@ class	Response
 		void _setStatus( int, const std::string & );
 		void _setBody( const std::string & );
 
+		Response();
+
 	public:
 
-		Response();
+		Response( Request * );
 		~Response();
 
 		Response( const Response & );
 		Response & operator = ( const Response & );
 
-		// Method
+		// Methods
 
-		void build( Request &, const Server * );
-		std::string reconstitution( const Request &, const Server * ) const;
+		std::string build(); // construit la reponse.
 };
 
 #endif
