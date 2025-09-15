@@ -146,6 +146,7 @@ void	init_root( std::string str, Server & server )
 
 void	init_listen( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
+	std::vector<int> ports;
 	while (it != words.end())
 	{
 		std::string str = *it;
@@ -165,11 +166,12 @@ void	init_listen( const std::vector<std::string> & words, std::vector<std::strin
 
 		if (sep != std::string::npos)
 		{
-			if (server.getHost() != "0.0.0.0")
-				throw DuplicateParameter("host");
 			host = str.substr(0, sep);
+			if (host == "localhost")
+				host = "0.0.0.0";
 			port = str.substr(sep + 1);
 			server.setHost(host);
+			server.setOverwritten("host");
 		}
 		else
 			port = str;
@@ -179,13 +181,15 @@ void	init_listen( const std::vector<std::string> & words, std::vector<std::strin
 
 		if (!(ss >> nb))
 			throw InvalidListen();
-		server.addPort(nb);
+		ports.push_back(nb);
 		if (semicolon)
 			break ;
 		++it;
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
+
+	server.setPort(ports);
 }
 
 void	init_host( std::string str, Server & server )
@@ -194,17 +198,15 @@ void	init_host( std::string str, Server & server )
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
 
-	if (server.getHost() != "0.0.0.0")
-		throw DuplicateParameter("host");
+	if (str == "localhost")
+		str = "0.0.0.0";
 
 	server.setHost(str);
+	server.setOverwritten("host");
 }
 
 void	init_server( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
-	try { if (server.getOverwrittenX(*it)) throw OverwrittenParameter(it->c_str()); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
-
 	if (*it == "host")
 		init_host(*(++it), server);
 	else if (*it == "listen")
@@ -227,8 +229,8 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 
 void	missingImportant( Server & server )
 {
-	try { if (server.getHost() == "0.0.0.0") throw MissingImportantValues("host"); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
+	if (server.getHost() == "")
+		server.setHost("0.0.0.0");
 	try { if (server.getRoot() == "") throw MissingImportantValues("root"); }
 	catch ( std::exception & e ) { server.addWarning(e.what()); }
 	try { if (server.getLocations().empty()) throw MissingImportantValues("location"); }
@@ -274,6 +276,16 @@ void	create_paths( Server & server )
 	server.setIndex(index);
 }
 
+void	overwritten( Server & server )
+{
+	std::map<std::string, int>::const_iterator cit = server.getOverwritten().begin();
+	for (; cit != server.getOverwritten().end(); ++cit)
+	{
+		try { if (cit->second >= 2) throw OverwrittenParameter(cit->first.c_str()); }
+		catch ( std::exception & e ) { server.addWarning(e.what()); }
+	}
+}
+
 std::vector<Server *>	create_servers( const std::vector<std::string> & words )
 {
 	std::vector<Server *>		servers;
@@ -301,6 +313,7 @@ std::vector<Server *>	create_servers( const std::vector<std::string> & words )
 				++it;
 			}
 			missingImportant(*server);
+			overwritten(*server);
 			create_paths(*server);
 		}
 		else

@@ -20,6 +20,7 @@ void	Supervisor::hold( const std::vector<Server *> & servers )
 {
 	if (!_servers.empty())
 		return ;
+	Print::header("DEBUG INFO", APPLE_GREEN);
 	_servers = servers;
 	_server_size = servers.size();
 	_size = _server_size;
@@ -36,7 +37,6 @@ void	Supervisor::execution( void )
 {
 	if (_server_size == 0)
 		throw NoServerAdded();
-	Print::header("DEBUG INFO", APPLE_GREEN);
 	while (true)
 	{
 		if (poll(_fds, _size, 0) == -1)

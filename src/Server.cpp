@@ -9,13 +9,15 @@
 
 # include "Server.hpp"
 
-Server::Server() : _socket(-1), _host("0.0.0.0"), _root(""), _default(true), _maxSize(1048576)
+Server::Server() : _socket(-1), _host(""), _root(""), _default(true), _maxSize(1048576)
 {
+	_port.push_back(80);
 	_index.push_back("index.html");
 
-	_overwritten["index"] = false;
-	_overwritten["error_page"] = false;
-	_overwritten["client_max_body_size"] = false;
+	_overwritten["host"] = 0;
+	_overwritten["index"] = 0;
+	_overwritten["error_page"] = 0;
+	_overwritten["client_max_body_size"] = 0;
 }
 Server::~Server() { shutdown(); }
 
@@ -80,6 +82,8 @@ void	Server::startup( void )
 	_address.sin_port = htons(getPort());
 	_address.sin_addr = add->sin_addr;
 	freeaddrinfo(info);
+
+	std::cout << getHost() << ":" << getPort() << std::endl;
 
 	if (bind(_socket, (const struct sockaddr *)&_address, sizeof(_address)) == -1)
 		throw FailedBind();
@@ -181,8 +185,7 @@ const std::vector<std::string> & Server::getNames() const { return _names; }
 const std::map<int, std::string> & Server::getErrorPages() const { return _errorPages; }
 size_t Server::getMaxSize() const { return _maxSize; }
 const std::vector<Location> & Server::getLocations() const { return _locations; }
-const std::map<std::string, bool> & Server::getOverwritten() const { return _overwritten; }
-bool Server::getOverwrittenX( const std::string & parameter ) const { std::map<std::string, bool>::const_iterator it = _overwritten.find(parameter); return it != _overwritten.end() && it->second; }
+const std::map<std::string, int> & Server::getOverwritten() const { return _overwritten; }
 const std::vector<std::string> & Server::getWarnings() const { return _warnings; }
 
 // Setters
@@ -197,7 +200,7 @@ void Server::setNames( const std::vector<std::string> & names ) { _names = names
 void Server::addErrorPage( int code, const std::string & path ) { _errorPages[code] = path; }
 void Server::setMaxSize( int size ) { _maxSize = size; }
 void Server::addLocation( const Location & location ) { _locations.push_back(location); }
-void Server::setOverwritten( const std::string & parameter ) { _overwritten[parameter] = true; }
+void Server::setOverwritten( const std::string & parameter ) { _overwritten[parameter] += 1; }
 void Server::addWarning( const std::string & warning ) { _warnings.push_back(warning); }
 
 // Private Methods

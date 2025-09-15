@@ -47,7 +47,7 @@ class	Location
 		// parsing
 
 		std::vector<std::string>		_cgi_paths;
-		std::map<std::string, bool>		_overwritten;
+		std::map<std::string, int>		_overwritten;
 
 	public:
 
@@ -68,8 +68,7 @@ class	Location
 		const std::vector<std::string> & getIndex() const;
 		const std::map<std::string, std::string> & getCgi() const;
 		const std::vector<std::string> & getCgiPaths() const;
-		const std::map<std::string, bool> & getOverwritten() const;
-		bool getOverwrittenX( const std::string & ) const;
+		const std::map<std::string, int> & getOverwritten() const;
 
 		// Setters
 

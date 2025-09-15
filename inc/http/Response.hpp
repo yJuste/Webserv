@@ -32,7 +32,7 @@ class	Response
 {
 	private:
 
-		Request *				_req;
+		const Request *				_req;
 		const Server *				_server;
 		const Client *				_client;
 

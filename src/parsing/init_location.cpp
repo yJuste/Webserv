@@ -36,8 +36,6 @@ void	init_cgi_path( const std::vector<std::string> & words, std::vector<std::str
 		throw NoEndingSemicolon();
 
 	location.setOverwritten("cgi");
-	location.setOverwritten("cgi_ext");
-	location.setOverwritten("cgi_path");
 }
 
 void	init_cgi_ext( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
@@ -65,8 +63,6 @@ void	init_cgi_ext( const std::vector<std::string> & words, std::vector<std::stri
 		throw NoEndingSemicolon();
 
 	location.setOverwritten("cgi");
-	location.setOverwritten("cgi_ext");
-	location.setOverwritten("cgi_path");
 }
 
 void	init_cgi( std::vector<std::string>::const_iterator & it, Location & location )
@@ -85,8 +81,6 @@ void	init_cgi( std::vector<std::string>::const_iterator & it, Location & locatio
 	location.addCgi(extension, program.c_str());
 
 	location.setOverwritten("cgi");
-	location.setOverwritten("cgi_ext");
-	location.setOverwritten("cgi_path");
 }
 
 void	init_index( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
@@ -142,7 +136,6 @@ void	init_return( std::vector<std::string>::const_iterator & it, Location & loca
 	str.erase(str.size() - 1);
 
 	location.setReturn(code, str.c_str());
-	location.setOverwritten("return");
 	location.setOverwritten("redirect");
 }
 
@@ -180,8 +173,6 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 
 	location.setMethods(methods);
 	location.setOverwritten("methods");
-	location.setOverwritten("allow_methods");
-	location.setOverwritten("allowed_methods");
 }
 
 void	init_upload( std::string str, Location & location )
@@ -192,7 +183,6 @@ void	init_upload( std::string str, Location & location )
 
 	location.setUpload(str.c_str());
 	location.setOverwritten("upload");
-	location.setOverwritten("upload_store");
 }
 
 void	init_root( std::string str, Location & location )
@@ -205,11 +195,8 @@ void	init_root( std::string str, Location & location )
 	location.setOverwritten("root");
 }
 
-void	init_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server, Location & location )
+void	init_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
 {
-	try { if (location.getOverwrittenX(*it)) throw OverwrittenParameterLocation(location.getPath().c_str(), it->c_str()); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
-
 	if (*it == "root")
 		init_root(*(++it), location);
 	else if (*it == "upload" || *it == "upload_store")
@@ -268,7 +255,24 @@ void	create_paths( Location & location )
 	std::map<std::string, std::string>::iterator it = cgi.begin();
 	for (size_t i = 0; i < paths.size() && it != cgi.end(); ++i, ++it)
 		it->second = paths[i];
+	for (it = cgi.begin(); it != cgi.end(); )
+	{
+		if (it->second == "")
+			it = cgi.erase(it);
+		else
+			++it;
+	}
 	location.setCgi(cgi);
+}
+
+void	overwritten( Location & location, Server & server )
+{
+	std::map<std::string, int>::const_iterator cit = location.getOverwritten().begin();
+	for (; cit != location.getOverwritten().end(); ++cit)
+	{
+		try { if (cit->second >= 2) throw OverwrittenParameterLocation(location.getPath().c_str(), cit->first.c_str()); }
+		catch ( std::exception & e ) { server.addWarning(e.what()); }
+	}
 }
 
 Location	create_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
@@ -289,9 +293,10 @@ Location	create_location( const std::vector<std::string> & words, std::vector<st
 			throw BracketsNotClosed();
 		if ((++it)-- == words.end())
 			throw ValueNotGiven();
-		init_location(words, it, server, location);
+		init_location(words, it, location);
 		++it;
 	}
 	create_paths(location);
+	overwritten(location, server);
 	return location;
 }

@@ -58,7 +58,7 @@ class	Server
 
 		// parsing
 
-		std::map<std::string, bool>	_overwritten;
+		std::map<std::string, int>	_overwritten;
 		std::vector<std::string>	_warnings;
 		std::string			_rounded( size_t ) const;
 
@@ -90,8 +90,7 @@ class	Server
 		size_t getMaxSize() const;
 		const std::string & getRoot() const;
 		const std::vector<Location> & getLocations() const;
-		const std::map<std::string, bool> & getOverwritten() const;
-		bool getOverwrittenX( const std::string & ) const;
+		const std::map<std::string, int> & getOverwritten() const;
 		const std::vector<std::string> & getWarnings() const;
 
 		// Setters
