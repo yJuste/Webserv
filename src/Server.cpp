@@ -157,7 +157,7 @@ void	Server::myConfig( void ) const
 					std::cout << "\t\t" << BLUE << cit->first << BEIGE << " => " << YELLOW << cit->second << RESET << std::endl;
 		}
 	}
-	Print::subPart("WARNINGS", BLUE); Print::endl();
+	Print::subPart("WARNING", BLUE); Print::endl();
 	if (getWarnings().empty())
 	{
 		Print::value(APPLE_GREEN, " ➤ This server configuration is now ready.");

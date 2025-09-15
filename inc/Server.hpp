@@ -58,8 +58,8 @@ class	Server
 
 		// parsing
 
-		std::map<std::string, int>	_overwritten;
 		std::vector<std::string>	_warnings;
+		std::map<std::string, int>	_overwritten;
 		std::string			_rounded( size_t ) const;
 
 	public:
