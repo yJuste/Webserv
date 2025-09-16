@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/16 11:49:20 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/16 18:45:21 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,8 @@ void HttpResponse::executeCGI(const HttpRequest &req,
                               const std::string &filePath,
                               const Server &server)
 {
-    int inPipe[2];   // Parent writes request body → CGI stdin
-    int outPipe[2];  // CGI stdout → Parent reads
+    int inPipe[2];
+    int outPipe[2];
 
     if (pipe(inPipe) < 0 || pipe(outPipe) < 0)
     {
@@ -42,17 +42,13 @@ void HttpResponse::executeCGI(const HttpRequest &req,
 
     if (pid == 0)
     {
-        // --- CHILD PROCESS ---
-        close(inPipe[1]);   // Child does not write to stdin pipe
-        close(outPipe[0]);  // Child does not read from stdout pipe
-
-        // Redirect pipes
-        dup2(inPipe[0], 0);   // stdin ← inPipe
-        dup2(outPipe[1], 1);  // stdout → outPipe
+        close(inPipe[1]);
+        close(outPipe[0]);
+        dup2(inPipe[0], 0);
+        dup2(outPipe[1], 1);
         close(inPipe[0]);
         close(outPipe[1]);
 
-        // 1. Detect script extension (.py, .php, .pl, .sh, .js, etc.)
         std::string ext;
         size_t dotPos = filePath.rfind('.');
         if (dotPos != std::string::npos)
@@ -61,51 +57,36 @@ void HttpResponse::executeCGI(const HttpRequest &req,
         const std::map<std::string, std::string> &cgiMap = loc.getCgi();
         std::map<std::string, std::string>::const_iterator it = cgiMap.find(ext);
         if (it == cgiMap.end()) {
-            _exit(1); // No matching CGI interpreter
+            _exit(1);
         }
-
-        const char *cgiPath = it->second.c_str(); // interpreter (e.g. /usr/bin/python3)
-        const char *scriptPath = filePath.c_str(); // actual CGI script
-
-        // 2. Build argv[] for execve, argv[0] = interpreter, argv[1] = script file
+        const char *cgiPath = it->second.c_str(); 
+        const char *scriptPath = filePath.c_str();
         const char *argv[] = { cgiPath, scriptPath, NULL };
 
-        // 3. Build environment variables (envp)
-		std::cerr << "\n-!- start build ENV: " << std::endl;  // test
         std::vector<std::string> env = buildCgiEnv(req, filePath, server);
 		
 		std::vector<char*> envp;
-		std::vector<char*> buffers;  // for delete[] safely, in case reuse the envp after env[] are already be deleted
-		// for (size_t i = 0; i < env.size(); ++i)
-		// 	envp.push_back(&env[i][0]); // point to inner buffer of std::string 
+		std::vector<char*> buffers;
 		for (size_t i = 0; i < env.size(); ++i) {
-			char* copy = new char[env[i].size() + 1]; // +1 to put '\0'
+			char* copy = new char[env[i].size() + 1]; 
 			std::strcpy(copy, env[i].c_str());
 			envp.push_back(copy);
-			buffers.push_back(copy); // save the pointers to delete[] if needed
+			buffers.push_back(copy);
 		}
 		envp.push_back(NULL);
-        // 4. Replace process with CGI interpreter
         execve(cgiPath, (char * const*)argv, (char * const*)&envp[0]);
-
-        // If execve fails
 		for (size_t i = 0; i < buffers.size(); ++i)
-   			delete[] buffers[i];  //to delete[]
+   			delete[] buffers[i];
         _exit(1);
     }
-
-    // --- PARENT PROCESS ---
-    close(inPipe[0]);   // Parent does not read stdin
-    close(outPipe[1]);  // Parent does not write stdout
-
-    // Write request body (for POST)
+    close(inPipe[0]); 
+    close(outPipe[1]);
     if (req.getMethod() == "POST")
     {
         write(inPipe[1], req.getRequestBody().c_str(), req.getRequestBody().size());
     }
     close(inPipe[1]);
 
-    // Read CGI output
     char buffer[4096];
     std::string cgiOutput;
     ssize_t n;
@@ -113,21 +94,13 @@ void HttpResponse::executeCGI(const HttpRequest &req,
         cgiOutput.append(buffer, n);
     }
     close(outPipe[0]);
-
-	std::cerr << "-!- DEBUG CGI OUTPUT BEGIN -----\n";  //test
-	std::cerr << cgiOutput << "\n";
-	std::cerr << "----- DEBUG CGI OUTPUT END -----\n";
-    // Wait for child
+	
     int status;
     waitpid(pid, &status, 0);
 
-    // 5. Parse CGI output (headers + body)
 	std::string rawHeaders;
 	std::string body;
-
 	size_t headerEndPos = std::string::npos;
-
-	// Try to find \r\n\r\n or \n\n
 	size_t rnPos = cgiOutput.find("\r\n\r\n");
 	size_t nPos  = cgiOutput.find("\n\n");
 
@@ -138,17 +111,13 @@ void HttpResponse::executeCGI(const HttpRequest &req,
 
 	if (headerEndPos != std::string::npos) {
 		rawHeaders = cgiOutput.substr(0, headerEndPos);
-
-		// body start right after the separator
 		size_t bodyStart = (headerEndPos == rnPos) ? headerEndPos + 4 : headerEndPos + 2;
 		body = cgiOutput.substr(bodyStart);
-
-		// parse headers line by line safely
 		std::istringstream headerStream(rawHeaders);
 		std::string line;
 		while (std::getline(headerStream, line)) {
 			if (!line.empty() && line[line.size() - 1] == '\r') {
-				line.erase(line.size() - 1, 1); // remove trailing '\r'
+				line.erase(line.size() - 1, 1);
 			}
 			size_t colon = line.find(':');
 			if (colon != std::string::npos) {
@@ -160,23 +129,17 @@ void HttpResponse::executeCGI(const HttpRequest &req,
 			}
 		}
 	} else {
-		// No headers found → everything is body
 		body = cgiOutput;
 	}
-
-    // --- Add headers to HTTP response ---
     if (!_headers.count("Content-Type"))
-        _headers["Content-Type"] = "text/html"; // default fallback
+        _headers["Content-Type"] = "text/html";
 
     for (std::map<std::string, std::string>::iterator it = _headers.begin();
          it != _headers.end(); ++it)
     {
         setHeader(it->first, it->second);
     }
-	//_body = body;
     setBody(body);
-	
-    // Set default or CGI-provided status
     if (!_headers.count("Status"))
         setStatus(200, "OK");
     else {
@@ -189,7 +152,6 @@ void HttpResponse::executeCGI(const HttpRequest &req,
     }
 }
 
-// find location in server
 const Location* HttpResponse::findLocation(const std::string &path, const Server* server) const
 {
 	const std::vector<Location>& locations = server->getLocations();
@@ -237,79 +199,58 @@ std::string HttpResponse::buildHeaders() const
 	for (std::map<std::string,std::string>::const_iterator it=_headers.begin(); it!=_headers.end(); ++it) {
 		ss << it->first << ": " << it->second << "\r\n";
 	}
-	ss << "\r\n"; // header-body sep
+	ss << "\r\n";
 	return ss.str();
 }
-
-/* std::string HttpResponse::toString() const
-{
-	return buildHeaders() + _body;
-} */
 
 std::string HttpResponse::toString(const HttpRequest &req) const
 {
     std::ostringstream response;
 
-    // Status line
     response << "HTTP/1.1 " << _status << " " << _statusText << "\r\n";
-
-    // Required headers
     if (_headers.find("Content-Type") == _headers.end())
 	{
         std::string type = getContentType(req.getPath());
 		response << "Content-Type: " << type << "; charset=UTF-8\r\n";		
 	}
-
-    // Content-Length header
     std::ostringstream oss;
     oss << _body.size();
     response << "Content-Length: " << oss.str() << "\r\n";
-
-    // Other custom headers
     for (std::map<std::string, std::string>::const_iterator it = _headers.begin();
          it != _headers.end(); ++it)
     {
         response << it->first << ": " << it->second << "\r\n";
     }
-
-    // Empty line separates headers and body
     response << "\r\n";
-
-    // Body
     response << _body;
-
     return response.str();
 }
 
-
-// server 
-
-// location /bee
-// 	root /upload
-
-// // location : /e
-// http::localhos:80/bee
-
-
-// site/
-// 	index.html
-// 	upload/
-// 		coucou.html
-
-
-// treat POST request
 void HttpResponse::handlePost(const HttpRequest &req, const Location *loc)
 {
 	std::string path = req.getPath();
-	std::cout << "Path after POST : " << path << std::endl;
 	std::string contentType = req.getHeader("Content-Type");
-	std::cout << "contentType after POST : " << contentType << std::endl;
-
-	// upload file
-	if (path == "/upload" && !loc->getUpload().empty() &&
-	    contentType.find("multipart/form-data") != std::string::npos)
+	if (path == "/upload" && !loc->getUpload().empty())
 	{
-		bool success = saveUploadedFile(req, loc->getUpload());
+		bool success = false;
+
+		if (contentType.find("multipart/form-data") != std::string::npos)
+			success = saveUploadedFile(req, loc->getUpload());
+		else if (req.getHeader("Transfer-Encoding") == "chunked" ||
+				contentType.find("text/plain") != std::string::npos)
+		{
+			std::cout << "enter in /upload chunked"<< std::endl;
+			std::string data = req.getRequestBody();
+			std::string filePath = loc->getUpload() + "/chunked_file.txt";
+
+			std::ofstream out(filePath.c_str(), std::ios::binary);
+			if (out)
+			{
+				out.write(data.c_str(), data.size());
+				out.close();
+				success = true;
+			}
+		}
 		if (success) {
 			setStatus(201, "Created");
 			setBody("File uploaded successfully");
@@ -320,7 +261,6 @@ void HttpResponse::handlePost(const HttpRequest &req, const Location *loc)
 		return;
 	}
 
-	// register
 	if (path == "/register" &&
 	    contentType.find("application/x-www-form-urlencoded") != std::string::npos)
 	{
@@ -338,7 +278,6 @@ void HttpResponse::handlePost(const HttpRequest &req, const Location *loc)
 		return;
 	}
 
-	// login
 	if (path == "/login" &&
 	    contentType.find("application/x-www-form-urlencoded") != std::string::npos)
 	{
@@ -374,11 +313,6 @@ const Location* HttpResponse::pathPrepa(HttpRequest &req, const Server* server)
 		std::string locationUrl = redir.begin()->second;
 		setStatus(code, (code == 301 ? "Moved Permanently" : "Found"));
 		setHeader("Location", locationUrl);
-		setHeader("Content-Type", "text/html");
-		std::string body = "<html><body>Redirecting to <a href=\"" 
-                           + locationUrl + "\">" + locationUrl + "</a></body></html>";
-		setBody(body);
-		setHeader("Content-Length", pushToString(body.size()));
 		return NULL;
 	}
 
@@ -401,7 +335,6 @@ const Location* HttpResponse::pathPrepa(HttpRequest &req, const Server* server)
 
 void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const Server* server)
 {
-	std::cout << "------end build, continue with loc valid:" << std::endl;
 	if (req.getMethod() == "DELETE") {
 
 		if (loc->getPath() != "/upload") {
@@ -427,13 +360,11 @@ void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const S
 			}
 			return;
 		} else if (status == 2) {
-			// Directory → return 405 Method Not Allowed (or optionally remove)
 			setStatus(405, "Method Not Allowed");
 			setHeader("Content-Type", "application/json");
 			setBody("{\"status\":\"error\",\"message\":\"Cannot delete directory\"}");
 			return;
 		} else {
-			// File not found
 			setStatus(404, "Not Found");
 			setHeader("Content-Type", "application/json");
 			setBody("{\"status\":\"error\",\"message\":\"File not found\"}");
@@ -442,7 +373,6 @@ void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const S
 	}
 
     if (req.getMethod() == "POST") {
-		//For example, handle uploads or size limits
 		if (req.getRequestBody().size() > server->getMaxSize()) {
 		    setStatus(413, "Payload Too Large");
 			setBody("Failed to save uploaded file: > 1M");
@@ -452,78 +382,55 @@ void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const S
         handlePost(req, loc);
         return;
     }
-
     std::string filePath = resolvePath(loc, req.getPath());
-	std::cout << "Checking loc: " << loc->getPath() << std::endl;
-	std::cout << "Checking req Path: " << req.getPath() << std::endl;
-    // 7. Check if the path exists
     int status = acstat_file(filePath.c_str(), F_OK | R_OK);
-	std::cout << "Checking path: " << filePath << ", status = " << status << std::endl;
     if (status == 1) {
-		std::cout << "--------------  cgi/file  ------------" << std::endl;
 		std::string ext;
 		size_t dotPos = filePath.rfind('.');
 		if (dotPos != std::string::npos)
-			ext = filePath.substr(dotPos);  // e.g., ".php"
-
+			ext = filePath.substr(dotPos);
 		const std::map<std::string, std::string> &cgiMap = loc->getCgi();
 		std::map<std::string, std::string>::const_iterator it = cgiMap.find(ext);
 		if (it != cgiMap.end()) {
-			std::cout << "\n-!- CGI: " << ext
-					<< " using interpreter: " << it->second << std::endl;
-
 			executeCGI(req, *loc, filePath, *server);
 			return;
 		}
-		// Regular file (GET)
         if (req.getMethod() == "GET") {
             setStatus(200, "OK");
             setBody(readFile(filePath));
             return;
         }
 
-        // POST → 405
         setStatus(405, "Method Not Allowed");
         setBody("POST not allowed on static file");
         return;
     } 
-    else if (status == 2) { // Directory
-        // try index files
+    else if (status == 2) {
 		std::cout << "filePath in Directory: " << filePath << std::endl;
 		if (filePath[filePath.size() - 1] != '/')
-        	filePath += '/';  // ensure ending slash before adding index
+        	filePath += '/';
 		const std::vector<std::string> &indexList = loc->getIndex();
 		std::string root = loc->getRoot();
 		for (std::vector<std::string>::const_iterator it = indexList.begin();
 			it != indexList.end(); ++it)
 		{
-			std::cout << "Passing to index file: " << *it << std::endl;
 			std::string indexPath = combineIndexPath(filePath, *it, root);
-			//std::string indexPath = filePath; // if there is root, another logic, at the very beginning
-			// if root, indexPath += path.substr(*it.size())
-			//indexPath += *it;
-			std::cout << "Trying index file: " << indexPath << std::endl;
 			int s = acstat_file(indexPath.c_str(), F_OK | R_OK);
-			std::cout << "acstat returned: " << s << std::endl;
-			std::cout << "--------------  end Request  ------------" << std::endl;
-
 			if (s == 1) {
 				setStatus(200, "OK");
 				setBody(readFile(indexPath));
 				setHeader("Content-Type", getContentType(indexPath));
 				return;
     		}
-		}
-		std::cout << "--------------  Autoindex/404  ------------" << std::endl;
-		
-		// autoindexgenerateDirectoryListing
+		}		
+
 		if (loc->getAutoindex()) {
 			setHeader("Content-Type", "text/html");
 			setStatus(200, "OK");
 			setBody(generateDirectoryListing(filePath, req.getPath()));
 			return;
 		}
-        // Directory exists but no index file → return 404
+
         setStatus(404, "Not Found");
         const std::map<int, std::string> &errPages = server->getErrorPages();
         if (errPages.find(404) != errPages.end())
@@ -536,7 +443,6 @@ void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const S
         return;
     }
 
-    // Path does not exist → return 404
     setStatus(404, "Not Found");
     const std::map<int, std::string> &errPages = server->getErrorPages();
     if (errPages.find(404) != errPages.end())
@@ -550,22 +456,7 @@ void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const S
 
 void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 {
-    // 1. Find the matching location for the requested path
-	std::cout << "------start build:" << std::endl;
-	
 	const Location* loc = pathPrepa(req, server);
 	if (loc)
 		returnResponse(loc, req, server);
-	
-    // 2. Check if the HTTP method is allowed
-
-
-    // 3. Check for redirection
-	// The client (browser) will automatically make another request based on the Location header.
-	
-	// 5. Handle DELETE requests (restricted only /upload+ JSON response)
-
-	// 4. Handle POST requests
-
-    // 6. Build the full file path to serve
 }

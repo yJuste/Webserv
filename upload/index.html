@@ -124,7 +124,7 @@
     <!-- CGI Test Form -->
     <div class="form-container">
         <h2>Test CGI Scripts</h2>
-        <input type="text" id="cgiName" placeholder="Enter name (e.g. go123)" required><br>
+        <input type="text" id="cgiName" placeholder="Enter name" value="Alice">
         <div>
             <button onclick="goCgi('/cgi/test_3.py')">Test Python CGI (.py)</button>
             <button onclick="goCgi('/cgi/test.php')">Test PHP CGI (.php)</button>
@@ -144,38 +144,6 @@
 
     <!-- Links -->
     <a href="/gif_view.html">View GIF</a>
-
-    <!-- Chunked Test -->
-    <div class="form-container">
-        <h2>Chunked Upload Test</h2>
-        <p>Copy and paste this command into your terminal to test chunked upload:</p>
-        <textarea readonly rows="6" style="width:95%;">
-    curl -v -X POST http://localhost:8081/upload \
-        -H "Transfer-Encoding: chunked" \
-        -H "Content-Type: text/plain" \
-        --data-binary @<(printf '5\r\nHello\r\n6\r\n World\r\n0\r\n\r\n')
-        </textarea>
-        <br>
-        <button onclick="showChunkedFile()">Show /upload/chunked_file.txt</button>
-        <pre id="chunkedResult" style="background:#f0f0f0; padding:8px; margin-top:10px;"></pre>
-    </div>
-
-    <script>
-    function showChunkedFile() {
-        fetch("/upload/chunked_file.txt")
-            .then(res => {
-                if (!res.ok) throw new Error("Failed to read file: " + res.status);
-                return res.text();
-            })
-            .then(text => {
-                document.getElementById("chunkedResult").innerText = text;
-            })
-            .catch(err => {
-                document.getElementById("chunkedResult").innerText = "Error: " + err;
-            });
-    }
-    </script>
-
 
 </body>
 </html>

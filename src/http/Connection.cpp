@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:06:26 by layang            #+#    #+#             */
-/*   Updated: 2025/09/13 11:33:58 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/16 18:46:38 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,11 @@ Connection::Connection(int fd, Server* server) : _fd(fd), _server(server)
 int Connection::getFd() const
 {
 	return _fd;
+}
+
+void Connection::resetRequest()
+{
+    _request.reset();
 }
 
 Connection::~Connection() {}
@@ -34,13 +39,10 @@ bool Connection::readFromClient()
         return false;
     else if (n == -1)
         return true;
-    //std::cout << "Request received: " << std::endl; ///
-    //std::cout << buffer << std::endl;   ///
     _readBuffer.append(buffer, n);
     _request.parseRequest(_readBuffer);
 
     if (_request.isComplete()) {
-        // print important info
 		if (!_request.hasPrinted())
 			_request.setPrinted(true);
 		std::cout << "\r\n\r\n" << std::endl;
@@ -52,7 +54,6 @@ bool Connection::readFromClient()
             std::cout << "?" << _request.getQueryString();
 
         std::cout << " " << _request.getHttpVersion() << std::endl;
-        // print headers
         const std::map<std::string, std::string>& headers = _request.getHeaders();
         for (std::map<std::string, std::string>::const_iterator it = headers.begin();
              it != headers.end(); ++it)
@@ -71,15 +72,13 @@ bool Connection::readFromClient()
 
             std::cout << "---Request Body first line: " << firstLine << std::endl;
         }
-        
         HttpResponse response;
-        //response.setLocations(_server->getLocations());
-        response.buildResponse(_request, _server);    //
+        response.buildResponse(_request, _server);
         _writebBuffer = response.toString(_request);
         _readBuffer.clear();
-        _request.reset();
+        return true;
     }
-    return true;
+    return false;
 }
 
 bool Connection::writeToClient()
@@ -94,18 +93,3 @@ bool Connection::writeToClient()
     _writebBuffer.erase(0, n);
     return true;
 }
-
-/* bool Connection::writeToClient()
-{
-    while (!_writebBuffer.empty())
-    {
-        int n = send(_fd, _writebBuffer.data(), _writebBuffer.size(), 0);
-        if (n > 0)
-        {
-            _writebBuffer.erase(0, n);
-            return true;
-        }
-        else
-            return false;
-    }
-} */

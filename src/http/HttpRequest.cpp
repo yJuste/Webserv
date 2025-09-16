@@ -6,32 +6,12 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/27 19:13:27 by layang            #+#    #+#             */
-/*   Updated: 2025/09/08 13:22:41 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/16 19:02:15 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HttpRequest.hpp"
 
-// 假设 maxBodySize 是服务器允许的最大请求体大小
-/* 
-const size_t maxBodySize = 10 * 1024 * 1024; // 10 MB
-
-int n = recv(_fd, buffer, sizeof(buffer), 0);
-if (n <= 0)
-    return (n == 0 ? false : true);
-
-// 如果 body 太大就丢弃
-if (_readBuffer.size() + n > maxBodySize) {
-    _request.discardBody();  // 清空 body
-    setStatus(413, "Payload Too Large"); // HTTP 413
-    return true;
-}
-
-// 追加到 _readBuffer
-_readBuffer.append(buffer, n);
-_request.parseRequest(_readBuffer);
-
- */
 HttpRequest::HttpRequest()
 	: _method(""), _path(""), _query_str(""), _httpVersion(""), _body(""), _headerPart(""),
 	  _unchunked(false), _printed(false)
@@ -42,80 +22,31 @@ HttpRequest::~HttpRequest()
 {
 }
 
-/* void HttpRequest::parseRequest(const std::string &rawRequest)
-{
-    // 1. Parse request line: method, path, HTTP version
-    std::istringstream request(rawRequest);
-    request >> _method >> _path >> _httpVersion;
-
-    // Remove any trailing '\r' from _path and _httpVersion
-    if (!_path.empty() && _path[_path.size() - 1] == '\r')
-        _path = _path.substr(0, _path.size() - 1);
-    if (!_httpVersion.empty() && _httpVersion[_httpVersion.size() - 1] == '\r')
-        _httpVersion = _httpVersion.substr(0, _httpVersion.size() - 1);
-
-    // 2. Parse headers
-    std::string line;
-    while (std::getline(request, line) && line != "\r")
-    {
-        if (line.empty() || line == "\r")
-            break;
-
-        size_t colonPos = line.find(':');
-        if (colonPos != std::string::npos)
-        {
-            std::string key = line.substr(0, colonPos);
-            std::string value = line.substr(colonPos + 1);
-
-            // Trim whitespace from key and value
-            key.erase(key.find_last_not_of(" \t\r\n") + 1);
-            value.erase(0, value.find_first_not_of(" \t\r\n"));
-            value.erase(value.find_last_not_of(" \t\r\n") + 1);
-
-            _headers[key] = value;
-        }
-    }
-
-    // 3. Read the body (if any)
-    std::string remaining;
-    std::getline(request, remaining, '\0'); // read until EOF
-    _body += remaining;
-} */
-
 void HttpRequest::parseRequest(const std::string &rawRequest)
 {
-    // find seq between header and body
     size_t headerEnd = rawRequest.find("\r\n\r\n");
     if (headerEnd == std::string::npos)
-        return; // headers not complete
+        return;
 
     _headerPart = rawRequest.substr(0, headerEnd);
-    _body = rawRequest.substr(headerEnd + 4); // body is after header
-
-    // only parse headerPart 
+    _body = rawRequest.substr(headerEnd + 4);
     std::istringstream request(_headerPart);
-
-    // 1. Request line
     request >> _method >> _path >> _httpVersion;
     if (!_path.empty() && _path[_path.size() - 1] == '\r')
         _path = _path.substr(0, _path.size() - 1);
 
     if (!_httpVersion.empty() && _httpVersion[_httpVersion.size() - 1] == '\r')
         _httpVersion = _httpVersion.substr(0, _httpVersion.size() - 1);
-
-    // separate query string
     size_t qpos = _path.find('?');
     if (qpos != std::string::npos) {
-        _query_str = _path.substr(qpos + 1);   // save query string
-        _path = _path.substr(0, qpos);         // keep only path
-        std::cout << "\n? Parsed query string: " << _query_str << std::endl;  //log
+        _query_str = _path.substr(qpos + 1);
+        _path = _path.substr(0, qpos);
     } else {
         _query_str.clear();
     }
 
-    // 2. parse Headers
     std::string line;
-    std::getline(request, line); // jump request line
+    std::getline(request, line);
     while (std::getline(request, line))
     {
         if (!line.empty() && line[line.size() - 1] == '\r')
@@ -129,8 +60,6 @@ void HttpRequest::parseRequest(const std::string &rawRequest)
         {
             std::string key = line.substr(0, colonPos);
             std::string value = line.substr(colonPos + 1);
-
-            // trim spaces
             key.erase(key.find_last_not_of(" \t") + 1);
             value.erase(0, value.find_first_not_of(" \t"));
             value.erase(value.find_last_not_of(" \t") + 1);
@@ -200,55 +129,63 @@ void HttpRequest::setPrinted(bool val) { _printed = val; }
 
 bool HttpRequest::isComplete()
 {
-	// case 1: has Content-Length
-	if (_headers.count("Content-Length"))
-	{
-		int len = std::atoi(_headers["Content-Length"].c_str());
-		return (_body.size() >= (size_t)len);
-	}
 
-	// case 2: chunked
-	if (_headers.count("Transfer-Encoding") && _headers["Transfer-Encoding"] == "chunked")
-	{
-		if (_body.find("0\r\n\r\n") != std::string::npos)
-		{
-			if (!_unchunked)
-			{
-				_body = unchunkBody(_body);
-				_unchunked = true;
-			}
-			return true;
-		}
-		return false;
-	}
+    if (_headers.count("Content-Length"))
+    {
+        int len = std::atoi(_headers["Content-Length"].c_str());
+        bool complete = (_body.size() >= (size_t)len);
+        return complete;
+    }
 
-	// case 3: GET/HEAD without body
-	return true;
+    if (_headers.count("Transfer-Encoding") && _headers["Transfer-Encoding"] == "chunked")
+    {
+        size_t pos = _body.find("0\r\n\r\n");
+        if (pos != std::string::npos)
+        {;
+            if (!_unchunked)
+            {
+                _body = unchunkBody(_body);                
+                _unchunked = true;
+            }
+            return true;
+        }
+        return false;
+    }
+    return true;
 }
 
 std::string HttpRequest::unchunkBody(const std::string &raw)
 {
-	std::string result;
-	size_t pos = 0;
+    std::string result;
+    size_t pos = 0;
+    int chunkIndex = 0;
 
-	while (true)
-	{
-		size_t endOfSize = raw.find("\r\n", pos);
-		if (endOfSize == std::string::npos)
-			break;
-		std::string sizeStr = raw.substr(pos, endOfSize - pos);
-		size_t semicolon = sizeStr.find(';');
-		if (semicolon != std::string::npos)
-			sizeStr = sizeStr.substr(0, semicolon);
-		int chunkSize = std::strtol(sizeStr.c_str(), NULL, 16);
-		if (chunkSize == 0)
-			break;
-		pos = endOfSize + 2;
-		if (pos + chunkSize > raw.size())
-			break;
-		result.append(raw.substr(pos, chunkSize));
-		pos += chunkSize + 2;
-	}
-
-	return result;
+    size_t firstCRLF = raw.find("\r\n");
+    if (firstCRLF != std::string::npos)
+        pos = firstCRLF + 2;
+    else
+        pos = 0;
+    while (true)
+    {
+        size_t endOfSize = raw.find("\r\n", pos);
+        if (endOfSize == std::string::npos)
+            break;
+        std::string sizeStr = raw.substr(pos, endOfSize - pos);
+        size_t semicolon = sizeStr.find(';');
+        if (semicolon != std::string::npos)
+            sizeStr = sizeStr.substr(0, semicolon);       
+        int chunkSize = std::strtol(sizeStr.c_str(), NULL, 16);
+        chunkIndex++;
+        if (chunkSize == 0)
+            break;
+        pos = endOfSize + 2;
+        if (pos + chunkSize > raw.size())
+            break;
+        std::string chunkData = raw.substr(pos, chunkSize);
+        result.append(chunkData);
+        pos += chunkSize + 2;
+    }
+    return result;
 }
+
+

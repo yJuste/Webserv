@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 09:02:10 by layang            #+#    #+#             */
-/*   Updated: 2025/09/13 11:36:30 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/16 15:30:17 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@ class Connection {
 		// Member functions
 		bool hasDataToWrite() const;
 		int getFd() const;
+		void resetRequest();
 		bool readFromClient();
 		bool writeToClient();
 };

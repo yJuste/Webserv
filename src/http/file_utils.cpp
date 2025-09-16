@@ -6,13 +6,11 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/31 17:42:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/16 12:00:53 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/16 18:51:55 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "main.hpp"          // acstat, READ_SIZE, project macros
-//#include "HttpRequest.hpp"
-//#include "Location.hpp"
+#include "main.hpp"  
 
 std::string getCurrentWorkingDirectory() {
     char cwd[PATH_MAX];
@@ -44,33 +42,6 @@ std::string combineIndexPath(const std::string &dirPath, const std::string &inde
 
     return finalPath;
 }
-
-/* std::string generateDirectoryListing(const std::string &path)
-{
-	DIR *dir;
-	struct dirent *entry;
-	std::ostringstream html;
-
-	dir = opendir(path.c_str());
-	if (!dir)
-		return "<html><body><h1>403 Forbidden</h1></body></html>";
-
-	html << "<html><head><title>Index of " << path
-			<< "</title></head><body>\n";
-	html << "<h1>Index of " << path << "</h1><ul>\n";
-
-	while ((entry = readdir(dir)) != NULL)
-	{
-		std::string name(entry->d_name);
-		if (name == ".")
-			continue;
-        html << "<li><a href=\"" << name << "\">" << name << "</a></li>\n";
-	}
-	closedir(dir);
-
-	html << "</ul></body></html>\n";
-	return html.str();
-} */
 
 std::string generateDirectoryListing(const std::string &dirPath, const std::string &reqPath)
 {
@@ -135,7 +106,6 @@ std::string getFormValue(const std::string &body, const std::string &key)
     return body.substr(pos, end - pos);
 }
 
-// create new user
 bool saveUser(const std::string &username, const std::string &password)
 {
 	if (userExists(username))
@@ -148,7 +118,6 @@ bool saveUser(const std::string &username, const std::string &password)
 	return true;
 }
 
-// check login successful
 bool checkUser(const std::string &username, const std::string &password)
 {
 	std::ifstream file("users.db");
@@ -165,122 +134,61 @@ bool checkUser(const std::string &username, const std::string &password)
 	return false;
 }
 
-// save upload
 bool saveUploadedFile(const HttpRequest &req, const std::string &uploadDir)
 {
     std::string body = req.getRequestBody();
     std::string contentType = req.getHeader("Content-Type");
-
-    // only treat multipart/form-data
     size_t pos = contentType.find("boundary=");
     if (pos == std::string::npos)
         return false;
-
-    std::string boundary = "--" + contentType.substr(pos + 9); // boundary= 
+    std::string boundary = "--" + contentType.substr(pos + 9);
     size_t start = body.find(boundary);
     if (start == std::string::npos)
         return false;
-
-    // find file name
     size_t fnStart = body.find("filename=\"", start);
     if (fnStart == std::string::npos)
         return false;
 
-    fnStart += 10; // jump filename="
+    fnStart += 10;
     size_t fnEnd = body.find("\"", fnStart);
     std::string filename = body.substr(fnStart, fnEnd - fnStart);
-
-    // find file content
     size_t contentStart = body.find("\r\n\r\n", fnEnd);
     if (contentStart == std::string::npos)
         return false;
-
-    contentStart += 4; // jump \r\n\r\n
-    size_t contentEnd = body.find(boundary, contentStart) - 2; // remove last \r\n
-
+    contentStart += 4;
+    size_t contentEnd = body.find(boundary, contentStart) - 2;
     if (contentEnd <= contentStart)
         return false;
-
     std::string fileContent = body.substr(contentStart, contentEnd - contentStart);
-
-    // save file
-    //std::ofstream out(uploadDir + "/" + filename, std::ios::binary);
 	std::ofstream out((uploadDir + "/" + filename).c_str(), std::ios::binary);
     if (!out)
         return false;
-
     out.write(fileContent.c_str(), fileContent.size());
     out.close();
-
     return true;
 }
-
-/* std::string resolvePath(const Location* loc, const std::string &reqPath)
-{
-    std::string root = loc->getRoot();
-
-    std::cout << "---------" << std::endl;
-    if (root.empty())
-    {
-        root = getCurrentWorkingDirectory(); 
-        if (root[root.size() - 1] != '/')
-            root += '/';
-        std::cout << "Initial root: " << root << std::endl;
-    }
-    else
-    {
-        if (root[0] != '/')
-            root = getCurrentWorkingDirectory() + "/" + root;
-        std::cout << "Root after making absolute if needed: " << root << std::endl;
-
-        if (root[root.size() - 1] != '/')
-            root += '/';
-        std::cout << "Root after ensuring trailing '/': " << root << std::endl;
-    }
-    
-
-    std::string path = reqPath;
-    std::cout << "Initial request path: " << path << std::endl;
-
-    std::string locPath = loc->getPath();
-    std::cout << "Location path: " << locPath << std::endl;
-
-    // remove location path prefix
-    if (reqPath == "/" && locPath != "/" && path.find(locPath) == 0)
-        path = path.substr(locPath.size());
-    std::cout << "Path after removing location prefix: " << path << std::endl;
-
-    // remove leading '/'
-    if (!path.empty() && path[0] == '/')
-        path = path.substr(1);
-    std::cout << "Path after removing leading '/': " << path << std::endl;
-
-    std::string finalPath = root + path;
-    std::cout << "Final resolved path: " << finalPath << std::endl;
-    std::cout << "---------" << std::endl;
-    return finalPath;
-} */
 
 std::string resolvePath(const Location* loc, const std::string &reqPath)
 {
     std::string root = loc->getRoot();
-    if (root.empty())
-        root = getCurrentWorkingDirectory();
-    else if (root[0] != '/')
-        root = getCurrentWorkingDirectory() + "/" + root;
-
-    if (root[root.size() - 1] != '/')
-        root += '/';
-
-    std::string path = reqPath;
-    if (!path.empty() && path[0] == '/')
-        path = path.substr(1);
-    if (loc->getOverwrittenX("root") == true)
-        return root;
+    if (root[0] == '.' && root[1] == '/')
+        root = getCurrentWorkingDirectory() + root.erase(root.size() - 2) + loc->getPath();
     else
-        return root + path;
-}
+        root = getCurrentWorkingDirectory() + "/" + root;
+    while (!root.empty() && root[root.size() - 1] == '/')
+        root.erase(root.size() - 1);
+    std::string locPath = loc->getPath();
+    std::string path = reqPath;
+    if (!locPath.empty() && locPath != "/" && path.find(locPath) == 0)
+        path = path.substr(locPath.size());
+    while (!path.empty() && path[0] == '/')
+        path.erase(0, 1);
 
+    if (!path.empty())
+        return root + "/" + path;
+    else     
+        return root;
+}
 
 std::string readFile(const std::string &path)
 {
@@ -322,40 +230,6 @@ std::string portsToString(const std::vector<int> &ports) {
     return oss.str();
 }
 
-// Build environment variables (envp) for CGI
-/* std::vector<char*> buildCgiEnv(const HttpRequest &req,
-                               const std::string &filePath,
-                               const Server &server)
-{
-    std::vector<std::string> env;
-
-    env.push_back("GATEWAY_INTERFACE=CGI/1.1");
-    env.push_back("SERVER_PROTOCOL=HTTP/1.1");
-    env.push_back("REQUEST_METHOD=" + req.getMethod());
-    env.push_back("SCRIPT_FILENAME=" + filePath);
-    env.push_back("SCRIPT_NAME=" + req.getPath());
-    env.push_back("QUERY_STRING=" + req.getQueryString());
-
-    env.push_back("CONTENT_LENGTH=" + pushToString(req.getRequestBody().size())); 
-    env.push_back("CONTENT_TYPE=" + req.getHeader("Content-Type"));
-
-    env.push_back("SERVER_NAME=" + req.getHeader("Host"));
-    env.push_back("SERVER_PORT=" + portsToString(server.getPort()));  // use server config
-
-    std::vector<char*> envp;
-    for (size_t i = 0; i < env.size(); ++i)
-        envp.push_back(const_cast<char*>(env[i].c_str()));
-    envp.push_back(NULL);
-    
-    for (size_t i = 0; i < env.size(); ++i) {      //test
-        std::cerr << "ENV: " << env[i] << std::endl;
-        envp.push_back(const_cast<char*>(env[i].c_str()));
-    }
-    
-    return envp;
-} */
-
-// Build environment variables (envp) for CGI
 std::vector<std::string> buildCgiEnv(const HttpRequest &req,
                                             const std::string &filePath,
                                             const Server &server)
@@ -375,14 +249,8 @@ std::vector<std::string> buildCgiEnv(const HttpRequest &req,
     env.push_back("SERVER_NAME=" + req.getHeader("Host"));
     env.push_back("SERVER_PORT=" + portsToString(server.getPort()));
 
-    // test output
-    //for (size_t i = 0; i < env.size(); ++i)
-    //    std::cerr << "ENV: " << env[i] << std::endl;
-
-    return env;  // return std::string
+    return env;
 }
-
-
 
 int	acstat_file( const char * path, int mode )
 {
