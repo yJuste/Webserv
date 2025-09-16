@@ -20,10 +20,11 @@ void	Supervisor::hold( const std::vector<Server *> & servers )
 {
 	if (!_servers.empty())
 		return ;
-	Print::header("DEBUG INFO", APPLE_GREEN);
 	_servers = servers;
 	_server_size = servers.size();
 	_size = _server_size;
+	if (_server_size != 0)
+		Print::header("DEBUG INFO", APPLE_GREEN);
 	for (size_t i = 0; i < _server_size; ++i)
 	{
 		servers[i]->startup();
