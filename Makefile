@@ -22,6 +22,7 @@ SRC =	main.cpp				\
 	parsing/utils.cpp			\
 	http/Request.cpp			\
 	http/Response.cpp			\
+	http/Cookie.cpp				\
 	http/utils.cpp				\
 	utils/Print.cpp				\
 

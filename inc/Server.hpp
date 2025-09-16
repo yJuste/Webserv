@@ -31,7 +31,7 @@
  * Startup() assigns a socket.
  * Startup() & Shutdown() can only be used once ( they are protected ).
  *
- * Copying a Server does not copy the socket.
+ * Warning: Copying is dangerous, be careful to have an unique fd.
  *
  */
 

@@ -62,6 +62,7 @@ std::string	Response::_reconstitution( void ) const
 	ss << _body.size();
 	response << "Content-Length: " << ss.str() << "\r\n";
 	response << "Connection: keep-alive" << "\r\n";
+	response << "Set-Cookie: id=" << std::rand() << "; Secure; HttpOnly" << "\r\n";
 	response << "\r\n";
 	response << _body;
 	return response.str();
@@ -83,7 +84,6 @@ const Location *	Response::_findLocation( void ) const
 
 std::string	Response::getContentType( const std::string & path ) const
 {
-	std::cout << APPLE_GREEN << path << RESET << std::endl;
 	if (path.length() >= 5 && path.substr(path.length() - 5) == ".html")
 		return "text/html; charset=UTF-8";
 	if (path.length() >= 4 && path.substr(path.length() - 4) == ".htm")

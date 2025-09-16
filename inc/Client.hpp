@@ -20,7 +20,7 @@
 /*	HELP
  *
  * Client is a RAII class.
- * Warning: Copying is forbidden because it's dangerous to duplicate a fd.
+ * Warning: Copying is dangerous, be careful to have an unique fd.
  *
  */
 
