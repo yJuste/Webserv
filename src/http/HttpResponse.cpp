@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/13 11:50:04 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/16 11:49:20 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -359,27 +359,32 @@ void HttpResponse::handlePost(const HttpRequest &req, const Location *loc)
 	setBody("POST route not found");
 }
 
-void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
+const Location* HttpResponse::pathPrepa(HttpRequest &req, const Server* server)
 {
-    // 1. Find the matching location for the requested path
-    const Location* loc = findLocation(req.getPath(), server);
+	const Location* loc = findLocation(req.getPath(), server);
     if (!loc) {
-        // No matching location → return 404
         setStatus(404, "Not Found");
-
-        // Try to use the server's custom 404 page if defined
-        const std::map<int, std::string> &errPages = server->getErrorPages();
-        if (errPages.find(404) != errPages.end())
-            setBody(readFile(errPages.at(404)));
-        else
-            setBody("No matching location");
-
-        return;
+        setBody("No matching location");
+        return NULL;
     }
+	
+	const std::map<int, std::string> &redir = loc->getReturn();
+	if (!redir.empty()) {
+		int code = redir.begin()->first;
+		std::string locationUrl = redir.begin()->second;
+		setStatus(code, (code == 301 ? "Moved Permanently" : "Found"));
+		setHeader("Location", locationUrl);
+		setHeader("Content-Type", "text/html");
+		std::string body = "<html><body>Redirecting to <a href=\"" 
+                           + locationUrl + "\">" + locationUrl + "</a></body></html>";
+		setBody(body);
+		setHeader("Content-Length", pushToString(body.size()));
+		return NULL;
+	}
 
-    // 2. Check if the HTTP method is allowed
-    if (!allowsMethod(loc, req.getMethod())) {
+	if (!allowsMethod(loc, req.getMethod())) {
         setStatus(405, "Method Not Allowed");
+		setBody("Method Not Allowed");
         const std::vector<std::string> &methods = loc->getMethods();
         std::string allowHeader;
         for (size_t i = 0; i < methods.size(); ++i) {
@@ -388,20 +393,15 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
                 allowHeader += ", ";
         }
         setHeader("Allow", allowHeader);
-        return;
+        return NULL;
     }
+	
+	return loc;
+}
 
-    // 3. Check for redirection
-	// The client (browser) will automatically make another request based on the Location header.
-    const std::map<int, std::string> &redir = loc->getReturn();
-    if (!redir.empty()) {
-        std::string locationUrl = redir.begin()->second;
-        setStatus(302, "Found");
-        setHeader("Location", locationUrl);
-        return;
-    }
-
-	// 5. Handle DELETE requests (restricted only /upload+ JSON response)
+void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const Server* server)
+{
+	std::cout << "------end build, continue with loc valid:" << std::endl;
 	if (req.getMethod() == "DELETE") {
 
 		if (loc->getPath() != "/upload") {
@@ -441,7 +441,6 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 		}
 	}
 
-	// 4. Handle POST requests
     if (req.getMethod() == "POST") {
 		//For example, handle uploads or size limits
 		if (req.getRequestBody().size() > server->getMaxSize()) {
@@ -454,9 +453,9 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
         return;
     }
 
-    // 6. Build the full file path to serve
     std::string filePath = resolvePath(loc, req.getPath());
 	std::cout << "Checking loc: " << loc->getPath() << std::endl;
+	std::cout << "Checking req Path: " << req.getPath() << std::endl;
     // 7. Check if the path exists
     int status = acstat_file(filePath.c_str(), F_OK | R_OK);
 	std::cout << "Checking path: " << filePath << ", status = " << status << std::endl;
@@ -474,9 +473,6 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 					<< " using interpreter: " << it->second << std::endl;
 
 			executeCGI(req, *loc, filePath, *server);
-			//std::string scriptOutput = "Test: CGI using ****\n";
-			//setStatus(200, "OK");
-			//setBody(scriptOutput);
 			return;
 		}
 		// Regular file (GET)
@@ -497,12 +493,15 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 		if (filePath[filePath.size() - 1] != '/')
         	filePath += '/';  // ensure ending slash before adding index
 		const std::vector<std::string> &indexList = loc->getIndex();
+		std::string root = loc->getRoot();
 		for (std::vector<std::string>::const_iterator it = indexList.begin();
 			it != indexList.end(); ++it)
 		{
 			std::cout << "Passing to index file: " << *it << std::endl;
-			std::string indexPath = filePath;
-			indexPath += *it;
+			std::string indexPath = combineIndexPath(filePath, *it, root);
+			//std::string indexPath = filePath; // if there is root, another logic, at the very beginning
+			// if root, indexPath += path.substr(*it.size())
+			//indexPath += *it;
 			std::cout << "Trying index file: " << indexPath << std::endl;
 			int s = acstat_file(indexPath.c_str(), F_OK | R_OK);
 			std::cout << "acstat returned: " << s << std::endl;
@@ -547,4 +546,26 @@ void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
 	}
     else
         setBody("Path does not exist, File not found");
+}
+
+void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
+{
+    // 1. Find the matching location for the requested path
+	std::cout << "------start build:" << std::endl;
+	
+	const Location* loc = pathPrepa(req, server);
+	if (loc)
+		returnResponse(loc, req, server);
+	
+    // 2. Check if the HTTP method is allowed
+
+
+    // 3. Check for redirection
+	// The client (browser) will automatically make another request based on the Location header.
+	
+	// 5. Handle DELETE requests (restricted only /upload+ JSON response)
+
+	// 4. Handle POST requests
+
+    // 6. Build the full file path to serve
 }

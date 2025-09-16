@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/26 19:34:52 by layang            #+#    #+#             */
-/*   Updated: 2025/09/06 17:06:39 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/16 11:03:23 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,6 +56,8 @@ private:
                               	const Server &server);
 	std::string toString(const HttpRequest &req) const;
 	void handlePost(const HttpRequest &req, const Location *loc);
+	const Location* pathPrepa(HttpRequest &req, const Server* server);
+	void returnResponse(const Location* loc, HttpRequest &req, const Server* server);
 	void buildResponse(HttpRequest &req, const Server* server);
 
 };

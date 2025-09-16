@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/31 17:42:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/08 14:07:42 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/16 12:00:53 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,18 @@ long getFileSize(const std::string &path)
     return static_cast<long>(info.st_size);
 }
 
+std::string combineIndexPath(const std::string &dirPath, const std::string &index, const std::string &root)
+{
+    std::string cleanIndex = index;
+    if (root.size() > 0 && cleanIndex.find(root) == 0)
+        cleanIndex = cleanIndex.substr(root.size());
+    std::string finalPath = dirPath;
+    if (finalPath.empty() || finalPath[finalPath.size() - 1] != '/')
+        finalPath += '/';
+    finalPath += cleanIndex;
+
+    return finalPath;
+}
 
 /* std::string generateDirectoryListing(const std::string &path)
 {
@@ -206,50 +218,6 @@ bool saveUploadedFile(const HttpRequest &req, const std::string &uploadDir)
 /* std::string resolvePath(const Location* loc, const std::string &reqPath)
 {
     std::string root = loc->getRoot();
-    if (!root.empty() && root[0] != '/')
-        root = getCurrentWorkingDirectory() + "/" + root;
-    if (!root.empty() && root[root.size() - 1] != '/')
-        root += '/';
-
-    std::string path = reqPath;
-    std::string locPath = loc->getPath();
-
-    // remove location path prefix
-    if (locPath != "/" && path.find(locPath) == 0)
-        path = path.substr(locPath.size());
-
-    // remove  /
-    if (!path.empty() && path[0] == '/')
-        path = path.substr(1);
-
-    return root + path;
-} */
-
-/* std::string resolvePath(const Location* loc, const std::string &reqPath)
-{
-    std::string root = loc->getRoot();
-    if (!root.empty() && root[0] != '/')
-        root = getCurrentWorkingDirectory() + "/" + root;
-    if (!root.empty() && root[root.size() - 1] != '/')
-        root += '/';
-
-    std::string path = reqPath;
-    std::string locPath = loc->getPath();
-
-    // remove location path prefix
-    if (locPath != "/" && path.find(locPath) == 0)
-        path = path.substr(locPath.size());
-
-    // remove  /
-    if (!path.empty() && path[0] == '/')
-        path = path.substr(1);
-
-    return root + path;
-} */
-
-std::string resolvePath(const Location* loc, const std::string &reqPath)
-{
-    std::string root = loc->getRoot();
 
     std::cout << "---------" << std::endl;
     if (root.empty())
@@ -291,21 +259,28 @@ std::string resolvePath(const Location* loc, const std::string &reqPath)
     std::cout << "Final resolved path: " << finalPath << std::endl;
     std::cout << "---------" << std::endl;
     return finalPath;
+} */
+
+std::string resolvePath(const Location* loc, const std::string &reqPath)
+{
+    std::string root = loc->getRoot();
+    if (root.empty())
+        root = getCurrentWorkingDirectory();
+    else if (root[0] != '/')
+        root = getCurrentWorkingDirectory() + "/" + root;
+
+    if (root[root.size() - 1] != '/')
+        root += '/';
+
+    std::string path = reqPath;
+    if (!path.empty() && path[0] == '/')
+        path = path.substr(1);
+    if (loc->getOverwrittenX("root") == true)
+        return root;
+    else
+        return root + path;
 }
 
-
-/* std::string readFile(const std::string &path)
-{
-	std::ifstream file(path.c_str());
-	if (!file)
-		return "";
-	std::ostringstream oss;
-	std::string line;
-	while (std::getline(file, line))
-		oss << line << "\n";
-	file.close();
-	return oss.str();
-} */
 
 std::string readFile(const std::string &path)
 {
