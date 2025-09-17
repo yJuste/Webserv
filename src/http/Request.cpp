@@ -9,10 +9,10 @@
 
 # include "Request.hpp"
 
-Request::Request() : _client(NULL), _headerPart(""), _body(""), _method(""), _path(""), _version(""), _unchunked(false), _printed(false) {}
+Request::Request() : _client(NULL), _headerPart(""), _body(""), _method(""), _path(""), _version(""), _query(""), _unchunked(false), _printed(false) {}
 Request::~Request() {}
 
-Request::Request( const Client * client ) : _client(client), _headerPart(""), _body(""), _method(""), _path(""), _version(""), _unchunked(false), _printed(false) {}
+Request::Request( const Client * client ) : _client(client), _headerPart(""), _body(""), _method(""), _path(""), _version(""), _query(""), _unchunked(false), _printed(false) {}
 
 Request::Request( const Request & r ) { *this = r; }
 
@@ -26,6 +26,7 @@ Request	& Request::operator = ( const Request & r )
 		_method = r.getMethod();
 		_path = r.getPath();
 		_version = r.getVersion();
+		_query = r.getQuery();
 		_headers = r.getHeaders();
 		_unchunked = r.getUnchunked();
 		_printed = r.getPrinted();
@@ -46,6 +47,12 @@ int	Request::create( const std::string & raw )
 	std::stringstream request(_headerPart);
 	request >> _method >> _path >> _version;
 	_version.erase(_version.find_last_not_of(" \t\r\n") + 1);
+	size_t qpos = _path.find('?');
+	if (qpos != std::string::npos)
+	{
+		_query = _path.substr(qpos + 1);
+		_path = _path.substr(0, qpos);
+	}
 
 	std::string line;
 	std::getline(request, line);
@@ -71,6 +78,11 @@ std::string	Request::_unchunkBody( const std::string & raw )
 	std::string result;
 	size_t pos = 0;
 
+	size_t firstCRLF = raw.find("\r\n");
+	if (firstCRLF != std::string::npos)
+		pos = firstCRLF + 2;
+	else
+		pos = 0;
 	while (true)
 	{
 		size_t endOfSize = raw.find("\r\n", pos);
@@ -86,7 +98,8 @@ std::string	Request::_unchunkBody( const std::string & raw )
 		pos = endOfSize + 2;
 		if (pos + chunkSize > raw.size())
 			break;
-		result.append(raw.substr(pos, chunkSize));
+		std::string chunkData = raw.substr(pos, chunkSize);
+		result.append(chunkData);
 		pos += chunkSize + 2;
 	}
 	return result;
@@ -124,6 +137,7 @@ void	Request::_reset( void )
 	_method.clear();
 	_path.clear();
 	_version.clear();
+	_query.clear();
 	_headers.clear();
 	_unchunked = false;
 	_printed = false; 
@@ -137,6 +151,7 @@ const std::string & Request::getBody() const { return _body; }
 const std::string & Request::getMethod() const { return _method; }
 const std::string & Request::getPath() const { return _path; }
 const std::string & Request::getVersion() const { return _version; }
+const std::string & Request::getQuery() const { return _query; }
 const std::map<std::string, std::string> & Request::getHeaders() const { return _headers; }
 bool Request::getUnchunked() const { return _unchunked; }
 bool Request::getPrinted() const { return _printed; }

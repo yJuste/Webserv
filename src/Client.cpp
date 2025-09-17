@@ -9,10 +9,10 @@
 
 # include "Client.hpp"
 
-Client::Client() : _socket(-1), _server(NULL), _color(Print::getColor(-1)), _request(NULL) {}
+Client::Client() : _socket(-1), _server(NULL), _color(Print::getColor(-1)), _wbuf(""), _request(NULL) {}
 Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
-Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server)
+Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server), _wbuf("")
 {
 	_unit(server_socket);
 	_color = Print::getColor(_socket);
@@ -39,14 +39,9 @@ void	Client::write( void )
 
 	_wbuf = response.build();
 	Print::debug(_color, getSocket(), "Reconstitution done.");
-	while (!_wbuf.empty())
-	{
-		int n = send(_socket, _wbuf.data(), _wbuf.size(), 0);
-		if (n > 0)
-			_wbuf.erase(0, n);
-		else
-			Print::debug(RED, "Client", "The client encountered errors during writing.");
-	}
+	int n = send(_socket, _wbuf.data(), _wbuf.size(), 0);
+	if (n <= 0)
+		Print::debug(RED, "Client", "The client encountered errors during writing.");
 	Print::debug(_color, getSocket(), "Sent.");
 }
 

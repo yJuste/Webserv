@@ -34,6 +34,7 @@ class	Request
 		std::string				_method;
 		std::string				_path;
 		std::string				_version;
+		std::string				_query;
 		std::map<std::string, std::string>	_headers;
 		bool					_unchunked;
 		bool					_printed;
@@ -66,6 +67,7 @@ class	Request
 		const std::string & getMethod() const;
 		const std::string & getPath() const;
 		const std::string & getVersion() const;
+		const std::string & getQuery() const;
 		const std::map<std::string, std::string> & getHeaders() const;
 		bool getUnchunked() const;
 		bool getPrinted() const;
