@@ -35,6 +35,7 @@ class	Response
 		const Request *				_req;
 		const Server *				_server;
 		const Client *				_client;
+		const Location *			_loc;
 
 		std::pair<int, std::string>		_status;
 
@@ -43,14 +44,20 @@ class	Response
 
 		// Methods
 
-		std::string _reconstitution() const;
+		bool _preparation();
+		void _reconstitution() const;
+
+		// utils
+
 		const Location * _findLocation() const;
 		std::string getContentType( const std::string & ) const;
+		bool allowsMethod( const std::string & ) const;
 
 		// Setters
 
 		void _setStatus( int, const std::string & );
 		void _setBody( const std::string & );
+		void _setHeader( const std::string &, const std::string & );
 
 		Response();
 
@@ -64,7 +71,8 @@ class	Response
 
 		// Methods
 
-		std::string build(); // construit la reponse.
+		void build();	// construit la reponse.
+		std::string string() const;	// convertit en string.
 };
 
 #endif

@@ -37,7 +37,8 @@ void	Client::write( void )
 {
 	Response	response(_request);
 
-	_wbuf = response.build();
+	response.build();
+	_wbuf = response.string();
 	Print::debug(_color, getSocket(), "Reconstitution done.");
 	int n = send(_socket, _wbuf.data(), _wbuf.size(), 0);
 	if (n <= 0)
