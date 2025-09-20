@@ -131,7 +131,6 @@ void	Response::_reconstitution( void )
 			return;
 		}
 	}*/
-	/*
 	if (_req->getMethod() == "POST")
 	{
 		if (_req->getBody().size() > _server->getMaxSize())
@@ -144,18 +143,14 @@ void	Response::_reconstitution( void )
 		}
 		//_handlePost();
 		return ;
-	}*/
+	}
 	std::string filePath = _resolvePath(_req->getPath());
 	std::cout << filePath << std::endl;
 	int status = acstat(filePath.c_str(), F_OK | R_OK);
 	if (status == 1)
 	{
-		std::string ext;
-		size_t dotPos = filePath.rfind('.');
-		if (dotPos != std::string::npos)
-			ext = filePath.substr(dotPos);
 		const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
-		std::map<std::string, std::string>::const_iterator it = cgiMap.find(ext);
+		std::map<std::string, std::string>::const_iterator it = cgiMap.find(getExtension(filePath));
 		if (it != cgiMap.end())
 		{
 			//executeCGI(req, *loc, filePath, *server);
@@ -200,7 +195,7 @@ void	Response::_reconstitution( void )
 		_setBody(readFile(errPages.find(404)->second));
 	else
 		_setBody("Path does not exist, File not found");
-	_setHeader("Content-Type", errPages.find(404)->second);
+	_setHeader("Content-Type", getExtension(errPages.find(404)->second));
 }
 
 /*

@@ -9,6 +9,15 @@
 
 # include "utils.hpp"
 
+std::string	getExtension( const std::string & file )
+{
+	std::string ext;
+	size_t dot = file.rfind('.');
+	if (dot != std::string::npos)
+		ext = file.substr(dot);
+	return ext;
+}
+
 std::string	rounded( size_t bytes )
 {
 	const char * units[] = {"bytes", "KB", "MB", "GB", "TB"};

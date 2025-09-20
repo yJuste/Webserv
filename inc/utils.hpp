@@ -41,5 +41,6 @@ std::string	getContentType( const std::string & );
 // ------ Others -----
 
 std::string	rounded( size_t );
+std::string	getExtension( const std::string & );
 
 #endif
