@@ -34,5 +34,12 @@ std::string	handle_folder( std::string );
 // ------ Http -------
 
 std::string	readFile( const std::string & );
+std::string	my_getcwd();
+std::string	generateDirectoryListing( const std::string &, const std::string & );
+std::string	getContentType( const std::string & );
+
+// ------ Others -----
+
+std::string	rounded( size_t );
 
 #endif

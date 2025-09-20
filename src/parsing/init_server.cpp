@@ -261,17 +261,29 @@ void	create_paths( Server & server )
 	}
 
 	bool status = false;
+	std::string first = "";
 	std::vector<std::string> index = server.getIndex();
-	for ( std::vector<std::string>::iterator it = index.begin(); it != index.end(); ++it )
+	for (std::vector<std::string>::iterator it = index.begin(); it != index.end(); ++it)
 	{
 		*it = server.getRoot() + *it;
-		if (acstat(it->c_str(), F_OK | R_OK) == 1)
+		if (!status && acstat(it->c_str(), F_OK | R_OK) == 1)
+		{
+			first = *it;
 			status = true;
+		}
 	}
-	if (!status)
+	if (index.empty())
+		index.push_back(server.getRoot() + "index.html");
+	else if (!status)
 	{
 		try { if (index.size()) throw FailedAcstat(index[0].c_str()); }
 		catch ( std::exception & e ) { server.addWarning(e.what()); }
+	}
+	std::vector<std::string>::iterator pos = std::find(index.begin(), index.end(), first);
+	if (pos != index.end())
+	{
+		index.erase(pos);
+		index.insert(index.begin(), first);
 	}
 	server.setIndex(index);
 }

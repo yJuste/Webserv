@@ -227,7 +227,7 @@ bool	dupLocation( const std::vector<Location> & locations, const std::string & p
 	return false;
 }
 
-void	create_paths( Location & location )
+void	create_paths( Location & location, Server & server )
 {
 	location.setRoot(handle_folder(location.getRoot()));
 	if (!location.getUpload().size())
@@ -236,18 +236,31 @@ void	create_paths( Location & location )
 		location.setUpload(handle_folder(location.getRoot() + location.getUpload()));
 
 	bool status = false;
-
+	std::string first = "";
 	std::vector<std::string> index = location.getIndex();
+
 	for (std::vector<std::string>::iterator it = index.begin(); it != index.end(); ++it)
 	{
 		*it = location.getRoot() + *it;
-		if (acstat(it->c_str(), F_OK | R_OK) == 1)
+		if (!status && acstat(it->c_str(), F_OK | R_OK) == 1)
+		{
+			first = *it;
 			status = true;
+		}
 	}
 	if (index.empty())
-		index.push_back("index.html");
+		index.push_back(location.getRoot() + "index.html");
 	else if (!status)
-		throw FailedAcstat(index[0].c_str());
+	{
+		try { if (index.size()) throw FailedAcstat(index[0].c_str()); }
+		catch ( std::exception & e ) { server.addWarning(e.what()); }
+	}
+	std::vector<std::string>::iterator pos = std::find(index.begin(), index.end(), first);
+	if (pos != index.end())
+	{
+		index.erase(pos);
+		index.insert(index.begin(), first);
+	}
 	location.setIndex(index);
 
 	std::map<std::string, std::string> cgi = location.getCgi();
@@ -296,7 +309,7 @@ Location	create_location( const std::vector<std::string> & words, std::vector<st
 		init_location(words, it, location);
 		++it;
 	}
-	create_paths(location);
+	create_paths(location, server);
 	overwritten(location, server);
 	return location;
 }

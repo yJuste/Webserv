@@ -45,13 +45,14 @@ class	Response
 		// Methods
 
 		bool _preparation();
-		void _reconstitution() const;
+		void _reconstitution();
+		void _handlePost();
 
 		// utils
 
 		const Location * _findLocation() const;
-		std::string getContentType( const std::string & ) const;
-		bool allowsMethod( const std::string & ) const;
+		bool _allowsMethod( const std::string & ) const;
+		std::string _resolvePath( const std::string & );
 
 		// Setters
 

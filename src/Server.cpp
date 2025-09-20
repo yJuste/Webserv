@@ -109,7 +109,7 @@ void	Server::myConfig( void ) const
 		Print::value(BEIGE, *it + " ");
 	Print::endl();
 	Print::enval(BROWN, "Default Server", BEIGE, getDefault() ? APPLE_GREEN "Yes" RESET : RED "No" RESET);
-	Print::enval(BROWN, "Max Body Server", BEIGE, _rounded(getMaxSize()) + " bytes"); Print::endl();
+	Print::enval(BROWN, "Max Body Server", BEIGE, rounded(getMaxSize()) + " bytes"); Print::endl();
 	Print::entry(BROWN, "Server Names(s)"); Print::endl();
 	for (std::vector<std::string>::const_iterator it = getNames().begin(); it != getNames().end(); ++it)
 		{ Print::value(BEIGE, "   - " + *it); Print::endl(); }
@@ -200,26 +200,3 @@ void Server::setMaxSize( int size ) { _maxSize = size; }
 void Server::addLocation( const Location & location ) { _locations.push_back(location); }
 void Server::setOverwritten( const std::string & parameter ) { _overwritten[parameter] += 1; }
 void Server::addWarning( const std::string & warning ) { _warnings.push_back(warning); }
-
-// Private Methods
-
-// return rounded number with its nearest units.
-std::string	Server::_rounded( size_t bytes ) const
-{
-	const char * units[] = {"bytes", "KB", "MB", "GB", "TB"};
-	double size = static_cast<double>(bytes);
-	int unit = 0;
-
-	while ( size >= 1024.0 && unit < 4 )
-	{
-		size /= 1024.0;
-		++unit;
-	}
-
-	std::stringstream	ss;
-
-	ss.precision(2);
-	ss.setf(std::ios::fixed);
-	ss << size << " " << units[unit];
-	return ss.str();
-}

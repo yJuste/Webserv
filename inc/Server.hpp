@@ -23,6 +23,7 @@
 # include "Location.hpp"
 # include "Exceptions.hpp"
 # include "Print.hpp"
+# include "utils.hpp"
 
 /*	HELP
  *
@@ -60,7 +61,6 @@ class	Server
 
 		std::vector<std::string>	_warnings;
 		std::map<std::string, int>	_overwritten;
-		std::string			_rounded( size_t ) const;
 
 	public:
 
