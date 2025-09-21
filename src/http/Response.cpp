@@ -44,6 +44,7 @@ std::string	Response::string( void ) const
 	response << "Content-Length: " << ss.str() << "\r\n";
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
 		response << it->first << ": " << it->second << "\r\n";
+	//response << "Set-Cookie: session_id=xyz789; Path=/; Max-Age=3600; HttpOnly" << "\r\n";
 	response << "\r\n";
 	response << _body;
 	return response.str();
@@ -55,16 +56,19 @@ bool	Response::_preparation( void )
 {
 	_loc = _findLocation();
 	if (!_loc)
-	{
-		_setStatus(404, "Not Found");
-		_setBody("No matching location");
-		return false;
-	}
+		return _404_error("No matching location");
 	const std::map<int, std::string> & redir = _loc->getReturn();
 	if (!redir.empty())
 	{
 		int code = redir.begin()->first;
 		std::string locationUrl = redir.begin()->second;
+		std::string filePath = _resolvePath(locationUrl);
+		int status = acstat(filePath.c_str(), F_OK | R_OK);
+		if (status != -1)
+		{
+			_reconstitution();
+			return false;
+		}
 		_setStatus(code, (code == 301 ? "Moved Permanently" : "Found"));
 		_setHeader("Location", locationUrl);
 		return false;
@@ -145,7 +149,6 @@ void	Response::_reconstitution( void )
 		return ;
 	}
 	std::string filePath = _resolvePath(_req->getPath());
-	std::cout << filePath << std::endl;
 	int status = acstat(filePath.c_str(), F_OK | R_OK);
 	if (status == 1)
 	{
@@ -189,13 +192,7 @@ void	Response::_reconstitution( void )
 		}
 		return ;
 	}
-	_setStatus(404, "Not Found");
-	const std::map<int, std::string> & errPages = _server->getErrorPages();
-	if (errPages.find(404) != errPages.end())
-		_setBody(readFile(errPages.find(404)->second));
-	else
-		_setBody("Path does not exist, File not found");
-	_setHeader("Content-Type", getExtension(errPages.find(404)->second));
+	_404_error("Path does not exist, File not found");
 }
 
 /*
@@ -301,22 +298,36 @@ std::string	Response::_resolvePath( const std::string & reqPath )
 		root = my_getcwd() + "/";
 	while (!root.empty() && root[root.size() - 1] == '/')
 		root.erase(root.size() - 1);
-	std::cout << "!" << root << std::endl;
 
 	std::string locPath = _loc->getPath();
 	std::string path = reqPath;
-	std::cout << ":" << locPath << std::endl;
-	std::cout << "?" << path << std::endl;
 
 	if (!locPath.empty() && locPath != "/" && path.find(locPath) == 0)
 		path = path.substr(locPath.size());
 	while (!path.empty() && path[0] == '/')
 		path.erase(0, 1);
-	std::cout << "?" << path << std::endl;
 	if (acstat((_loc->getRoot() + path).c_str(), F_OK | R_OK) == 1)
 		return root + "/" + _loc->getRoot() + path;
 	return root + "/" + path;
 }
+
+bool	Response::_404_error( const std::string & body )
+{
+	_setStatus(404, "Not Found");
+	const std::map<int, std::string> & errPages = _server->getErrorPages();
+	if (errPages.find(404) != errPages.end())
+		_setBody(readFile(errPages.find(404)->second));
+	else
+		_setBody(body);
+	_setHeader("Content-Type", getExtension(errPages.find(404)->second));
+	return false;
+}
+
+// Getters
+
+const std::pair<int, std::string> & Response::getStatus() const { return _status; }
+const std::map<std::string, std::string> & Response::getHeaders() const { return _headers; }
+const std::string & Response::getBody() const { return _body; }
 
 // Setters
 

@@ -32,14 +32,21 @@ void	Supervisor::hold( const std::vector<Server *> & servers )
 		_fds[i].events = POLLIN;
 		_fds[i].revents = 0;
 	}
+	_fds[_size].fd = STDIN_FILENO;
+	_fds[_size].events = POLLIN;
+	_fds[_size].revents = 0;
+	++_size;
 }
 
 void	Supervisor::execution( void )
 {
 	if (_server_size == 0)
 		throw NoServerAdded();
+	time_t lastHelp = std::time(0);
+	bool last_print = false;
 	while (true)
 	{
+		_clock(last_print, lastHelp);
 		if (poll(_fds, _size, 0) == -1)
 			throw FailedPoll();
 		for (size_t i = 0; i < _size; ++i)
@@ -49,11 +56,21 @@ void	Supervisor::execution( void )
 			if (!(_fds[i].revents & POLLIN))
 				continue ;
 			int fd = _fds[i].fd;
+			if (fd == STDIN_FILENO)
+			{
+				std::string input;
+				std::getline(std::cin, input);
+				if (input == "config")
+				for (size_t j = 0; j < _server_size; ++j)
+					_servers[j]->myConfig();
+				continue;
+			}
 			if (i < _server_size)
 			{
 				if (_size >= FDS_SIZE)
 				{
 					Print::debug(RED, "error", "Too many connexions on a server.");
+					last_print = true;
 					continue ;
 				}
 				Client * client = new Client(fd, _servers[i]);
@@ -75,10 +92,12 @@ void	Supervisor::execution( void )
 					_supClient(fd);
 					_fds[i] = _fds[_size - 1];
 					--_size;
+					last_print = true;
 					continue ;
 				}
 				client->read(buffer);
 				client->write();
+				last_print = true;
 			}
 		}
 	}
@@ -106,6 +125,22 @@ Client * Supervisor::_supClient( int fd )
 		}
 	}
 	return NULL;
+}
+
+void	Supervisor::_clock( bool & last_print, time_t & lastHelp )
+{
+	time_t now = std::time(0);
+	if (now - lastHelp >= 10)
+	{
+		if (last_print)
+		{
+			std::cout << "    | Type " << std::string(APPLE_GREEN) << "\"config\"" << std::string(RESET) << " for printing the server's configurations." << std::endl;
+			lastHelp = now;
+			last_print = false;
+		}
+		else
+			lastHelp = now;
+	}
 }
 
 void	Supervisor::_clean( void )

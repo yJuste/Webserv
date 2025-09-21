@@ -28,7 +28,7 @@ void	Client::read( const std::string & buf )
 	_wbuf.clear();
 	if (_request->create(buf) == 2)
 		return ;
-	Print::debug(_color, getSocket(), "Request completed :");
+	Print::debug(_color, getSocket(), "Request :");
 	Print::enval(_color, "    | Method", RESET, _request->getMethod());
 	Print::enval(_color, "    | Path", RESET, _request->getPath());
 }
@@ -39,11 +39,22 @@ void	Client::write( void )
 
 	response.build();
 	_wbuf = response.string();
-	Print::debug(_color, getSocket(), "Reconstitution done.");
-	int n = send(_socket, _wbuf.data(), _wbuf.size(), 0);
-	if (n <= 0)
-		Print::debug(RED, "Client", "The client encountered errors during writing.");
-	Print::debug(_color, getSocket(), "Sent.");
+
+	size_t total = 0;
+	size_t original = _wbuf.size();
+
+	while (!_wbuf.empty())
+	{
+		int n = send(_socket, _wbuf.data(), _wbuf.size(), 0);
+		if (n > 0)
+			_wbuf.erase(0, n);
+		total += n;
+	}
+	Print::debug(_color, getSocket(), "Response :");
+	std::ostringstream oss;
+	oss << response.getStatus().first << " " << response.getStatus().second;
+	Print::enval(_color, "    | Status", RESET, "[" + std::string(APPLE_GREEN) + oss.str() + std::string(RESET) + "]");
+	Print::enval(_color, "    | Sent", RESET, "[" + std::string(APPLE_GREEN) + rounded(total) + "/" + rounded(original) + std::string(RESET) + "]");
 }
 
 // Private Methods

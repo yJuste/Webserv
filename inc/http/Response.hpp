@@ -53,6 +53,7 @@ class	Response
 		const Location * _findLocation() const;
 		bool _allowsMethod( const std::string & ) const;
 		std::string _resolvePath( const std::string & );
+		bool _404_error( const std::string & );
 
 		// Setters
 
@@ -74,6 +75,12 @@ class	Response
 
 		void build();	// construit la reponse.
 		std::string string() const;	// convertit en string.
+
+		// Getters
+
+		const std::pair<int, std::string> & getStatus() const;
+		const std::map<std::string, std::string> & getHeaders() const;
+		const std::string & getBody() const;
 };
 
 #endif
