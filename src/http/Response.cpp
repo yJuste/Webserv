@@ -68,17 +68,15 @@ int	Response::_preparation( void )
 	{
 		int code = redir.begin()->first;
 		std::string locationUrl = redir.begin()->second;
-		std::string filePath = _resolvePath(locationUrl);
-		int status = acstat(filePath.c_str(), F_OK | R_OK);
-		if (status != -1)
+		_loc = _findLocation(locationUrl);
+		if (_loc)
 		{
-			_loc = _findLocation(locationUrl);
+			_setHeader("Location", locationUrl);
 			if (code == 301)
 				return 301;
-			return 200;
 		}
 		_404_error("Redirect not found");
-		return 1;
+		return 0;
 	}
 	if (!_allowsMethod(_req->getMethod()))
 	{
@@ -142,20 +140,9 @@ void	Response::_reconstitution( void )
 			return;
 		}
 	}*/
-	if (_req->getMethod() == "POST")
-	{
-		if (_req->getBody().size() > _server->getMaxSize())
-		{
-			_setStatus(413, "Payload Too Large");
-			std::stringstream ss;
-			ss << "Failed to save uploaded file: > " << rounded(_server->getMaxSize()) << " bytes" << std::endl;
-			_setBody(ss.str());
-			return ;
-		}
-		//_handlePost();
-		return ;
-	}
 	std::string filePath = _resolvePath(_req->getPath());
+	if (_req->getMethod() == "POST")
+		return _handlePost(filePath);
 	int status = acstat(filePath.c_str(), F_OK | R_OK);
 	if (status == 1)
 	{
@@ -182,62 +169,84 @@ void	Response::_reconstitution( void )
 		if (filePath[filePath.size() - 1] != '/')
 			filePath += '/';
 		std::string index = filePath + _loc->getIndex()[0];
+		if (_autoIndex(index))
+			return ;
 		if (acstat(index.c_str(), F_OK) == -1)
 		{
 			_setStatus(403, "Forbidden");
-			_setBody("File does not exist, forbidden path.");
+			_setBody("File does not exist, forbidden path. ( you should add a default file, like 'index.html')");
 			return ;
 		}
 		_setStatus(200, "OK");
 		_setBody(readFile(index));
 		_setHeader("Content-Type", getContentType(index));
-		if (_loc->getAutoindex())
-		{
-			_setStatus(200, "OK");
-			_setHeader("Content-Type", "text/html");
-			_setBody(generateDirectoryListing(filePath, _req->getPath()));
-		}
 		return ;
 	}
 	_404_error("Path does not exist, File not found");
 }
 
-/*
-void HttpResponse::handlePost( void )
+void	Response::_handlePost( const std::string & path )
 {
-	std::string path = _req->getPath();
-	std::string contentType = _req->getHeader("Content-Type");
-	if (!_loc->getUpload().empty()) // upload
+	if (_req->getBody().size() > _server->getMaxSize())
 	{
-		bool success = false;
+		_setStatus(413, "Payload Too Large");
+		std::stringstream ss;
+		ss << "Failed to save uploaded file: > " << rounded(_server->getMaxSize()) << " bytes" << std::endl;
+		_setBody(ss.str());
+		return ;
+	}
 
-		if (contentType.find("multipart/form-data") != std::string::npos)
-			success = saveUploadedFile(req, loc->getUpload());
-		else if (req.getHeader("Transfer-Encoding") == "chunked" ||
-				contentType.find("text/plain") != std::string::npos)
+	std::string filePath = path;
+	std::string contentType = _req->getHeader("Content-Type");
+
+	if (contentType.find("multipart/form-data") != std::string::npos)
+	{
+		bool success = _saveUploadedFile();
+		if (success)
 		{
-			std::cout << "enter in /upload chunked"<< std::endl;
-			std::string data = req.getRequestBody();
-			std::string filePath = loc->getUpload() + "/chunked_file.txt";
-
-			std::ofstream out(filePath.c_str(), std::ios::binary);
-			if (out)
-			{
-				out.write(data.c_str(), data.size());
-				out.close();
-				success = true;
-			}
+			if (filePath[filePath.size() - 1] != '/')
+				filePath += '/';
+			filePath += _loc->getRoot();
+			_setStatus(201, "Created");
+			_setBody("File uploaded successfully");
+			if (_autoIndex(filePath))
+				return ;
 		}
-		if (success) {
-			setStatus(201, "Created");
-			setBody("File uploaded successfully");
-		} else {
-			setStatus(500, "Internal Server Error");
-			setBody("Failed to save uploaded file");
+		else
+		{
+			_setStatus(500, "Internal Server Error");
+			_setBody("Failed to save uploaded file");
 		}
 		return;
 	}
-
+	else if (contentType.find("application/octet-stream") != std::string::npos
+		|| contentType.find("text/plain") != std::string::npos
+		|| _req->getHeader("Transfer-Encoding") == "chunked")
+	{
+		std::string data = _req->getBody();
+		std::string filePath = _loc->getUpload() + "/upload.bin";
+		std::fstream out(filePath.c_str(), std::fstream::binary);
+		if (out)
+		{
+			out.write(data.c_str(), data.size());
+			out.close();
+			_setStatus(201, "Created");
+			_setBody("Raw file uploaded successfully");
+		}
+		else
+		{
+			_setStatus(500, "Internal Server Error");
+			_setBody("Failed to write file");
+		}
+		return;
+	}
+	else
+	{
+		_setStatus(415, "Unsupported Media Type");
+		_setBody("Content-Type not supported for upload");
+		return;
+	}
+	/*
 	if (path == "/register" &&
 	    contentType.find("application/x-www-form-urlencoded") != std::string::npos)
 	{
@@ -270,10 +279,11 @@ void HttpResponse::handlePost( void )
 		}
 		return;
 	}
-
-	setStatus(404, "Not Found");
-	setBody("POST route not found");
-}*/
+	*/
+	_setStatus(404, "Not Found");
+	_setBody("POST route not found");
+	return ;
+}
 
 // utils
 
@@ -357,10 +367,85 @@ void	Response::_404_error( const std::string & body )
 	_setHeader("Content-Type", getExtension(errPages.find(404)->second));
 }
 
+bool	Response::_autoIndex( const std::string & path )
+{
+	if (_loc->getAutoindex())
+	{
+		_setStatus(200, "OK");
+		_setHeader("Content-Type", "text/html");
+		std::string reducedPath = path;
+		while (!reducedPath.empty() && reducedPath.back() != '/')
+			reducedPath.pop_back();
+		_setBody(generateDirectoryListing(reducedPath, _req->getPath()));
+		return true;
+	}
+	return false;
+}
+
+bool	Response::_saveUploadedFile( void )
+{
+	std::string body = _req->getBody();
+	std::string contentType = _req->getHeader("Content-Type");
+	size_t pos = contentType.find("boundary=");
+	if (pos == std::string::npos)
+		return false;
+	const std::string boundary = "--" + contentType.substr(pos + 9);
+	const std::string closingBoundary = boundary + "--";
+
+	size_t start = body.find(boundary);
+	if (start == std::string::npos)
+		return false;
+	size_t fnStart = body.find("filename=\"", start);
+	if (fnStart == std::string::npos)
+		return false;
+	fnStart += 10;
+	size_t fnEnd = body.find("\"", fnStart);
+	if (fnEnd == std::string::npos)
+		return false;
+
+	std::string filename = body.substr(fnStart, fnEnd - fnStart);
+	size_t contentStart = body.find("\r\n\r\n", fnEnd);
+	if (contentStart == std::string::npos)
+		return false;
+	contentStart += 4;
+	size_t nextBoundaryPos = body.find(boundary, contentStart);
+	if (nextBoundaryPos == std::string::npos)
+	{
+		nextBoundaryPos = body.find(closingBoundary, contentStart);
+		if (nextBoundaryPos == std::string::npos)
+			return false;
+	}
+	if (nextBoundaryPos < 2 || nextBoundaryPos < contentStart)
+		return false;
+	size_t contentEnd = nextBoundaryPos - 2;
+	if (contentEnd < contentStart)
+		return false;
+	std::string fileContent = body.substr(contentStart, contentEnd - contentStart);
+	std::string fullPath = _loc->getUpload() + "/" + filename;
+	std::ofstream out(fullPath, std::ios::binary | std::ios::trunc);
+	if (!out)
+		return false;
+	out.write(fileContent.c_str(), fileContent.size());
+	out.close();
+
+	std::ifstream in(fullPath.c_str(), std::ios::binary | std::ios::ate);
+	std::streamsize size = in.tellg();
+	in.close();
+	Print::enval(RESET, "    | File", RESET, "[" + rounded(static_cast<size_t>(size)) + " bytes" + std::string(RESET) + "]");
+	return true;
+}
+
 // Getters
 
 const std::pair<int, std::string> & Response::getStatus() const { return _status; }
 const std::map<std::string, std::string> & Response::getHeaders() const { return _headers; }
+std::string Response::getHeader( const std::string & type ) const
+{
+	std::map<std::string, std::string>::const_iterator it = _headers.find(type);
+	if (it != _headers.end())
+		return it->second;
+	return "";
+}
 const std::string & Response::getBody() const { return _body; }
 
 // Setters

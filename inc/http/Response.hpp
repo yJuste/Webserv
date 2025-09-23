@@ -46,7 +46,7 @@ class	Response
 
 		int _preparation();
 		void _reconstitution();
-		void _handlePost();
+		void _handlePost( const std::string & );
 
 		// utils
 
@@ -56,6 +56,8 @@ class	Response
 		bool _allowsMethod( const std::string & ) const;
 		std::string _resolvePath( const std::string & );
 		void _404_error( const std::string & );
+		bool _autoIndex( const std::string & );
+		bool _saveUploadedFile();
 
 		// Setters
 
@@ -82,6 +84,7 @@ class	Response
 
 		const std::pair<int, std::string> & getStatus() const;
 		const std::map<std::string, std::string> & getHeaders() const;
+		std::string getHeader( const std::string & ) const;
 		const std::string & getBody() const;
 };
 

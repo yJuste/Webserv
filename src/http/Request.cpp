@@ -34,9 +34,10 @@ Request	& Request::operator = ( const Request & r )
 	return *this;
 }
 
+# include <iostream>
+
 int	Request::create( const std::string & raw )
 {
-	_reset();
 	size_t headerEnd = raw.find("\r\n\r\n");
 	if (headerEnd == std::string::npos)
 		return 1;
@@ -44,32 +45,50 @@ int	Request::create( const std::string & raw )
 	_headerPart = raw.substr(0, headerEnd);
 	_body = raw.substr(headerEnd + 4);
 
-	std::stringstream request(_headerPart);
-	request >> _method >> _path >> _version;
-	_version.erase(_version.find_last_not_of(" \t\r\n") + 1);
-	size_t qpos = _path.find('?');
-	if (qpos != std::string::npos)
+	if (raw[0] == '-')
+		_body = raw;
+	else
 	{
-		_query = _path.substr(qpos + 1);
-		_path = _path.substr(0, qpos);
-	}
+		std::stringstream request(_headerPart);
+		request >> _method >> _path >> _version;
+		_version.erase(_version.find_last_not_of(" \t\r\n") + 1);
+		size_t qpos = _path.find('?');
+		if (qpos != std::string::npos)
+		{
+			_query = _path.substr(qpos + 1);
+			_path = _path.substr(0, qpos);
+		}
 
-	std::string line;
-	std::getline(request, line);
-	while (std::getline(request, line))
-	{
-		size_t colon = line.find(':');
-		std::string key = line.substr(0, colon);
-		std::string value = line.substr(colon + 1);
-		value.erase(0, value.find_first_not_of(" \t\r\n"));
-		value.erase(value.find_last_not_of(" \t\r\n") + 1);
-		_headers[key] = value;
+		std::string line;
+		std::getline(request, line);
+		while (std::getline(request, line))
+		{
+			size_t colon = line.find(':');
+			std::string key = line.substr(0, colon);
+			std::string value = line.substr(colon + 1);
+			value.erase(0, value.find_first_not_of(" \t\r\n"));
+			value.erase(value.find_last_not_of(" \t\r\n") + 1);
+			_headers[key] = value;
+		}
 	}
 	if (!_isComplete())
 		return 2;
 	if (!getPrinted())
 		setPrinted(true);
 	return 0;
+}
+
+void	Request::reset( void )
+{
+	_headerPart.clear();
+	_body.clear();
+	_method.clear();
+	_path.clear();
+	_version.clear();
+	_query.clear();
+	_headers.clear();
+	_unchunked = false;
+	_printed = false; 
 }
 
 // Private methods
@@ -113,7 +132,7 @@ bool	Request::_isComplete( void )
 		std::stringstream ss(_headers["Content-Length"]);
 		size_t len = 0;
 		ss >> len;
-		return _body.size() >= len;
+		return _body.size() == len;
 	}
 	if (_headers.count("Transfer-Encoding") && _headers["Transfer-Encoding"] == "chunked")
 	{
@@ -131,19 +150,6 @@ bool	Request::_isComplete( void )
 	return true;
 }
 
-void	Request::_reset( void )
-{
-	_headerPart.clear();
-	_body.clear();
-	_method.clear();
-	_path.clear();
-	_version.clear();
-	_query.clear();
-	_headers.clear();
-	_unchunked = false;
-	_printed = false; 
-}
-
 // Getters
 
 const Client * Request::getClient() const { return _client; }
@@ -154,6 +160,13 @@ const std::string & Request::getPath() const { return _path; }
 const std::string & Request::getVersion() const { return _version; }
 const std::string & Request::getQuery() const { return _query; }
 const std::map<std::string, std::string> & Request::getHeaders() const { return _headers; }
+std::string Request::getHeader( const std::string & type ) const
+{
+	std::map<std::string, std::string>::const_iterator it = _headers.find(type);
+	if (it != _headers.end())
+		return it->second;
+	return "";
+}
 bool Request::getUnchunked() const { return _unchunked; }
 bool Request::getPrinted() const { return _printed; }
 

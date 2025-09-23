@@ -36,6 +36,7 @@ class	Client
 		Server *		_server;
 		const char *		_color;
 
+		std::string		_rbuf;
 		std::string		_wbuf;
 		Request *		_request;
 

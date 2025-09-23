@@ -43,7 +43,6 @@ class	Request
 
 		std::string _unchunkBody( const std::string & );
 		bool _isComplete();
-		void _reset();
 
 		Request();
 
@@ -58,6 +57,7 @@ class	Request
 		// Method
 
 		int create( const std::string & );	// forme la requete.
+		void reset();
 
 		// Getters
 
@@ -69,6 +69,7 @@ class	Request
 		const std::string & getVersion() const;
 		const std::string & getQuery() const;
 		const std::map<std::string, std::string> & getHeaders() const;
+		std::string getHeader( const std::string & ) const;
 		bool getUnchunked() const;
 		bool getPrinted() const;
 
