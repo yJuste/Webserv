@@ -2,8 +2,8 @@ NAME = webserv
 
 # Flags
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
-
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -pedantic -g 
+# valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes
 # Directories
 SRC_DIR = src
 INC_DIR = inc
@@ -23,6 +23,7 @@ SRC =	main.cpp				\
 	http/HttpRequest.cpp   \
 	http/HttpResponse.cpp  \
 	http/Poller.cpp  \
+	http/SessionManager.cpp  \
 
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
