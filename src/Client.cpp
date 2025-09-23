@@ -9,10 +9,10 @@
 
 # include "Client.hpp"
 
-Client::Client() : _socket(-1), _server(NULL), _color(Print::getColor(-1)), _wbuf(""), _request(NULL) {}
+Client::Client() : _socket(-1), _server(NULL), _color(Print::getColor(-1)), _wbuf(""), _request(NULL), _keepAlive(1) {}
 Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
-Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server), _wbuf("")
+Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server), _wbuf(""), _keepAlive(1)
 {
 	_unit(server_socket);
 	_color = Print::getColor(_socket);
@@ -39,6 +39,11 @@ void	Client::write( void )
 
 	response.build();
 	_wbuf = response.string();
+
+	_keepAlive = 1;
+	std::map<std::string, std::string>::const_iterator it = response.getHeaders().find("Connection");
+	if (it->second == "close")
+		_keepAlive = 0;
 
 	size_t total = 0;
 	size_t original = _wbuf.size();
@@ -85,3 +90,4 @@ void	Client::_backout( void )
 int Client::getSocket() const { return _socket; }
 const Server * Client::getServer() const { return _server; }
 const char * Client::getColor() const { return _color; }
+bool Client::getKeepAlive() const { return _keepAlive; }

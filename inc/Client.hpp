@@ -39,6 +39,8 @@ class	Client
 		std::string		_wbuf;
 		Request *		_request;
 
+		bool			_keepAlive;
+
 		void _unit( int );
 		void _backout();
 
@@ -62,6 +64,7 @@ class	Client
 		int getSocket() const;
 		const Server * getServer() const;
 		const char * getColor() const;
+		bool getKeepAlive() const;
 };
 
 #endif

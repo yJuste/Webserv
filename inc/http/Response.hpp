@@ -50,6 +50,7 @@ class	Response
 
 		// utils
 
+		void _check_keep_alive();
 		const Location * _findLocation() const;
 		const Location * _findLocation( const std::string & ) const;
 		bool _allowsMethod( const std::string & ) const;

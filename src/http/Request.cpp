@@ -61,6 +61,7 @@ int	Request::create( const std::string & raw )
 		size_t colon = line.find(':');
 		std::string key = line.substr(0, colon);
 		std::string value = line.substr(colon + 1);
+		value.erase(0, value.find_first_not_of(" \t\r\n"));
 		value.erase(value.find_last_not_of(" \t\r\n") + 1);
 		_headers[key] = value;
 	}

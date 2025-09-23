@@ -24,6 +24,7 @@ Response::Response( Request * req ) : _req(req), _status(200, "OK"), _body("")
 
 void	Response::build( void )
 {
+	_check_keep_alive();
 	int code = _preparation();
 	if (code)
 		_reconstitution();
@@ -275,6 +276,19 @@ void HttpResponse::handlePost( void )
 }*/
 
 // utils
+
+void	Response::_check_keep_alive( void )
+{
+	const std::map<std::string, std::string> headers = _req->getHeaders();
+	std::map<std::string, std::string>::const_iterator it = headers.find("Connection");
+	if (it != headers.end())
+	{
+		if (it->second == "close")
+			_headers["Connection"] = "close";
+		else
+			_headers["Connection"] = "keep-alive";
+	}
+}
 
 const Location *	Response::_findLocation( const std::string & path ) const
 {

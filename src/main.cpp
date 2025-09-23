@@ -9,6 +9,8 @@
 
 # include "main.hpp"
 
+// tester Connection : close >>> curl -v http://127.0.0.1:8080 -H "Connection: close"
+
 int	main(int argc, char **argv)
 {
 	try

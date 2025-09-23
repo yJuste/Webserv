@@ -96,9 +96,12 @@ void	Supervisor::execution( void )
 					continue ;
 				else if (rc == 0)
 				{
-					_supClient(fd);
-					_fds[i] = _fds[_size - 1];
-					--_size;
+					if (!client->getKeepAlive())
+					{
+						_supClient(fd);
+						_fds[i] = _fds[_size - 1];
+						--_size;
+					}
 					continue ;
 				}
 				client->read(buffer);
