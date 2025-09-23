@@ -43,7 +43,8 @@ void	Supervisor::execution( void )
 	if (_server_size == 0)
 		throw NoServerAdded();
 	time_t lastHelp = std::time(0);
-	bool last_print = false;
+	bool last_print = true;
+	_clock(last_print, lastHelp);
 	while (true)
 	{
 		_clock(last_print, lastHelp);
@@ -60,17 +61,23 @@ void	Supervisor::execution( void )
 			{
 				std::string input;
 				std::getline(std::cin, input);
-				if (input == "config")
-				for (size_t j = 0; j < _server_size; ++j)
-					_servers[j]->myConfig();
-				continue;
+				if (input == "help")
+					last_print = true;
+				else if (input == "config")
+					for (size_t j = 0; j < _server_size; ++j)
+						_servers[j]->myConfig();
+				else if (input == "stop")
+				{
+					std::cout << std::string(APPLE_GREEN) << "Quit properly." << std::string(RESET) << std::endl;
+					return ;
+				}
+				continue ;
 			}
 			if (i < _server_size)
 			{
 				if (_size >= FDS_SIZE)
 				{
 					Print::debug(RED, "error", "Too many connexions on a server.");
-					last_print = true;
 					continue ;
 				}
 				Client * client = new Client(fd, _servers[i]);
@@ -92,12 +99,10 @@ void	Supervisor::execution( void )
 					_supClient(fd);
 					_fds[i] = _fds[_size - 1];
 					--_size;
-					last_print = true;
 					continue ;
 				}
 				client->read(buffer);
 				client->write();
-				last_print = true;
 			}
 		}
 	}
@@ -130,11 +135,14 @@ Client * Supervisor::_supClient( int fd )
 void	Supervisor::_clock( bool & last_print, time_t & lastHelp )
 {
 	time_t now = std::time(0);
-	if (now - lastHelp >= 10)
+	if (now - lastHelp >= 1)
 	{
 		if (last_print)
 		{
-			std::cout << "    | Type " << std::string(APPLE_GREEN) << "\"config\"" << std::string(RESET) << " for printing the server's configurations." << std::endl;
+			std::cout << "    | " << std::string(APPLE_GREEN) << "Helping Page for Webserv" << std::string(RESET) << ": ( write in the terminal )" << std::endl;
+			std::cout << "    |\t- [" << std::string(APPLE_GREEN) << "help" << std::string(RESET) << "]       Show this page." << std::endl;
+			std::cout << "    |\t- [" << std::string(APPLE_GREEN) << "config" << std::string(RESET) << "]     Print the server's configurations." << std::endl;
+			std::cout << "    |\t- [" << std::string(APPLE_GREEN) << "stop" << std::string(RESET) << "]       Stop the server." << std::endl;
 			lastHelp = now;
 			last_print = false;
 		}

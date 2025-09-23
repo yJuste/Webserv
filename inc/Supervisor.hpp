@@ -58,10 +58,10 @@ class	Supervisor
 
 		// Methods
 
-		Client *		_getClient( int );
-		Client *		_supClient( int );
-		void			_clock( bool &, time_t & );
-		void			_clean();
+		Client * _getClient( int );
+		Client * _supClient( int );
+		void _clock( bool &, time_t & );
+		void _clean();
 
 		// ~Structor
 

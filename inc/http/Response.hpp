@@ -44,16 +44,17 @@ class	Response
 
 		// Methods
 
-		bool _preparation();
+		int _preparation();
 		void _reconstitution();
 		void _handlePost();
 
 		// utils
 
 		const Location * _findLocation() const;
+		const Location * _findLocation( const std::string & ) const;
 		bool _allowsMethod( const std::string & ) const;
 		std::string _resolvePath( const std::string & );
-		bool _404_error( const std::string & );
+		void _404_error( const std::string & );
 
 		// Setters
 

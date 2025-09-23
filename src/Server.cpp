@@ -183,6 +183,13 @@ const std::vector<std::string> & Server::getNames() const { return _names; }
 const std::map<int, std::string> & Server::getErrorPages() const { return _errorPages; }
 size_t Server::getMaxSize() const { return _maxSize; }
 const std::vector<Location> & Server::getLocations() const { return _locations; }
+const Location * Server::getXLocation( const std::string & path ) const
+{
+	for (std::vector<Location>::const_iterator it = _locations.begin(); it != _locations.end(); ++it)
+		if (it->getPath() == path)
+			return &(*it);
+	return NULL;
+}
 const std::map<std::string, int> & Server::getOverwritten() const { return _overwritten; }
 const std::vector<std::string> & Server::getWarnings() const { return _warnings; }
 

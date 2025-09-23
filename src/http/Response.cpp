@@ -24,9 +24,11 @@ Response::Response( Request * req ) : _req(req), _status(200, "OK"), _body("")
 
 void	Response::build( void )
 {
-	bool location = _preparation();
-	if (location)
-		return _reconstitution();
+	int code = _preparation();
+	if (code)
+		_reconstitution();
+	if (code == 301)
+		_setStatus(301, "Moved Permanently");
 }
 
 std::string	Response::string( void ) const
@@ -44,7 +46,7 @@ std::string	Response::string( void ) const
 	response << "Content-Length: " << ss.str() << "\r\n";
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
 		response << it->first << ": " << it->second << "\r\n";
-	//response << "Set-Cookie: session_id=xyz789; Path=/; Max-Age=3600; HttpOnly" << "\r\n";
+	//response << "Set-Cookie: webserv=xyz789; Path=/site/; HttpOnly" << "\r\n";
 	response << "\r\n";
 	response << _body;
 	return response.str();
@@ -52,11 +54,14 @@ std::string	Response::string( void ) const
 
 // Private Methods
 
-bool	Response::_preparation( void )
+int	Response::_preparation( void )
 {
 	_loc = _findLocation();
 	if (!_loc)
-		return _404_error("No matching location");
+	{
+		_404_error("No matching location");
+		return 0;
+	}
 	const std::map<int, std::string> & redir = _loc->getReturn();
 	if (!redir.empty())
 	{
@@ -66,12 +71,13 @@ bool	Response::_preparation( void )
 		int status = acstat(filePath.c_str(), F_OK | R_OK);
 		if (status != -1)
 		{
-			_reconstitution();
-			return false;
+			_loc = _findLocation(locationUrl);
+			if (code == 301)
+				return 301;
+			return 200;
 		}
-		_setStatus(code, (code == 301 ? "Moved Permanently" : "Found"));
-		_setHeader("Location", locationUrl);
-		return false;
+		_404_error("Redirect not found");
+		return 1;
 	}
 	if (!_allowsMethod(_req->getMethod()))
 	{
@@ -86,9 +92,9 @@ bool	Response::_preparation( void )
 				allowHeader += ", ";
 		}
 		_setHeader("Allow", allowHeader);
-		return false;
+		return 0;
 	}
-	return true;
+	return 200;
 }
 
 void	Response::_reconstitution( void )
@@ -270,6 +276,21 @@ void HttpResponse::handlePost( void )
 
 // utils
 
+const Location *	Response::_findLocation( const std::string & path ) const
+{
+	const std::vector<Location> & locations = _server->getLocations();
+	const Location * best = NULL;
+
+	for (size_t i = 0; i < locations.size(); ++i)
+	{
+		const std::string & locPath = locations[i].getPath();
+		if (!locPath.empty() && path.find(locPath) == 0)
+			if (!best || locPath.size() > best->getPath().size())
+				best = &locations[i];
+	}
+	return best;
+}
+
 const Location *	Response::_findLocation( void ) const
 {
 	const std::vector<Location> & locations = _server->getLocations();
@@ -311,7 +332,7 @@ std::string	Response::_resolvePath( const std::string & reqPath )
 	return root + "/" + path;
 }
 
-bool	Response::_404_error( const std::string & body )
+void	Response::_404_error( const std::string & body )
 {
 	_setStatus(404, "Not Found");
 	const std::map<int, std::string> & errPages = _server->getErrorPages();
@@ -320,7 +341,6 @@ bool	Response::_404_error( const std::string & body )
 	else
 		_setBody(body);
 	_setHeader("Content-Type", getExtension(errPages.find(404)->second));
-	return false;
 }
 
 // Getters

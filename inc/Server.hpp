@@ -90,6 +90,7 @@ class	Server
 		size_t getMaxSize() const;
 		const std::string & getRoot() const;
 		const std::vector<Location> & getLocations() const;
+		const Location * getXLocation( const std::string & ) const;
 		const std::map<std::string, int> & getOverwritten() const;
 		const std::vector<std::string> & getWarnings() const;
 
