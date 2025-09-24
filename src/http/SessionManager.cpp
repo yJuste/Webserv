@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/23 11:29:36 by layang            #+#    #+#             */
-/*   Updated: 2025/09/24 12:57:55 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/24 15:47:26 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,11 @@
 SessionManager::SessionManager()
 {
     std::srand(std::time(NULL));
+}
+
+SessionManager::~SessionManager()
+{
+    _sessions.clear(); 
 }
 
 std::string SessionManager::generateSesssionId()

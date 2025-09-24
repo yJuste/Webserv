@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 08:18:57 by layang            #+#    #+#             */
-/*   Updated: 2025/09/24 12:00:10 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/24 15:46:28 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ class Poller {
 		std::vector<pollfd>	_fds;
 		std::map<int, Connection *> _connections;
 	public:
+		~Poller();
 		void addFd(int fd, short events, Connection *conn);
 		void removeFd(int fd);
 		void modifyFd(int fd, short events);

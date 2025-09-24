@@ -6,11 +6,18 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 09:22:57 by layang            #+#    #+#             */
-/*   Updated: 2025/09/24 11:49:29 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/24 15:46:52 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Poller.hpp"
+
+Poller::~Poller() {
+    for (std::map<int, Connection*>::iterator it = _connections.begin(); it != _connections.end(); ++it) {
+        delete it->second;
+    }
+    _connections.clear();
+}
 
 void Poller::addFd(int fd, short events, Connection *conn)
 {

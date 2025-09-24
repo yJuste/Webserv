@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/23 11:28:30 by layang            #+#    #+#             */
-/*   Updated: 2025/09/24 11:59:47 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/24 15:47:11 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ class SessionManager {
 		std::string generateSesssionId();
 	public:
 		SessionManager();
+		~SessionManager();
 		std::string createSession(const std::string username);
 		Session* getSession(const std::string& sessionId);
 		void cleanupExpired();
