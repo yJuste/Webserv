@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/22 09:22:57 by layang            #+#    #+#             */
-/*   Updated: 2025/09/16 19:03:14 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/24 11:49:29 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,14 +51,16 @@ void Poller::modifyFd(int fd, short events) {
     }
 }
 
-void Poller::run(const std::vector<Server*>& servers)
+void Poller::run(const std::vector<Server*>& servers, SessionManager& sessionManager)
 {
     while (true)
     {
         int ret = poll(_fds.data(), _fds.size(), -1);
         if (ret < 0)
             throw std::runtime_error("poll failed");
-
+        
+        sessionManager.cleanupExpired();
+            
         for (size_t i = 0; i < _fds.size(); i++)
         {
             int fd = _fds[i].fd;
@@ -90,7 +92,7 @@ void Poller::run(const std::vector<Server*>& servers)
                         }
                         if (serverOwner)
                         {
-                            Connection* conn = new Connection(clientFd, serverOwner);
+                            Connection* conn = new Connection(clientFd, serverOwner, sessionManager);
                             addFd(clientFd, POLLIN, conn);
                         }
                     }

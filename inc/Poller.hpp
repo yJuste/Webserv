@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/21 08:18:57 by layang            #+#    #+#             */
-/*   Updated: 2025/09/03 20:35:49 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/24 12:00:10 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 // Dependences
 # include "Server.hpp"
 # include "Connection.hpp"
+# include "SessionManager.hpp"
 //class Connection;
 
 // ************************************************************************** //
@@ -35,7 +36,7 @@ class Poller {
 		void addFd(int fd, short events, Connection *conn);
 		void removeFd(int fd);
 		void modifyFd(int fd, short events);
-		void run(const std::vector<Server*>& servers);
+		void run(const std::vector<Server*>& servers, SessionManager& sessionManager);
 };
 	
 #endif

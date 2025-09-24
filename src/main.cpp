@@ -32,6 +32,7 @@ int	main(int argc, char **argv)
 			throw FailedMainParameter();
 		create_unique_program();
 		std::vector<Server *>	servers;
+		SessionManager sessionManager;
 		Poller poller;
 
 		(void)argc;
@@ -43,7 +44,7 @@ int	main(int argc, char **argv)
 			servers[i]->myConfig();
 		}
 		std::cout << "Server running... press Ctrl+C to stop.\n";
-		poller.run(servers);
+		poller.run(servers, sessionManager);
 	}
 	catch (const std::runtime_error& e) { std::cerr << e.what() << std::endl; }
 	catch (std::exception & e) { std::cerr << e.what() << std::endl; }

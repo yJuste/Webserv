@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/07/26 19:34:52 by layang            #+#    #+#             */
-/*   Updated: 2025/09/16 11:03:23 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/24 11:59:58 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,8 @@
 # include "Location.hpp"
 # include "HttpRequest.hpp"
 # include "Server.hpp"
-#include "file_utils.hpp"
+# include "file_utils.hpp"
+# include "SessionManager.hpp"
 
 #include <string>
 #include <vector>
@@ -57,8 +58,8 @@ private:
 	std::string toString(const HttpRequest &req) const;
 	void handlePost(const HttpRequest &req, const Location *loc);
 	const Location* pathPrepa(HttpRequest &req, const Server* server);
-	void returnResponse(const Location* loc, HttpRequest &req, const Server* server);
-	void buildResponse(HttpRequest &req, const Server* server);
+	void returnResponse(const Location* loc, HttpRequest &req, const Server* server, SessionManager& sessionManager);
+	void buildResponse(HttpRequest &req, const Server* server, SessionManager& sessionManager);
 
 };
 

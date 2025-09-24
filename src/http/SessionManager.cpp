@@ -6,11 +6,12 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/23 11:29:36 by layang            #+#    #+#             */
-/*   Updated: 2025/09/23 13:21:39 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/24 12:57:55 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "SessionManager.hpp"
+#include <iostream>
 
 SessionManager::SessionManager()
 {
@@ -43,11 +44,13 @@ std::string SessionManager::createSession(const std::string username)
 	session.expire = std::time(NULL) + 3600;
 	_sessions[sessionId] = session;
 
-	return sessionId;  
+	return sessionId;
 }
 
 Session* SessionManager::getSession(const std::string& sessionId)
 {
+	if (sessionId.empty())
+		return NULL;
 	std::map<std::string, Session>::iterator it = _sessions.find(sessionId);
 	if (it != _sessions.end())
 	{
@@ -77,8 +80,47 @@ void SessionManager::cleanupExpired()
 }
 
 /*
+1:
+HTTP/1.1 200 OK
+Content-Type: text/html
+Set-Cookie: session_id=abc123; Max-Age=3600; HttpOnly
+2:
+GET /something HTTP/1.1
+Host: localhost:8080
+Cookie: session_id=abc123
+
+if (_request.isComplete()) {
+    HttpResponse response;
+
+    // session 部分
+    std::string sid = _request.getHeader("session_id");
+    Session* s = sessionManager.getSession(sid);
+    if (!s) {
+        sid = sessionManager.createSession("guest");
+        response.setCookie("session_id", sid, 3600, true);
+        s = sessionManager.getSession(sid);
+    }
+    s->mode = "rainbow";
+
+    response.buildResponse(_request, _server);
+    _writebBuffer = response.toString(_request);
+    _readBuffer.clear();
+    return true;
+}
+
+
+std::string html = loadFile("index.html");
+std::string mode = session->mode; 
+size_t pos = html.find("{{MODE}}");
+if (pos != std::string::npos) {
+    html.replace(pos, 8, mode);
+}
+response.setBody(html);
+response.setHeader("Content-Type", "text/html");
+
+
 *****在 Connection.cpp 或 Server.cpp 里这样用:
-std::string sid = request.getCookie("session_id");
+std::string sid = request.getHeader("session_id");
 Session* s = sessionManager.getSession(sid);
 if (!s) {
     sid = sessionManager.createSession("guest");

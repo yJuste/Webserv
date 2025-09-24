@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/31 17:42:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/16 18:51:55 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/24 12:16:08 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -271,4 +271,17 @@ int	acstat_file( const char * path, int mode )
 		return 2;
 	}
 	return -1;
+}
+
+std::string getSessionIdFromCookie(const std::string &cookie)
+{
+    size_t pos = cookie.find("session_id=");
+    if (pos == std::string::npos)
+        return "";
+    pos += 11;
+    size_t end = cookie.find(';', pos);
+    if (end == std::string::npos)
+        return cookie.substr(pos);
+    else
+        return cookie.substr(pos, end - pos);
 }

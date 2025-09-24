@@ -31,6 +31,7 @@
 
 # include "Server.hpp"
 # include "Poller.hpp"
+# include "SessionManager.hpp"
 //# include "Supervisor.hpp"
 
 // Defines

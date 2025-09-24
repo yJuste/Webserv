@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/16 18:45:21 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/24 13:39:05 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -333,8 +333,9 @@ const Location* HttpResponse::pathPrepa(HttpRequest &req, const Server* server)
 	return loc;
 }
 
-void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const Server* server)
+void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const Server* server, SessionManager& sessionManager)
 {
+	//(void)sessionManager;
 	if (req.getMethod() == "DELETE") {
 
 		if (loc->getPath() != "/upload") {
@@ -396,9 +397,30 @@ void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const S
 			return;
 		}
         if (req.getMethod() == "GET") {
-            setStatus(200, "OK");
-            setBody(readFile(filePath));
-            return;
+			std::string html = readFile(filePath);
+			if (filePath.find("index.html") != std::string::npos) {
+				std::string cookieHeader = req.getHeader("Cookie");
+				Session* session = sessionManager.getSession(getSessionIdFromCookie(cookieHeader));
+				if (!session) {
+					std::string sid = sessionManager.createSession("guest");
+					std::string value = "session_id=" + sid + "; Max-Age=3600; HttpOnly";
+					setHeader("Set-Cookie", value);
+					session = sessionManager.getSession(sid);
+				}
+				if (session) {
+					std::string mode = session->mode;
+					size_t pos = html.find("{{MODE}}");
+					if (pos != std::string::npos)
+						html.replace(pos, 8, mode);
+				}
+			}
+			setStatus(200, "OK");
+			setBody(html);
+			setHeader("Content-Type", getContentType(filePath));
+			return;
+			// setStatus(200, "OK");
+			// setBody(readFile(filePath));
+			// return;
         }
 
         setStatus(405, "Method Not Allowed");
@@ -417,10 +439,29 @@ void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const S
 			std::string indexPath = combineIndexPath(filePath, *it, root);
 			int s = acstat_file(indexPath.c_str(), F_OK | R_OK);
 			if (s == 1) {
+				std::string html = readFile(indexPath);
+				std::string cookieHeader = req.getHeader("Cookie");
+				Session* session = sessionManager.getSession(getSessionIdFromCookie(cookieHeader));
+				if (!session) {
+					std::string sid = sessionManager.createSession("guest");
+					std::string value = "session_id=" + sid + "; Max-Age=3600; HttpOnly";
+					setHeader("Set-Cookie", value);
+					session = sessionManager.getSession(sid);
+				}
+				if (session) {
+					std::string mode = session->mode;
+					size_t pos = html.find("{{MODE}}");
+					if (pos != std::string::npos)
+						html.replace(pos, 8, mode);
+				}			
 				setStatus(200, "OK");
-				setBody(readFile(indexPath));
+				setBody(html);
 				setHeader("Content-Type", getContentType(indexPath));
-				return;
+				return;				
+				// setStatus(200, "OK");
+				// setBody(readFile(indexPath));
+				// setHeader("Content-Type", getContentType(indexPath));
+				// return;
     		}
 		}		
 
@@ -454,9 +495,9 @@ void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const S
         setBody("Path does not exist, File not found");
 }
 
-void HttpResponse::buildResponse(HttpRequest &req, const Server* server)
+void HttpResponse::buildResponse(HttpRequest &req, const Server* server, SessionManager& sessionManager)
 {
 	const Location* loc = pathPrepa(req, server);
 	if (loc)
-		returnResponse(loc, req, server);
+		returnResponse(loc, req, server, sessionManager);
 }

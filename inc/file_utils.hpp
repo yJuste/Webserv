@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/04 10:39:02 by layang            #+#    #+#             */
-/*   Updated: 2025/09/16 11:05:47 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/24 12:10:57 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,5 +43,6 @@ std::vector<std::string> buildCgiEnv(const HttpRequest &req,
                                const std::string &filePath,
                                const Server &server);
 int	acstat_file( const char * path, int mode );
+std::string getSessionIdFromCookie(const std::string &cookie);
 
 #endif

@@ -6,13 +6,14 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:06:26 by layang            #+#    #+#             */
-/*   Updated: 2025/09/16 18:46:38 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/24 13:02:05 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Connection.hpp"
 
-Connection::Connection(int fd, Server* server) : _fd(fd), _server(server)
+Connection::Connection(int fd, Server* server, SessionManager& sessionManager) 
+    : _fd(fd), _server(server), _sessionManager(sessionManager)
 {}
 
 int Connection::getFd() const
@@ -73,7 +74,20 @@ bool Connection::readFromClient()
             std::cout << "---Request Body first line: " << firstLine << std::endl;
         }
         HttpResponse response;
-        response.buildResponse(_request, _server);
+        
+		std::string sid = getSessionIdFromCookie(_request.getHeader("Cookie"));
+		Session* session = _sessionManager.getSession(sid);
+		if (!session)
+		{
+			sid = _sessionManager.createSession("guest");
+			std::string value = "session_id=" + sid + "; Max-Age=3600; HttpOnly";
+			response.setHeader("Set-Cookie", value);
+			session = _sessionManager.getSession(sid);
+		}
+		if (session)
+			session->mode = "rainbow";
+        
+        response.buildResponse(_request, _server, _sessionManager);
         _writebBuffer = response.toString(_request);
         _readBuffer.clear();
         return true;
