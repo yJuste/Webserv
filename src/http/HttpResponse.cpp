@@ -6,7 +6,7 @@
 /*   By: layang <layang@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/23 19:11:45 by layang            #+#    #+#             */
-/*   Updated: 2025/09/24 13:39:05 by layang           ###   ########.fr       */
+/*   Updated: 2025/09/25 11:35:44 by layang           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -403,7 +403,7 @@ void HttpResponse::returnResponse(const Location* loc, HttpRequest &req, const S
 				Session* session = sessionManager.getSession(getSessionIdFromCookie(cookieHeader));
 				if (!session) {
 					std::string sid = sessionManager.createSession("guest");
-					std::string value = "session_id=" + sid + "; Max-Age=3600; HttpOnly";
+					std::string value = "session_id=" + sid + "; Max-Age=3600; HttpOnly; Secure";
 					setHeader("Set-Cookie", value);
 					session = sessionManager.getSession(sid);
 				}
