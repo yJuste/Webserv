@@ -10,6 +10,10 @@
 #ifndef RESPONSE_HPP
 # define RESPONSE_HPP
 
+// Standard Libraries
+
+# include <signal.h>
+
 // Dependences
 
 # include "Server.hpp"

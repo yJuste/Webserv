@@ -275,12 +275,17 @@ void	Response::_executeCGI( const std::string & filePath )
 	int inPipe[2];
 	int outPipe[2];
 	if (pipe(inPipe) < 0 || pipe(outPipe) < 0)
-		_response("500\nInternal Server Error\n\n\nFailed to create pipes for CGI");
+		return _response("500\nInternal Server Error\n\n\nFailed to create pipes for CGI");
 	pid_t pid = fork();
 	if (pid < 0)
-		_response("500\nInternal Server Error\n\n\nFailed to fork() CGI process.");
+	{
+		close(inPipe[0]); close(inPipe[1]);
+		close(outPipe[0]); close(outPipe[1]);
+		return _response("500\nInternal Server Error\n\n\nFailed to fork() CGI process.");
+	}
 	if (pid == 0)
 	{
+        	signal(SIGPIPE, SIG_IGN);
 		close(inPipe[1]);
 		close(outPipe[0]);
 		dup2(inPipe[0], 0);
@@ -296,7 +301,7 @@ void	Response::_executeCGI( const std::string & filePath )
 		const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
 		std::map<std::string, std::string>::const_iterator it = cgiMap.find(ext);
 		if (it == cgiMap.end())
-			_exit(1);
+			kill(getpid(), SIGTERM);
 
 		const char * cgiPath = it->second.c_str();
 		const char * scriptPath = filePath.c_str();
@@ -315,12 +320,22 @@ void	Response::_executeCGI( const std::string & filePath )
 		execve(cgiPath, (char * const *)argv, (char * const *)&envp[0]);
 		for (size_t i = 0; i < buffers.size(); ++i)
 			delete [] buffers[i];
-		_exit(1);
+		kill(getpid(), SIGTERM);
 	}
 	close(inPipe[0]); 
 	close(outPipe[1]);
 	if (_req->getMethod() == "POST")
-		write(inPipe[1], _req->getBody().c_str(), _req->getBody().size());
+	{
+		const std::string & body = _req->getBody();
+		ssize_t total = 0;
+		while (total < (ssize_t)body.size())
+		{
+			ssize_t w = write(inPipe[1], _req->getBody().c_str(), _req->getBody().size());
+			if (w <= 0)
+				break ;
+			total += w;
+		}
+	}
 	close(inPipe[1]);
 
 	char buffer[4096];
@@ -372,18 +387,14 @@ void	Response::_executeCGI( const std::string & filePath )
 		_setHeader(it->first, it->second);
 	_setBody(body);
 	if (!_headers.count("Status"))
-		_setStatus(200, "OK");
-	else
-	{
-		std::istringstream ss(_headers["Status"]);
-		int code;
-		std::string text;
-		ss >> code;
-		std::getline(ss, text);
-		_setStatus(code, text);
-	}
+		return _setStatus(200, "OK");
+	std::istringstream ss(_headers["Status"]);
+	int code;
+	std::string text;
+	ss >> code;
+	std::getline(ss, text);
+	_setStatus(code, text);
 }
-
 
 /*
  *	UTILS
