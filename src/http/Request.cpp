@@ -34,10 +34,14 @@ Request	& Request::operator = ( const Request & r )
 	return *this;
 }
 
-# include <iostream>
-
 int	Request::create( const std::string & raw )
 {
+	//afficherCaracteres(raw);
+	if (_method == "POST" && getHeader("Content-Type").find("application/x-www-form-urlencoded") != std::string::npos)
+	{
+		_body = raw;
+		return 0;
+	}
 	size_t headerEnd = raw.find("\r\n\r\n");
 	if (headerEnd == std::string::npos)
 		return 1;
@@ -45,7 +49,8 @@ int	Request::create( const std::string & raw )
 	_headerPart = raw.substr(0, headerEnd);
 	_body = raw.substr(headerEnd + 4);
 
-	if (raw[0] == '-')
+	if (raw[0] && raw[1] && raw[0] == '-' && raw[1] == '-'
+		&& getHeader("Content-Type").find("boundary=") != std::string::npos)
 		_body = raw;
 	else
 	{

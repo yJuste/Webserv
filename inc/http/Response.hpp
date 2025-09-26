@@ -15,12 +15,19 @@
 # include "Server.hpp"
 # include "utils.hpp"
 
+// Defines
+
+# ifndef USERS_FILE
+#  define USERS_FILE ".users.db"
+# endif
+
 class Client;
 class Request;
 
 /*	HELP
  *
  * Response Class find the nearest location possible.
+ * Users are saved in USERS_FILE.
  *
  */
 
@@ -46,18 +53,23 @@ class	Response
 
 		int _preparation();
 		void _reconstitution();
+		std::string _resolvePath();
 		void _handlePost( const std::string & );
+		void _handleUpload( std::string &, std::string & );
+		void _registry( std::string & );
+		void _handleDelete( std::string & );
 
 		// utils
 
+		void _response( const std::string & );
+		void _404_error( const std::string & );
 		void _check_keep_alive();
-		const Location * _findLocation() const;
 		const Location * _findLocation( const std::string & ) const;
 		bool _allowsMethod( const std::string & ) const;
-		std::string _resolvePath( const std::string & );
-		void _404_error( const std::string & );
 		bool _autoIndex( const std::string & );
 		bool _saveUploadedFile();
+		bool _saveUser( const std::string &, const std::string &, const std::string & );
+		bool _checkUser( const std::string &, const std::string & ) const;
 
 		// Setters
 

@@ -18,6 +18,17 @@ std::string	getExtension( const std::string & file )
 	return ext;
 }
 
+std::string	remove_sub_string( const std::string & source, const std::string & to_remove )
+{
+	std::string res = source;
+	if (to_remove.empty())
+		return source;
+	size_t pos = source.find(to_remove);
+	if (pos != std::string::npos)
+		res.erase(pos, to_remove.size());
+	return res;
+}
+
 std::string	rounded( size_t bytes )
 {
 	const char * units[] = {"bytes", "KB", "MB", "GB", "TB"};
@@ -36,6 +47,26 @@ std::string	rounded( size_t bytes )
 	ss.setf(std::ios::fixed);
 	ss << size << " " << units[unit];
 	return ss.str();
+}
+
+std::string	decode_hexa_http( const std::string & word )
+{
+	std::string result;
+	for (size_t i = 0; i < word.size(); ++i)
+	{
+		if (word[i] == '%' && i + 2 < word.size() && std::isxdigit(word[i + 1]) && std::isxdigit(word[i + 2]))
+		{
+			std::string hex = word.substr(i + 1, 2);
+			char decoded = static_cast<char>(std::stoi(hex, nullptr, 16));
+			result.push_back(decoded);
+			i += 2;
+		}
+		else if (word[i] == '+')
+			result.push_back(' ');
+		else
+			result.push_back(word[i]);
+	}
+	return result;
 }
 
 std::string	readFile( const std::string & path )
@@ -94,6 +125,23 @@ std::string	my_getcwd( void )
 	return path;
 }
 
+std::string	concatPaths( const std::string & path1, const std::string & path2 )
+{
+	if (path1.empty()) return path2;
+	if (path2.empty()) return path1;
+
+	size_t maxCheck = (path1.size() < path2.size()) ? path1.size() : path2.size();
+	for (size_t len = maxCheck; len > 0; --len)
+	{
+		if (path1.compare(path1.size() - len, len, path2, 0, len) == 0)
+		{
+			std::string head = path1.substr(0, path1.size() - len);
+			return head + path2;
+		}
+	}
+	return path1 + path2;
+}
+
 // Generate directory Listing for autoindex
 
 std::string	generateDirectoryListing( const std::string & dirPath, const std::string & reqPath )
@@ -144,4 +192,34 @@ std::string	getContentType( const std::string & path )
 	if (path.length() >= 4 && path.substr(path.length() - 4) == ".gif")
 		return "image/gif";
 	return "text/plain; charset=UTF-8";
+}
+
+std::string	registryKey( const std::string & body, const std::string & key )
+{
+	size_t pos = body.find(key + "=");
+	if (pos == std::string::npos)
+		return "";
+
+	pos += key.size() + 1;
+	size_t end = body.find('&', pos);
+	if (end == std::string::npos)
+		end = body.size();
+
+	return body.substr(pos, end - pos);
+}
+
+// debug fonction
+
+void	afficherCaracteres( const std::string & texte )
+{
+	for (size_t i = 0; i < texte.size(); ++i)
+	{
+		char c = texte[i];
+		if (c == '\n')
+			std::cout << "\\n" << std::endl;
+		else if (c == '\r')
+			std::cout << "\\r";
+		else
+			std::cout << c;
+	}
 }

@@ -47,7 +47,6 @@ std::string	Response::string( void ) const
 	response << "Content-Length: " << ss.str() << "\r\n";
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.end(); ++it)
 		response << it->first << ": " << it->second << "\r\n";
-	//response << "Set-Cookie: webserv=xyz789; Path=/site/; HttpOnly" << "\r\n";
 	response << "\r\n";
 	response << _body;
 	return response.str();
@@ -57,31 +56,25 @@ std::string	Response::string( void ) const
 
 int	Response::_preparation( void )
 {
-	_loc = _findLocation();
+	_loc = _findLocation(_req->getPath());
 	if (!_loc)
-	{
-		_404_error("No matching location");
-		return 0;
-	}
+		return _404_error("No matching location."), 0;
 	const std::map<int, std::string> & redir = _loc->getReturn();
 	if (!redir.empty())
 	{
-		int code = redir.begin()->first;
 		std::string locationUrl = redir.begin()->second;
 		_loc = _findLocation(locationUrl);
 		if (_loc)
 		{
 			_setHeader("Location", locationUrl);
-			if (code == 301)
+			if (redir.begin()->first == 301)
 				return 301;
 		}
-		_404_error("Redirect not found");
-		return 0;
+		return _404_error("Redirect not found."), 0;
 	}
 	if (!_allowsMethod(_req->getMethod()))
 	{
-		_setStatus(405, "Method Not Allowed");
-		_setBody("Method Not Allowed");
+		_response("405\nMethod Not Allowed\n\n\nMethod Not Allowed");
 		const std::vector<std::string> & methods = _loc->getMethods();
 		std::string allowHeader;
 		for (size_t i = 0; i < methods.size(); ++i)
@@ -90,57 +83,17 @@ int	Response::_preparation( void )
 			if (i != methods.size() - 1)
 				allowHeader += ", ";
 		}
-		_setHeader("Allow", allowHeader);
-		return 0;
+		return _setHeader("Allow", allowHeader), 0;
 	}
 	return 200;
 }
 
 void	Response::_reconstitution( void )
 {
-	/*if (req.getMethod() == "DELETE")
-	{
-		if (loc->getPath() != "/upload")
-		{
-			setStatus(403, "Forbidden");
-			setHeader("Content-Type", "application/json");
-			setBody("{\"status\":\"error\",\"message\":\"DELETE allowed only in /upload\"}");
-			return;
-		}
-		std::string filePath = resolvePath(loc, req.getPath());
-		int status = acstat_file(filePath.c_str(), F_OK | R_OK);
-		if (status == 1)
-		{
-			if (std::remove(filePath.c_str()) == 0)
-			{
-				setStatus(200, "OK");
-				setHeader("Content-Type", "application/json");
-				setBody("{\"status\":\"deleted\",\"path\":\"" + req.getPath() + "\"}");
-			}
-			else
-			{
-				setStatus(500, "Internal Server Error");
-				setHeader("Content-Type", "application/json");
-				setBody("{\"status\":\"error\",\"message\":\"Failed to delete file\"}");
-			}
-			return;
-		}
-		else if (status == 2)
-		{
-			setStatus(405, "Method Not Allowed");
-			setHeader("Content-Type", "application/json");
-			setBody("{\"status\":\"error\",\"message\":\"Cannot delete directory\"}");
-			return;
-		}
-		else
-		{
-			setStatus(404, "Not Found");
-			setHeader("Content-Type", "application/json");
-			setBody("{\"status\":\"error\",\"message\":\"File not found\"}");
-			return;
-		}
-	}*/
-	std::string filePath = _resolvePath(_req->getPath());
+	std::string filePath = _resolvePath();
+	std::cout << filePath << std::endl;
+	if (_req->getMethod() == "DELETE")
+		return _handleDelete(filePath);
 	if (_req->getMethod() == "POST")
 		return _handlePost(filePath);
 	int status = acstat(filePath.c_str(), F_OK | R_OK);
@@ -154,138 +107,193 @@ void	Response::_reconstitution( void )
 			return ;
 		}
 		if (_req->getMethod() == "GET")
-		{
-			_setStatus(200, "OK");
-			_setBody(readFile(filePath));
-			_setHeader("Content-Type", getContentType(filePath));
-			return ;
-		}
-		_setStatus(405, "Method Not Allowed");
-		_setBody("POST not allowed on static file");
-		return ;
+			return _response("200\nOK\nContent-Type\n" + getContentType(filePath) + "\n" + readFile(filePath));
+		return _response("405\nMethod Not Allowed\n\n\nPost not allowed on static file.");
 	}
 	else if (status == 2)
 	{
-		if (filePath[filePath.size() - 1] != '/')
-			filePath += '/';
-		std::string index = filePath + _loc->getIndex()[0];
+		std::string index = concatPaths(filePath, _loc->getIndex()[0]);
 		if (_autoIndex(index))
 			return ;
 		if (acstat(index.c_str(), F_OK) == -1)
-		{
-			_setStatus(403, "Forbidden");
-			_setBody("File does not exist, forbidden path. ( you should add a default file, like 'index.html')");
-			return ;
-		}
-		_setStatus(200, "OK");
-		_setBody(readFile(index));
-		_setHeader("Content-Type", getContentType(index));
-		return ;
+			return _response("403\nForbidden\n\n\nFile does not exist, forbidden path. ( you should add a default file, like 'index.html')");
+		return _response("200\nOK\nContent-Type\n" + getContentType(index) + "\n" + readFile(index));
 	}
-	_404_error("Path does not exist, File not found");
+	return _404_error("Path does not exist, File not found.");
 }
+
+/*
+ *	POST
+ */
 
 void	Response::_handlePost( const std::string & path )
 {
 	if (_req->getBody().size() > _server->getMaxSize())
 	{
-		_setStatus(413, "Payload Too Large");
 		std::stringstream ss;
-		ss << "Failed to save uploaded file: > " << rounded(_server->getMaxSize()) << " bytes" << std::endl;
-		_setBody(ss.str());
-		return ;
+		ss << "Failed to save uploaded file: > " << rounded(_server->getMaxSize()) << " bytes";
+		return _response("413\nPayload Too Large\n\n\n" + ss.str());
 	}
 
 	std::string filePath = path;
 	std::string contentType = _req->getHeader("Content-Type");
 
+	if (contentType.find("multipart/form-data") != std::string::npos
+		|| contentType.find("application/octet-stream") != std::string::npos
+		|| contentType.find("text/plain") != std::string::npos
+		|| _req->getHeader("Transfer-Encoding") == "chunked")
+		return _handleUpload(filePath, contentType);
+	if (contentType.find("application/x-www-form-urlencoded") != std::string::npos)
+		return _registry(contentType);
+	return _404_error("POST route not found.");
+}
+
+void	Response::_handleUpload( std::string & filePath, std::string & contentType )
+{
 	if (contentType.find("multipart/form-data") != std::string::npos)
 	{
 		bool success = _saveUploadedFile();
 		if (success)
 		{
-			if (filePath[filePath.size() - 1] != '/')
-				filePath += '/';
-			filePath += _loc->getRoot();
-			_setStatus(201, "Created");
-			_setBody("File uploaded successfully");
 			if (_autoIndex(filePath))
 				return ;
+			return _response("201\nCreated\n\n\nFile uploaded successfully.");
 		}
-		else
-		{
-			_setStatus(500, "Internal Server Error");
-			_setBody("Failed to save uploaded file");
-		}
-		return;
+		return _response("500\nInternal Server Error\n\n\nFailed to save uploaded file");
 	}
 	else if (contentType.find("application/octet-stream") != std::string::npos
 		|| contentType.find("text/plain") != std::string::npos
 		|| _req->getHeader("Transfer-Encoding") == "chunked")
 	{
 		std::string data = _req->getBody();
-		std::string filePath = _loc->getUpload() + "/upload.bin";
-		std::fstream out(filePath.c_str(), std::fstream::binary);
+		std::fstream out((_loc->getUpload() + "/upload.bin").c_str(), std::fstream::binary);
 		if (out)
 		{
 			out.write(data.c_str(), data.size());
 			out.close();
-			_setStatus(201, "Created");
-			_setBody("Raw file uploaded successfully");
+			if (_autoIndex(filePath))
+				return ;
+			return _response("201\nCreated\n\n\nRaw file uploaded successfully.");
 		}
-		else
-		{
-			_setStatus(500, "Internal Server Error");
-			_setBody("Failed to write file");
-		}
-		return;
+		return _response("500\nInternal Server Error\n\n\nFailed to write file.");
 	}
-	else
-	{
-		_setStatus(415, "Unsupported Media Type");
-		_setBody("Content-Type not supported for upload");
-		return;
-	}
-	/*
-	if (path == "/register" &&
-	    contentType.find("application/x-www-form-urlencoded") != std::string::npos)
-	{
-		std::string username = getFormValue(req.getRequestBody(), "username");
-		std::string password = getFormValue(req.getRequestBody(), "password");
-
-		bool success = saveUser(username, password);
-		if (success) {
-			setStatus(201, "Created");
-			setBody("Account created successfully");
-		} else {
-			setStatus(400, "Bad Request");
-			setBody("Username already exists or failed to save");
-		}
-		return;
-	}
-
-	if (path == "/login" &&
-	    contentType.find("application/x-www-form-urlencoded") != std::string::npos)
-	{
-		std::string username = getFormValue(req.getRequestBody(), "username");
-		std::string password = getFormValue(req.getRequestBody(), "password");
-
-		if (checkUser(username, password)) {
-			setStatus(200, "OK");
-			setBody("Login successful");
-		} else {
-			setStatus(401, "Unauthorized");
-			setBody("Invalid username or password");
-		}
-		return;
-	}
-	*/
-	_setStatus(404, "Not Found");
-	_setBody("POST route not found");
-	return ;
+	return _response("415\nUnsupported Media Type\n\n\nContent-Type not supported for upload.");
 }
 
-// utils
+void	Response::_registry( std::string & contentType )
+{
+	const std::string & body = _req->getBody();
+	std::string username = registryKey(body, "username");
+	std::string password = registryKey(body, "password");
+	std::string email = registryKey(body, "email");
+
+	if (contentType.find("application/x-www-form-urlencoded") != std::string::npos
+		&& _req->getBody().find("email=") != std::string::npos)
+	{
+		bool success = _saveUser(username, password, email);
+		if (success)
+			return _response("201\nCreated\n\n\nAccount created successfully.");
+		return _response("400\nBad Request\n\n\nUsername already exists or failed to save.");
+	}
+	if (contentType.find("application/x-www-form-urlencoded") != std::string::npos)
+	{
+		if (_checkUser(username, password))
+			return _response("200\nOK\n\n\nLogin successful.");
+		return _response("401\nUnauthorized\n\n\nInvalid username or password.");
+	}
+	return _404_error("POST route not found.");
+}
+
+/*
+ *	DELETE
+ */
+
+void	Response::_handleDelete( std::string & path )
+{
+	if (_loc->getPath().find("upload") == std::string::npos)
+		return _response("403\nForbidden\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"DELETE allowed only in /upload\"}");
+	path = concatPaths(path, _req->getPath());
+	int status = acstat(path.c_str(), F_OK | R_OK);
+	if (status == 1)
+	{
+		if (std::remove(path.c_str()) == 0)
+			return _response("200\nOK\nContent-Type\napplication/json\n{\"status\":\"deleted\",\"path\":\"" + remove_sub_string(path, my_getcwd() + "/") + "\"}");
+		return _response("500\nInternal Server Error\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Failed to delete file\"}");
+	}
+	else if (status == 2)
+		return _response("405\nMethod Not Allowed\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Cannot delete directory\"}");
+	return _response("404\nDELETE found nothing.\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"File not found\"}");
+}
+
+/*
+ *	UTILS
+ */
+
+void	Response::_response( const std::string & input )
+{
+	std::vector<std::string> parts;
+	std::string current;
+	size_t i = 0;
+
+	for (; i < input.size(); ++i)
+	{
+		if (input[i] == '\n')
+		{
+			parts.push_back(current);
+			current.clear();
+			if (parts.size() == 4)
+			{
+				++i;
+				break;
+			}
+		}
+		else
+			current += input[i];
+	}
+	if (!current.empty() && parts.size() < 4)
+	{
+		parts.push_back(current);
+		current.clear();
+	}
+	while (parts.size() < 4)
+		parts.push_back("");
+	std::string body;
+	if (i < input.size())
+		body = input.substr(i);
+	if (!parts[0].empty())
+	{
+		int code = 0;
+		std::istringstream(parts[0]) >> code;
+		_setStatus(code, parts[1]);
+	}
+	if (!parts[2].empty() && !parts[3].empty())
+		_setHeader(parts[2], parts[3]);
+	if (!body.empty())
+		_setBody(body);
+}
+
+std::string	Response::_resolvePath( void )
+{
+	std::string filePath = _loc->getRoot();
+	if (_loc->getPath() == _req->getPath())
+	{
+		if (filePath.size() >= 2 && filePath[0] == '.' && filePath[1] == '/')
+			filePath = my_getcwd() + "/" + filePath;
+		return filePath;
+	}
+	return concatPaths(my_getcwd() + "/" + filePath, _req->getPath());
+}
+
+void	Response::_404_error( const std::string & status )
+{
+	_setStatus(404, "Not Found");
+	const std::map<int, std::string> & errPages = _server->getErrorPages();
+	if (errPages.find(404) != errPages.end())
+		_setBody(readFile(errPages.find(404)->second));
+	else
+		_setBody(status);
+	_setHeader("Content-Type", getExtension(errPages.find(404)->second));
+}
 
 void	Response::_check_keep_alive( void )
 {
@@ -302,28 +310,27 @@ void	Response::_check_keep_alive( void )
 
 const Location *	Response::_findLocation( const std::string & path ) const
 {
-	const std::vector<Location> & locations = _server->getLocations();
-	const Location * best = NULL;
+	const std::vector<Location> &locations = _server->getLocations();
+	const Location *best = NULL;
 
 	for (size_t i = 0; i < locations.size(); ++i)
 	{
-		const std::string & locPath = locations[i].getPath();
-		if (!locPath.empty() && path.find(locPath) == 0)
-			if (!best || locPath.size() > best->getPath().size())
-				best = &locations[i];
+		const std::string &locPath = locations[i].getPath();
+		size_t lsize = locPath.size();
+		size_t psize = path.size();
+		if (lsize <= psize && path.compare(0, lsize, locPath) == 0)
+		{
+			if (locPath == "/")
+			{
+				if (!best)
+					best = &locations[i];
+				continue;
+			}
+			if (psize == lsize || path[lsize] == '/')
+				if (!best || lsize > best->getPath().size())
+					best = &locations[i];
+		}
 	}
-	return best;
-}
-
-const Location *	Response::_findLocation( void ) const
-{
-	const std::vector<Location> & locations = _server->getLocations();
-	const Location * best = NULL;
-
-	for (size_t i = 0; i < locations.size(); ++i)
-		if (_req->getPath().find(locations[i].getPath()) == 0)
-			if (!best || locations[i].getPath().size() > best->getPath().size())
-				best = &locations[i];
 	return best;
 }
 
@@ -336,47 +343,14 @@ bool	Response::_allowsMethod( const std::string & method ) const
 	return false;
 }
 
-std::string	Response::_resolvePath( const std::string & reqPath )
-{
-	std::string root = _loc->getRoot();
-	if (root.size() >= 2 && root[0] == '.' && root[1] == '/')
-		root = my_getcwd() + "/";
-	while (!root.empty() && root[root.size() - 1] == '/')
-		root.erase(root.size() - 1);
-
-	std::string locPath = _loc->getPath();
-	std::string path = reqPath;
-
-	if (!locPath.empty() && locPath != "/" && path.find(locPath) == 0)
-		path = path.substr(locPath.size());
-	while (!path.empty() && path[0] == '/')
-		path.erase(0, 1);
-	if (acstat((_loc->getRoot() + path).c_str(), F_OK | R_OK) == 1)
-		return root + "/" + _loc->getRoot() + path;
-	return root + "/" + path;
-}
-
-void	Response::_404_error( const std::string & body )
-{
-	_setStatus(404, "Not Found");
-	const std::map<int, std::string> & errPages = _server->getErrorPages();
-	if (errPages.find(404) != errPages.end())
-		_setBody(readFile(errPages.find(404)->second));
-	else
-		_setBody(body);
-	_setHeader("Content-Type", getExtension(errPages.find(404)->second));
-}
-
 bool	Response::_autoIndex( const std::string & path )
 {
 	if (_loc->getAutoindex())
 	{
-		_setStatus(200, "OK");
-		_setHeader("Content-Type", "text/html");
 		std::string reducedPath = path;
 		while (!reducedPath.empty() && reducedPath.back() != '/')
 			reducedPath.pop_back();
-		_setBody(generateDirectoryListing(reducedPath, _req->getPath()));
+		_response("200\nOK\nContent-Type\ntext/html\n" + generateDirectoryListing(reducedPath, _req->getPath()));
 		return true;
 	}
 	return false;
@@ -431,21 +405,75 @@ bool	Response::_saveUploadedFile( void )
 	std::ifstream in(fullPath.c_str(), std::ios::binary | std::ios::ate);
 	std::streamsize size = in.tellg();
 	in.close();
-	Print::enval(RESET, "    | File", RESET, "[" + rounded(static_cast<size_t>(size)) + " bytes" + std::string(RESET) + "]");
+	Print::enval(RESET, "    | File", RESET, "[" + rounded(static_cast<size_t>(size)) + std::string(RESET) + "]");
 	return true;
+}
+
+bool	Response::_saveUser( const std::string & username, const std::string & password, const std::string & email )
+{
+	std::ofstream create(USERS_FILE, std::ios::app);
+	if (!create)
+		return false;
+	create.close();
+
+	bool exists = false;
+	std::ifstream file1(USERS_FILE, std::ifstream::in);
+	if (!file1)
+		return false;
+	std::string line;
+	while (std::getline(file1, line))
+	{
+		size_t sep = line.find(':');
+		if (sep != std::string::npos)
+		{
+			std::string user = line.substr(0, sep);
+			if (user == username)
+				exists = true;
+		}
+	}
+	if (exists)
+		return false;
+
+	std::ofstream file2(USERS_FILE, std::ios::app);
+	if (!file2)
+		return false;
+	file2 << username << ":" << password << ":" << email << std::endl;
+	file2.close();
+	return true;
+}
+
+bool	Response::_checkUser( const std::string & username, const std::string & password ) const
+{
+	std::ofstream create(USERS_FILE, std::ios::app);
+	if (!create)
+		return false;
+	create.close();
+
+	std::ifstream file(USERS_FILE, std::ifstream::in);
+	if (!file)
+		return false;
+	std::string line;
+	while (std::getline(file, line))
+	{
+		size_t sep = line.find(':');
+		if (sep != std::string::npos)
+		{
+			std::string user = line.substr(0, sep);
+			std::string pass = line.substr(sep + 1);
+			size_t sep2 = pass.find(':');
+			pass = line.substr(0, sep2);
+			if (user == username && pass == password)
+				return true;
+		}
+	}
+	return false;
 }
 
 // Getters
 
 const std::pair<int, std::string> & Response::getStatus() const { return _status; }
 const std::map<std::string, std::string> & Response::getHeaders() const { return _headers; }
-std::string Response::getHeader( const std::string & type ) const
-{
-	std::map<std::string, std::string>::const_iterator it = _headers.find(type);
-	if (it != _headers.end())
-		return it->second;
-	return "";
-}
+std::string Response::getHeader( const std::string & type ) const { std::map<std::string, std::string>::const_iterator it = _headers.find(type); if (it != _headers.end()) return it->second; return ""; }
 const std::string & Response::getBody() const { return _body; }
 
 // Setters
