@@ -13,14 +13,13 @@ Location::Location() : _path(""), _root(""), _upload(""), _autoindex(false)
 {
 	for (int i = 0; g_methods[i]; ++i)
 		_methods.push_back(g_methods[i]);
-
+	_overwritten["cgi"] = 0;
 	_overwritten["root"] = 0;
+	_overwritten["index"] = 0;
 	_overwritten["upload"] = 0;
 	_overwritten["methods"] = 0;
 	_overwritten["redirect"] = 0;
 	_overwritten["autoindex"] = 0;
-	_overwritten["index"] = 0;
-	_overwritten["cgi"] = 0;
 }
 Location::~Location() {}
 
@@ -30,16 +29,16 @@ Location	&Location::operator = ( const Location & l )
 {
 	if (this != &l)
 	{
-		_path = l.getPath();
-		_root = l.getRoot();
-		_upload = l.getUpload();
-		_methods = l.getMethods();
-		_return = l.getReturn();
-		_autoindex = l.getAutoindex();
-		_index = l.getIndex();
-		_cgi = l.getCgi();
-		_cgi_paths = l.getCgiPaths();
-		_overwritten = l.getOverwritten();
+		_path = l._path;
+		_root = l._root;
+		_upload = l._upload;
+		_methods = l._methods;
+		_return = l._return;
+		_autoindex = l._autoindex;
+		_index = l._index;
+		_cgi = l._cgi;
+		_cgi_paths = l._cgi_paths;
+		_overwritten = l._overwritten;
 	}
 	return *this;
 }

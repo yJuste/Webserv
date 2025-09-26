@@ -9,9 +9,7 @@
 
 # include "main.hpp"
 
-// tester Connection : close >>> curl -v http://127.0.0.1:8080 -H "Connection: close"
-
-int	main(int argc, char **argv)
+int	main( int argc, char ** argv )
 {
 	try
 	{
@@ -46,7 +44,6 @@ void	create_unique_program( void )
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(62034);
 	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-
 	if (bind(sock, (sockaddr *)&addr, sizeof(addr)) == -1)
 		throw NotUniqueProcessus();
 }

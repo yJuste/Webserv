@@ -23,9 +23,9 @@ bool	is_commentary( const std::string & line )
 
 std::vector<std::string>	split( const std::string & s )
 {
-	std::stringstream		ss(s);
-	std::string			word;
-	std::vector<std::string>	words;
+	std::string word;
+	std::stringstream ss(s);
+	std::vector<std::string> words;
 
 	while (ss >> word)
 	{
@@ -44,11 +44,11 @@ std::vector<std::string>	split( const std::string & s )
 
 std::string	trim( const std::string & s )
 {
-	size_t	begin = s.find_first_not_of(" \t\r\n");
+	size_t begin = s.find_first_not_of(" \t\r\n");
 	if (begin == std::string::npos)
 		return "";
 
-	size_t	end = s.find_last_not_of(" \t\r\n");
+	size_t end = s.find_last_not_of(" \t\r\n");
 	return s.substr(begin, end - begin + 1);
 }
 
@@ -57,13 +57,12 @@ std::vector<Server *>	configure_file( const char * s )
 	if (acstat(s, F_OK | R_OK) != 1)
 		throw FailedAcstat(s);
 
-	std::ifstream	file(s, std::ifstream::binary);
+	std::ifstream file(s, std::ifstream::binary);
 	if (!file.is_open())
 		throw FailedOpen();
 
-	std::string			line;
-	std::vector<std::string>	words;
-
+	std::string line;
+	std::vector<std::string> words;
 	while (std::getline(file, line))
 	{
 		line = trim(line);

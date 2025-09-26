@@ -46,7 +46,6 @@ class	Server
 
 		int				_socket;
 		struct sockaddr_in		_address;
-
 		std::string			_host;
 		std::vector<int>		_port;
 		std::string			_root;
@@ -56,9 +55,6 @@ class	Server
 		std::map<int, std::string>	_errorPages;
 		size_t				_maxSize;
 		std::vector<Location>		_locations;
-
-		// parsing
-
 		std::vector<std::string>	_warnings;
 		std::map<std::string, int>	_overwritten;
 

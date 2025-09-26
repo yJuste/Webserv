@@ -27,25 +27,22 @@
 // ----- Parsing -----
 
 int	acstat( const char *, int );
-void	stoa( const std::string & );
 int	relative( const std::string & );
 std::string	handle_folder( std::string );
 
 // ------ Http -------
 
-std::string	readFile( const std::string & );
 std::string	my_getcwd();
-std::string	generateDirectoryListing( const std::string &, const std::string & );
+std::string	readFile( const std::string & );
 std::string	getContentType( const std::string & );
 std::string	registryKey( const std::string &, const std::string & );
-std::string	decode_hexa_http( const std::string & );
+std::string	concatPaths( const std::string &, const std::string & );
+std::string	remove_sub_string( const std::string &, const std::string & );
+std::string	generateDirectoryListing( const std::string &, const std::string & );
 
 // ------ Others -----
 
 std::string	rounded( size_t );
 std::string	getExtension( const std::string & );
-std::string	concatPaths( const std::string &, const std::string & );
-std::string	remove_sub_string( const std::string &, const std::string & );
-void		afficherCaracteres( const std::string & );
 
 #endif

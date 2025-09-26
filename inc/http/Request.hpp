@@ -27,10 +27,8 @@ class	Request
 	private:
 
 		const Client *				_client;
-
 		std::string				_headerPart;
 		std::string				_body;
-
 		std::string				_method;
 		std::string				_path;
 		std::string				_version;
@@ -44,6 +42,8 @@ class	Request
 		std::string _unchunkBody( const std::string & );
 		bool _isComplete();
 
+		// ~Structor
+
 		Request();
 
 	public:
@@ -54,7 +54,7 @@ class	Request
 		Request( const Request & );
 		Request & operator = ( const Request & );
 
-		// Method
+		// Methods
 
 		int create( const std::string & );	// forme la requete.
 		void reset();

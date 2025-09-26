@@ -41,14 +41,9 @@ void	create_unique_program();
 
 // ----- Parsing -----
 
-// configure_file.cpp
 std::vector<Server *>	configure_file( const char * );
 std::vector<Server *>	multi_ports( std::vector<Server *> & );
-
-// init_server.cpp
 std::vector<Server *>	create_servers( const std::vector<std::string> & );
-
-// init_location.cpp
-Location	create_location( const std::vector<std::string> &, std::vector<std::string>::const_iterator &, Server & );
+Location		create_location( const std::vector<std::string> &, std::vector<std::string>::const_iterator &, Server & );
 
 #endif

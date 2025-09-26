@@ -17,9 +17,8 @@ void	init_cgi_path( const std::vector<std::string> & words, std::vector<std::str
 {
 	while (it != words.end())
 	{
-		std::string	path = *it;
-		bool		semicolon = false;
-
+		std::string path = *it;
+		bool semicolon = false;
 		if (!path.empty() && path[path.size() - 1] == ';')
 		{
 			path.erase(path.size() - 1);
@@ -34,7 +33,6 @@ void	init_cgi_path( const std::vector<std::string> & words, std::vector<std::str
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
-
 	location.setOverwritten("cgi");
 }
 
@@ -42,9 +40,8 @@ void	init_cgi_ext( const std::vector<std::string> & words, std::vector<std::stri
 {
 	while (it != words.end())
 	{
-		std::string	index = *it;
-		bool		semicolon = false;
-
+		std::string index = *it;
+		bool semicolon = false;
 		if (!index.empty() && index[index.size() - 1] == ';')
 		{
 			index.erase(index.size() - 1);
@@ -61,15 +58,13 @@ void	init_cgi_ext( const std::vector<std::string> & words, std::vector<std::stri
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
-
 	location.setOverwritten("cgi");
 }
 
 void	init_cgi( std::vector<std::string>::const_iterator & it, Location & location )
 {
-	std::string	extension = *(it++);
-	std::string	program = *it;
-
+	std::string extension = *(it++);
+	std::string program = *it;
 	if (extension[0] != '.')
 		throw NotExtension(extension.c_str());
 	if (program.empty() || program[program.size() - 1] != ';')
@@ -77,9 +72,7 @@ void	init_cgi( std::vector<std::string>::const_iterator & it, Location & locatio
 	program.erase(program.size() - 1);
 	if (acstat(program.c_str(), F_OK | X_OK) != 1)
 		throw ProgramCgi(program.c_str());
-
 	location.addCgi(extension, program.c_str());
-
 	location.setOverwritten("cgi");
 }
 
@@ -102,7 +95,6 @@ void	init_index( const std::vector<std::string> & words, std::vector<std::string
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
-
 	location.setIndex(tabs);
 	location.setOverwritten("index");
 }
@@ -117,41 +109,35 @@ void	init_autoindex( std::string str, Location & location )
 		&& str != "yes" && str != "no"
 		&& str != "on" && str != "off")
 		throw InvalidAutoindex();
-
 	location.setAutoindex(str == "true" || str == "1" || str == "yes" || str == "on");
 	location.setOverwritten("autoindex");
 }
 
 void	init_return( std::vector<std::string>::const_iterator & it, Location & location )
 {
-
-	std::stringstream	ss(*it);
-	int			code;
-
+	std::stringstream ss(*it);
+	int code;
 	if (!(ss >> code))
 		throw InvalidParameterReturn(it->c_str());
 	std::string str = *(++it);
 	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
-
 	location.setReturn(code, str.c_str());
 	location.setOverwritten("redirect");
 }
 
 void	init_methods( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
 {
-	std::vector<std::string>	methods;
-	std::vector<std::string>	ext;
-	const int			count = (sizeof(g_methods) - sizeof(g_methods[0])) / sizeof(g_methods[0]);
-
+	std::vector<std::string> methods;
+	std::vector<std::string> ext;
+	const int count = (sizeof(g_methods) - sizeof(g_methods[0])) / sizeof(g_methods[0]);
 	for ( int i = 0; i < count; ++i )
 		ext.push_back(std::string(g_methods[i]));
 	while (it != words.end())
 	{
-		std::string	method = *it;
-		bool		semicolon = false;
-
+		std::string method = *it;
+		bool semicolon = false;
 		if (!method.empty() && method[method.size() - 1] == ';')
 		{
 			method.erase(method.size() - 1);
@@ -170,7 +156,6 @@ void	init_methods( const std::vector<std::string> & words, std::vector<std::stri
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
-
 	location.setMethods(methods);
 	location.setOverwritten("methods");
 }
@@ -180,7 +165,6 @@ void	init_upload( std::string str, Location & location )
 	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
-
 	location.setUpload(str.c_str());
 	location.setOverwritten("upload");
 }
@@ -190,7 +174,6 @@ void	init_root( std::string str, Location & location )
 	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
-
 	location.setRoot(str.c_str());
 	location.setOverwritten("root");
 }
@@ -238,7 +221,6 @@ void	create_paths( Location & location, Server & server )
 	bool status = false;
 	std::string first = "";
 	std::vector<std::string> index = location.getIndex();
-
 	for (std::vector<std::string>::iterator it = index.begin(); it != index.end(); ++it)
 	{
 		*it = location.getRoot() + *it;
@@ -255,6 +237,7 @@ void	create_paths( Location & location, Server & server )
 		try { if (index.size()) throw FailedAcstat(index[0].c_str()); }
 		catch ( std::exception & e ) { server.addWarning(e.what()); }
 	}
+
 	std::vector<std::string>::iterator pos = std::find(index.begin(), index.end(), first);
 	if (pos != index.end())
 	{
@@ -268,7 +251,7 @@ void	create_paths( Location & location, Server & server )
 	std::map<std::string, std::string>::iterator it = cgi.begin();
 	for (size_t i = 0; i < paths.size() && it != cgi.end(); ++i, ++it)
 		it->second = paths[i];
-	for (it = cgi.begin(); it != cgi.end(); )
+	for (it = cgi.begin(); it != cgi.end();)
 	{
 		if (it->second == "")
 			it = cgi.erase(it);
@@ -290,12 +273,11 @@ void	overwritten( Location & location, Server & server )
 
 Location	create_location( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
-	Location	location;
-
+	Location location;
 	location.setPath(it->c_str());
 	location.setRoot(server.getRoot());
-	std::vector<Location> locations = server.getLocations();
 
+	std::vector<Location> locations = server.getLocations();
 	if (dupLocation(server.getLocations(), location.getPath()))
 		throw DuplicateLocation((location.getPath()).c_str());
 	if (++it == words.end() || *(it++) != "{")

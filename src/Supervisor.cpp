@@ -14,6 +14,22 @@ Supervisor::~Supervisor() { _clean(); }
 
 Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(0), _server_size(0) { hold(servers); }
 
+Supervisor::Supervisor( const Supervisor & s ) { *this = s; }
+
+Supervisor	& Supervisor::operator = ( const Supervisor & s )
+{
+	if (this != &s)
+	{
+		for (size_t i = 0; i < FDS_SIZE; ++i)
+			_fds[i] = s._fds[i];
+		_servers = s._servers;
+		_clients = s._clients;
+		_size = s._size;
+		_server_size = s._server_size;
+	}
+	return *this;
+}
+
 // Methods
 
 void	Supervisor::hold( const std::vector<Server *> & servers )
@@ -42,6 +58,7 @@ void	Supervisor::execution( void )
 {
 	if (_server_size == 0)
 		throw NoServerAdded();
+
 	time_t lastHelp = std::time(0);
 	bool last_print = true;
 	_clock(last_print, lastHelp);
@@ -56,6 +73,7 @@ void	Supervisor::execution( void )
 				continue ;
 			if (!(_fds[i].revents & POLLIN))
 				continue ;
+
 			int fd = _fds[i].fd;
 			if (fd == STDIN_FILENO)
 			{
@@ -67,19 +85,13 @@ void	Supervisor::execution( void )
 					for (size_t j = 0; j < _server_size; ++j)
 						_servers[j]->myConfig();
 				else if (input == "stop")
-				{
-					std::cout << std::string(APPLE_GREEN) << "Quit properly." << std::string(RESET) << std::endl;
-					return ;
-				}
+					return (void)(std::cout << std::string(APPLE_GREEN) << "Quit properly." << std::string(RESET) << std::endl);
 				continue ;
 			}
 			if (i < _server_size)
 			{
 				if (_size >= FDS_SIZE)
-				{
-					Print::debug(RED, "error", "Too many connexions on a server.");
-					continue ;
-				}
+					return (void)Print::debug(RED, "error", "Too many connexions on a server.");
 				Client * client = new Client(fd, _servers[i]);
 				_clients.push_back(client);
 				_fds[_size].fd = client->getSocket();
@@ -118,7 +130,7 @@ Client * Supervisor::_getClient( int fd )
 	for (std::vector<Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
 		if ((*it)->getSocket() == fd)
 			return *it;
-	return NULL;
+	return nullptr;
 }
 
 Client * Supervisor::_supClient( int fd )
@@ -132,7 +144,7 @@ Client * Supervisor::_supClient( int fd )
 			return *it;
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 void	Supervisor::_clock( bool & last_print, time_t & lastHelp )
@@ -159,13 +171,13 @@ void	Supervisor::_clean( void )
 	for (size_t i = 0; i < _servers.size(); ++i)
 	{
 		delete _servers[i];
-		_servers[i] = NULL;
+		_servers[i] = nullptr;
 	}
 	_servers.clear();
 	for (size_t i = 0; i < _clients.size(); ++i)
 	{
 		delete _clients[i];
-		_servers[i] = NULL;
+		_servers[i] = nullptr;
 	}
 	_clients.clear();
 }

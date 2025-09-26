@@ -9,81 +9,10 @@
 
 # include "utils.hpp"
 
-std::string	getExtension( const std::string & file )
-{
-	std::string ext;
-	size_t dot = file.rfind('.');
-	if (dot != std::string::npos)
-		ext = file.substr(dot);
-	return ext;
-}
-
-std::string	remove_sub_string( const std::string & source, const std::string & to_remove )
-{
-	std::string res = source;
-	if (to_remove.empty())
-		return source;
-	size_t pos = source.find(to_remove);
-	if (pos != std::string::npos)
-		res.erase(pos, to_remove.size());
-	return res;
-}
-
-std::string	rounded( size_t bytes )
-{
-	const char * units[] = {"bytes", "KB", "MB", "GB", "TB"};
-	double size = static_cast<double>(bytes);
-	int unit = 0;
-
-	while ( size >= 1024.0 && unit < 4 )
-	{
-		size /= 1024.0;
-		++unit;
-	}
-
-	std::stringstream	ss;
-
-	ss.precision(2);
-	ss.setf(std::ios::fixed);
-	ss << size << " " << units[unit];
-	return ss.str();
-}
-
-std::string	decode_hexa_http( const std::string & word )
-{
-	std::string result;
-	for (size_t i = 0; i < word.size(); ++i)
-	{
-		if (word[i] == '%' && i + 2 < word.size() && std::isxdigit(word[i + 1]) && std::isxdigit(word[i + 2]))
-		{
-			std::string hex = word.substr(i + 1, 2);
-			char decoded = static_cast<char>(std::stoi(hex, nullptr, 16));
-			result.push_back(decoded);
-			i += 2;
-		}
-		else if (word[i] == '+')
-			result.push_back(' ');
-		else
-			result.push_back(word[i]);
-	}
-	return result;
-}
-
-std::string	readFile( const std::string & path )
-{
-	std::ifstream file(path.c_str(), std::ifstream::binary);
-	if (!file)
-		return "";
-	std::stringstream ss;
-	ss << file.rdbuf();
-	return ss.str();
-}
-
 std::string	my_getcwd( void )
 {
 	std::vector<std::string> parts;
 	struct stat current, parent;
-
 	if (stat(".", &current) < 0)
 		return "";
 
@@ -95,9 +24,11 @@ std::string	my_getcwd( void )
 			break;
 		if (chdir("..") < 0)
 			return "";
+
 		DIR *dir = opendir(".");
 		if (!dir)
 			return "";
+
 		struct dirent * entry;
 		std::string dirname;
 		while ((entry = readdir(dir)) != NULL)
@@ -113,6 +44,7 @@ std::string	my_getcwd( void )
 		parts.insert(parts.begin(), dirname);
 		current = parent;
 	}
+
 	std::string path = "/";
 	for (size_t i = 0; i < parts.size(); ++i)
 	{
@@ -125,52 +57,15 @@ std::string	my_getcwd( void )
 	return path;
 }
 
-std::string	concatPaths( const std::string & path1, const std::string & path2 )
+std::string	readFile( const std::string & path )
 {
-	if (path1.empty()) return path2;
-	if (path2.empty()) return path1;
+	std::ifstream file(path.c_str(), std::ifstream::binary);
+	if (!file)
+		return "";
 
-	size_t maxCheck = (path1.size() < path2.size()) ? path1.size() : path2.size();
-	for (size_t len = maxCheck; len > 0; --len)
-	{
-		if (path1.compare(path1.size() - len, len, path2, 0, len) == 0)
-		{
-			std::string head = path1.substr(0, path1.size() - len);
-			return head + path2;
-		}
-	}
-	return path1 + path2;
-}
-
-// Generate directory Listing for autoindex
-
-std::string	generateDirectoryListing( const std::string & dirPath, const std::string & reqPath )
-{
-	DIR * dir;
-	struct dirent * entry;
-	std::stringstream html;
-
-	dir = opendir(dirPath.c_str());
-	if (!dir)
-		return "<html><body><h1>403 Forbidden</h1></body></html>";
-
-	html << "<html><head><title>Index of " << reqPath << "</title></head><body>" << std::endl;
-	html << "<h1>Index of " << reqPath << "</h1><ul>" << std::endl;
-
-	while ((entry = readdir(dir)) != NULL)
-	{
-		std::string name(entry->d_name);
-		if (name == ".")
-			continue ;
-		std::string href = reqPath;
-		if (href[href.size() - 1] != '/')
-			href += '/';
-		href += name;
-		html << "<li><a href=\"" << href << "\">" << name << "</a></li>" << std::endl;
-	}
-	closedir(dir);
-	html << "</ul></body></html>" << std::endl;
-	return html.str();
+	std::stringstream ss;
+	ss << file.rdbuf();
+	return ss.str();
 }
 
 std::string	getContentType( const std::string & path )
@@ -208,18 +103,64 @@ std::string	registryKey( const std::string & body, const std::string & key )
 	return body.substr(pos, end - pos);
 }
 
-// debug fonction
-
-void	afficherCaracteres( const std::string & texte )
+std::string	concatPaths( const std::string & path1, const std::string & path2 )
 {
-	for (size_t i = 0; i < texte.size(); ++i)
+	if (path1.empty())
+		return path2;
+	if (path2.empty())
+		return path1;
+
+	size_t maxCheck = (path1.size() < path2.size()) ? path1.size() : path2.size();
+	for (size_t len = maxCheck; len > 0; --len)
 	{
-		char c = texte[i];
-		if (c == '\n')
-			std::cout << "\\n" << std::endl;
-		else if (c == '\r')
-			std::cout << "\\r";
-		else
-			std::cout << c;
+		if (path1.compare(path1.size() - len, len, path2, 0, len) == 0)
+		{
+			std::string head = path1.substr(0, path1.size() - len);
+			return head + path2;
+		}
 	}
+	return path1 + path2;
+}
+
+std::string	remove_sub_string( const std::string & source, const std::string & to_remove )
+{
+	std::string res = source;
+	if (to_remove.empty())
+		return source;
+
+	size_t pos = source.find(to_remove);
+	if (pos != std::string::npos)
+		res.erase(pos, to_remove.size());
+	return res;
+}
+
+// Generate directory Listing for autoindex
+std::string	generateDirectoryListing( const std::string & dirPath, const std::string & reqPath )
+{
+	DIR * dir;
+	struct dirent * entry;
+	std::stringstream html;
+
+	dir = opendir(dirPath.c_str());
+	if (!dir)
+		return "<html><body><h1>403 Forbidden</h1></body></html>";
+
+	html << "<html><head><title>Index of " << reqPath << "</title></head><body>" << std::endl;
+	html << "<h1>Index of " << reqPath << "</h1><ul>" << std::endl;
+
+	while ((entry = readdir(dir)) != NULL)
+	{
+		std::string name(entry->d_name);
+		if (name == ".")
+			continue ;
+
+		std::string href = reqPath;
+		if (href[href.size() - 1] != '/')
+			href += '/';
+		href += name;
+		html << "<li><a href=\"" << href << "\">" << name << "</a></li>" << std::endl;
+	}
+	closedir(dir);
+	html << "</ul></body></html>" << std::endl;
+	return html.str();
 }

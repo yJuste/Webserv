@@ -16,7 +16,6 @@ std::vector<Server *>	multi_ports( std::vector<Server *> & servers )
 	for (size_t i = 0; i < servers.size(); ++i)
 	{
 		std::vector<int> ports = servers[i]->getAllPort();
-
 		for (size_t j = 1; j < ports.size(); ++j)
 		{
 			Server * server = new Server(*servers[i]);
@@ -29,6 +28,7 @@ std::vector<Server *>	multi_ports( std::vector<Server *> & servers )
 		firstPort.push_back(ports[0]);
 		servers[i]->setPort(firstPort);
 	}
+
 	std::vector<Server *>::iterator it = res.begin();
 	for (; it != res.end(); ++it)
 		for (std::vector<Server *>::iterator cit = it + 1; cit != res.end(); ++cit)

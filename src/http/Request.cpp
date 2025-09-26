@@ -20,43 +20,39 @@ Request	& Request::operator = ( const Request & r )
 {
 	if (this != &r)
 	{
-		_client = r.getClient();
-		_headerPart = r.getHeaderPart();
-		_body = r.getBody();
-		_method = r.getMethod();
-		_path = r.getPath();
-		_version = r.getVersion();
-		_query = r.getQuery();
-		_headers = r.getHeaders();
-		_unchunked = r.getUnchunked();
-		_printed = r.getPrinted();
+		_client = r._client;
+		_headerPart = r._headerPart;
+		_body = r._body;
+		_method = r._method;
+		_path = r._path;
+		_version = r._version;
+		_query = r._query;
+		_headers = r._headers;
+		_unchunked = r._unchunked;
+		_printed = r._printed;
 	}
 	return *this;
 }
 
 int	Request::create( const std::string & raw )
 {
-	//afficherCaracteres(raw);
 	if (_method == "POST" && getHeader("Content-Type").find("application/x-www-form-urlencoded") != std::string::npos)
-	{
-		_body = raw;
-		return 0;
-	}
+		return _body = raw, 0;
+
 	size_t headerEnd = raw.find("\r\n\r\n");
 	if (headerEnd == std::string::npos)
 		return 1;
 
 	_headerPart = raw.substr(0, headerEnd);
 	_body = raw.substr(headerEnd + 4);
-
-	if (raw[0] && raw[1] && raw[0] == '-' && raw[1] == '-'
-		&& getHeader("Content-Type").find("boundary=") != std::string::npos)
+	if (raw[0] && raw[1] && raw[0] == '-' && raw[1] == '-' && getHeader("Content-Type").find("boundary=") != std::string::npos)
 		_body = raw;
 	else
 	{
 		std::stringstream request(_headerPart);
 		request >> _method >> _path >> _version;
 		_version.erase(_version.find_last_not_of(" \t\r\n") + 1);
+
 		size_t qpos = _path.find('?');
 		if (qpos != std::string::npos)
 		{
@@ -64,7 +60,7 @@ int	Request::create( const std::string & raw )
 			_path = _path.substr(0, qpos);
 		}
 
-		std::string line;
+		std::string line = "";
 		std::getline(request, line);
 		while (std::getline(request, line))
 		{
@@ -100,9 +96,8 @@ void	Request::reset( void )
 
 std::string	Request::_unchunkBody( const std::string & raw )
 {
-	std::string result;
+	std::string result = "";
 	size_t pos = 0;
-
 	size_t firstCRLF = raw.find("\r\n");
 	if (firstCRLF != std::string::npos)
 		pos = firstCRLF + 2;
@@ -113,16 +108,19 @@ std::string	Request::_unchunkBody( const std::string & raw )
 		size_t endOfSize = raw.find("\r\n", pos);
 		if (endOfSize == std::string::npos)
 			break;
+
 		std::string sizeStr = raw.substr(pos, endOfSize - pos);
 		size_t semicolon = sizeStr.find(';');
 		if (semicolon != std::string::npos)
 			sizeStr = sizeStr.substr(0, semicolon);
+
 		int chunkSize = std::strtol(sizeStr.c_str(), NULL, 16);
 		if (chunkSize == 0)
 			break;
 		pos = endOfSize + 2;
 		if (pos + chunkSize > raw.size())
 			break;
+
 		std::string chunkData = raw.substr(pos, chunkSize);
 		result.append(chunkData);
 		pos += chunkSize + 2;
@@ -165,13 +163,7 @@ const std::string & Request::getPath() const { return _path; }
 const std::string & Request::getVersion() const { return _version; }
 const std::string & Request::getQuery() const { return _query; }
 const std::map<std::string, std::string> & Request::getHeaders() const { return _headers; }
-std::string Request::getHeader( const std::string & type ) const
-{
-	std::map<std::string, std::string>::const_iterator it = _headers.find(type);
-	if (it != _headers.end())
-		return it->second;
-	return "";
-}
+std::string Request::getHeader( const std::string & type ) const { std::map<std::string, std::string>::const_iterator it = _headers.find(type); if (it != _headers.end()) return it->second; return ""; }
 bool Request::getUnchunked() const { return _unchunked; }
 bool Request::getPrinted() const { return _printed; }
 

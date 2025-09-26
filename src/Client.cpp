@@ -9,7 +9,7 @@
 
 # include "Client.hpp"
 
-Client::Client() : _socket(-1), _server(NULL), _color(Print::getColor(-1)), _wbuf(""), _request(NULL), _keepAlive(1) {}
+Client::Client() : _socket(-1), _server(nullptr), _color(Print::getColor(-1)), _wbuf(""), _request(nullptr), _keepAlive(1) {}
 Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
 Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server), _wbuf(""), _keepAlive(1)
@@ -18,6 +18,23 @@ Client::Client( int server_socket, Server * server ) : _socket(-1), _server(serv
 	_color = Print::getColor(_socket);
 	_request = new Request(this);
 	Print::debug(_color, getSocket(), "Logged in.");
+}
+
+Client::Client( const Client & c ) { *this = c; }
+
+Client	& Client::operator = ( const Client & c )
+{
+	if (this != &c)
+	{
+		_socket = -1;
+		_server = c._server;
+		_color = c._color;
+		_rbuf = c._rbuf;
+		_wbuf = c._wbuf;
+		_request = c._request;
+		_keepAlive = c._keepAlive;
+	}
+	return *this;
 }
 
 // Methods
@@ -35,8 +52,7 @@ void	Client::read( const std::string & buf )
 		Print::enval(_color, "    | Path", RESET, _request->getPath());
 	}
 
-	Response	response(_request);
-
+	Response response(_request);
 	response.build();
 	_wbuf = response.string();
 	_keepAlive = 1;
@@ -52,23 +68,21 @@ void	Client::read( const std::string & buf )
 
 void	Client::write( void )
 {
-
 	if (_wbuf.empty())
 		return ;
 
 	size_t total = 0;
 	size_t original = _wbuf.size();
-
 	while (!_wbuf.empty())
 	{
-		int n = send(_socket, _wbuf.data(), _wbuf.size(), 0);
+		ssize_t n = send(_socket, _wbuf.data(), _wbuf.size(), 0);
 		if (n > 0)
 			_wbuf.erase(0, n);
 		total += n;
 	}
+	Print::enval(_color, "    | Sent", RESET, "[" + std::string(APPLE_GREEN) + rounded(total) + "/" + rounded(original) + std::string(RESET) + "]");
 	_rbuf.clear();
 	_wbuf.clear();
-	Print::enval(_color, "    | Sent", RESET, "[" + std::string(APPLE_GREEN) + rounded(total) + "/" + rounded(original) + std::string(RESET) + "]");
 }
 
 // Private Methods
@@ -77,7 +91,7 @@ void	Client::_unit( int server_socket )
 {
 	if (_socket != -1)
 		return ;
-	_socket = accept(server_socket, NULL, NULL);
+	_socket = accept(server_socket, nullptr, nullptr);
 	if (_socket == -1)
 		throw FailedAccept();
 	if (fcntl(_socket, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)

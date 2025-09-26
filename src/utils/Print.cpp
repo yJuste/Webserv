@@ -14,7 +14,6 @@ const char * Print::_palette[g_palette_size];
 void	Print::header( const std::string & title, const std::string & COLOR )
 {
 	int padding = (60 - title.size()) / 2;
-
 	std::cout << COLOR;
 	std::cout << ".............................................................." << std::endl;
 	std::cout << "." << std::string(padding, ' ') << title << std::string(padding, ' ') << "." << std::endl;
@@ -25,7 +24,6 @@ void	Print::header( const std::string & title, const std::string & COLOR )
 void	Print::subPart( const std::string & part, const std::string & COLOR )
 {
 	int padding = (57 - part.size());
-
 	std::cout << std::endl << COLOR << "...";
 	if (part != "")
 		std::cout << " " << part << " ";
@@ -47,14 +45,12 @@ void	Print::endl( void )
 
 const char *	Print::getColor( int socket )
 {
-	size_t index = static_cast<size_t>(socket) % (sizeof(_palette) / sizeof(_palette[0]));
-	return _palette[index];
+	return _palette[static_cast<size_t>(socket) % (sizeof(_palette) / sizeof(_palette[0]))];
 }
 
 void	Print::newPalette( void )
 {
 	std::srand(static_cast<unsigned int>(std::time(NULL)));
-
 	for (size_t i = 0; i < g_palette_size; ++i)
 		_palette[i] = g_palette[i];
 	for (size_t i = g_palette_size - 1; i > 0; --i)

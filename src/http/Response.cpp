@@ -20,11 +20,29 @@ Response::Response( Request * req ) : _req(req), _status(200, "OK"), _body("")
 	_server = _client->getServer();
 }
 
+Response::Response( const Response & r ) { *this = r; }
+
+Response & Response::operator = ( const Response & r )
+{
+	if (this != &r)
+	{
+		_req = r._req;
+		_server = r._server;
+		_client = r._client;
+		_loc = r._loc;
+		_status = r._status;
+		_headers = r._headers;
+		_body = r._body;
+	}
+	return *this;
+}
+
 // Methods
 
 void	Response::build( void )
 {
 	_check_keep_alive();
+
 	int code = _preparation();
 	if (code)
 		_reconstitution();
@@ -35,7 +53,6 @@ void	Response::build( void )
 std::string	Response::string( void ) const
 {
 	std::stringstream response;
-
 	response << "HTTP/1.1 " << _status.first << " " << _status.second << "\r\n";
 	if (_headers.find("Content-Type") == _headers.end())
 	{
@@ -59,6 +76,7 @@ int	Response::_preparation( void )
 	_loc = _findLocation(_req->getPath());
 	if (!_loc)
 		return _404_error("No matching location."), 0;
+
 	const std::map<int, std::string> & redir = _loc->getReturn();
 	if (!redir.empty())
 	{
@@ -74,9 +92,9 @@ int	Response::_preparation( void )
 	}
 	if (!_allowsMethod(_req->getMethod()))
 	{
-		_response("405\nMethod Not Allowed\n\n\nMethod Not Allowed");
-		const std::vector<std::string> & methods = _loc->getMethods();
 		std::string allowHeader;
+		const std::vector<std::string> & methods = _loc->getMethods();
+		_response("405\nMethod Not Allowed\n\n\nMethod Not Allowed");
 		for (size_t i = 0; i < methods.size(); ++i)
 		{
 			allowHeader += methods[i];
@@ -91,21 +109,18 @@ int	Response::_preparation( void )
 void	Response::_reconstitution( void )
 {
 	std::string filePath = _resolvePath();
-	std::cout << filePath << std::endl;
 	if (_req->getMethod() == "DELETE")
 		return _handleDelete(filePath);
 	if (_req->getMethod() == "POST")
 		return _handlePost(filePath);
+
 	int status = acstat(filePath.c_str(), F_OK | R_OK);
 	if (status == 1)
 	{
 		const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
 		std::map<std::string, std::string>::const_iterator it = cgiMap.find(getExtension(filePath));
 		if (it != cgiMap.end())
-		{
-			//executeCGI(req, *loc, filePath, *server);
-			return ;
-		}
+			return _executeCGI(filePath);
 		if (_req->getMethod() == "GET")
 			return _response("200\nOK\nContent-Type\n" + getContentType(filePath) + "\n" + readFile(filePath));
 		return _response("405\nMethod Not Allowed\n\n\nPost not allowed on static file.");
@@ -137,7 +152,6 @@ void	Response::_handlePost( const std::string & path )
 
 	std::string filePath = path;
 	std::string contentType = _req->getHeader("Content-Type");
-
 	if (contentType.find("multipart/form-data") != std::string::npos
 		|| contentType.find("application/octet-stream") != std::string::npos
 		|| contentType.find("text/plain") != std::string::npos
@@ -166,7 +180,7 @@ void	Response::_handleUpload( std::string & filePath, std::string & contentType 
 		|| _req->getHeader("Transfer-Encoding") == "chunked")
 	{
 		std::string data = _req->getBody();
-		std::fstream out((_loc->getUpload() + "/upload.bin").c_str(), std::fstream::binary);
+		std::fstream out((_loc->getUpload() + "/upload.bin").c_str(), std::ios::out | std::ios::binary);
 		if (out)
 		{
 			out.write(data.c_str(), data.size());
@@ -186,7 +200,6 @@ void	Response::_registry( std::string & contentType )
 	std::string username = registryKey(body, "username");
 	std::string password = registryKey(body, "password");
 	std::string email = registryKey(body, "email");
-
 	if (contentType.find("application/x-www-form-urlencoded") != std::string::npos
 		&& _req->getBody().find("email=") != std::string::npos)
 	{
@@ -212,6 +225,7 @@ void	Response::_handleDelete( std::string & path )
 {
 	if (_loc->getPath().find("upload") == std::string::npos)
 		return _response("403\nForbidden\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"DELETE allowed only in /upload\"}");
+
 	path = concatPaths(path, _req->getPath());
 	int status = acstat(path.c_str(), F_OK | R_OK);
 	if (status == 1)
@@ -226,6 +240,152 @@ void	Response::_handleDelete( std::string & path )
 }
 
 /*
+ *	CGI
+ */
+
+std::vector<std::string>	Response::_buildCgiEnv( const std::string & filePath )
+{
+	std::vector<std::string> env;
+	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	env.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	env.push_back("REQUEST_METHOD=" + _req->getMethod());
+	env.push_back("SCRIPT_FILENAME=" + filePath);
+	env.push_back("SCRIPT_NAME=" + _req->getPath());
+	env.push_back("QUERY_STRING=" + _req->getQuery());
+
+	std::ostringstream oss;
+	oss << _req->getBody().size();
+	env.push_back("CONTENT_LENGTH=" + oss.str()); 
+	env.push_back("CONTENT_TYPE=" + _req->getHeader("Content-Type"));
+	env.push_back("SERVER_NAME=" + _req->getHeader("Host"));
+
+	const std::vector<int> & ports = _server->getAllPort();
+	std::ostringstream ss;
+	for (size_t i = 0; i < ports.size(); ++i)
+	{
+		if (i != 0) ss << ",";
+			ss << ports[i];
+	}
+	env.push_back("SERVER_PORT=" + ss.str());
+	return env;
+}
+
+void	Response::_executeCGI( const std::string & filePath )
+{
+	int inPipe[2];
+	int outPipe[2];
+	if (pipe(inPipe) < 0 || pipe(outPipe) < 0)
+		_response("500\nInternal Server Error\n\n\nFailed to create pipes for CGI");
+	pid_t pid = fork();
+	if (pid < 0)
+		_response("500\nInternal Server Error\n\n\nFailed to fork() CGI process.");
+	if (pid == 0)
+	{
+		close(inPipe[1]);
+		close(outPipe[0]);
+		dup2(inPipe[0], 0);
+		dup2(outPipe[1], 1);
+		close(inPipe[0]);
+		close(outPipe[1]);
+
+		std::string ext;
+		size_t dotPos = filePath.rfind('.');
+		if (dotPos != std::string::npos)
+			ext = filePath.substr(dotPos);
+
+		const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
+		std::map<std::string, std::string>::const_iterator it = cgiMap.find(ext);
+		if (it == cgiMap.end())
+			_exit(1);
+
+		const char * cgiPath = it->second.c_str();
+		const char * scriptPath = filePath.c_str();
+		const char * argv[] = { cgiPath, scriptPath, NULL };
+		std::vector<std::string> env = _buildCgiEnv(filePath);
+		std::vector<char*> envp;
+		std::vector<char*> buffers;
+		for (size_t i = 0; i < env.size(); ++i)
+		{
+			char * copy = new char[env[i].size() + 1]; 
+			std::strcpy(copy, env[i].c_str());
+			envp.push_back(copy);
+			buffers.push_back(copy);
+		}
+		envp.push_back(NULL);
+		execve(cgiPath, (char * const *)argv, (char * const *)&envp[0]);
+		for (size_t i = 0; i < buffers.size(); ++i)
+			delete [] buffers[i];
+		_exit(1);
+	}
+	close(inPipe[0]); 
+	close(outPipe[1]);
+	if (_req->getMethod() == "POST")
+		write(inPipe[1], _req->getBody().c_str(), _req->getBody().size());
+	close(inPipe[1]);
+
+	char buffer[4096];
+	std::string cgiOutput;
+	ssize_t n;
+	while ((n = read(outPipe[0], buffer, sizeof(buffer))) > 0)
+		cgiOutput.append(buffer, n);
+	close(outPipe[0]);
+
+	int status;
+	waitpid(pid, &status, 0);
+	std::string rawHeaders;
+	std::string body;
+	size_t headerEndPos = std::string::npos;
+	size_t rnPos = cgiOutput.find("\r\n\r\n");
+	size_t nPos  = cgiOutput.find("\n\n");
+	if (rnPos != std::string::npos)
+		headerEndPos = rnPos;
+	else if (nPos != std::string::npos)
+		headerEndPos = nPos;
+	if (headerEndPos != std::string::npos)
+	{
+		rawHeaders = cgiOutput.substr(0, headerEndPos);
+		size_t bodyStart = (headerEndPos == rnPos) ? headerEndPos + 4 : headerEndPos + 2;
+		body = cgiOutput.substr(bodyStart);
+		std::istringstream headerStream(rawHeaders);
+		std::string line;
+		while (std::getline(headerStream, line))
+		{
+			if (!line.empty() && line[line.size() - 1] == '\r')
+				line.erase(line.size() - 1, 1);
+
+			size_t colon = line.find(':');
+			if (colon != std::string::npos)
+			{
+				std::string key = line.substr(0, colon);
+				std::string value = line.substr(colon + 1);
+				if (!value.empty() && value[0] == ' ')
+					value.erase(0, 1);
+				_headers[key] = value;
+			}
+		}
+	}
+	else
+		body = cgiOutput;
+	if (!_headers.count("Content-Type"))
+		_headers["Content-Type"] = "text/html";
+	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); ++it)
+		_setHeader(it->first, it->second);
+	_setBody(body);
+	if (!_headers.count("Status"))
+		_setStatus(200, "OK");
+	else
+	{
+		std::istringstream ss(_headers["Status"]);
+		int code;
+		std::string text;
+		ss >> code;
+		std::getline(ss, text);
+		_setStatus(code, text);
+	}
+}
+
+
+/*
  *	UTILS
  */
 
@@ -234,7 +394,6 @@ void	Response::_response( const std::string & input )
 	std::vector<std::string> parts;
 	std::string current;
 	size_t i = 0;
-
 	for (; i < input.size(); ++i)
 	{
 		if (input[i] == '\n')
@@ -257,6 +416,7 @@ void	Response::_response( const std::string & input )
 	}
 	while (parts.size() < 4)
 		parts.push_back("");
+
 	std::string body;
 	if (i < input.size())
 		body = input.substr(i);
@@ -286,8 +446,8 @@ std::string	Response::_resolvePath( void )
 
 void	Response::_404_error( const std::string & status )
 {
-	_setStatus(404, "Not Found");
 	const std::map<int, std::string> & errPages = _server->getErrorPages();
+	_setStatus(404, "Not Found");
 	if (errPages.find(404) != errPages.end())
 		_setBody(readFile(errPages.find(404)->second));
 	else
@@ -312,7 +472,6 @@ const Location *	Response::_findLocation( const std::string & path ) const
 {
 	const std::vector<Location> &locations = _server->getLocations();
 	const Location *best = NULL;
-
 	for (size_t i = 0; i < locations.size(); ++i)
 	{
 		const std::string &locPath = locations[i].getPath();
@@ -363,16 +522,18 @@ bool	Response::_saveUploadedFile( void )
 	size_t pos = contentType.find("boundary=");
 	if (pos == std::string::npos)
 		return false;
+
 	const std::string boundary = "--" + contentType.substr(pos + 9);
 	const std::string closingBoundary = boundary + "--";
-
 	size_t start = body.find(boundary);
 	if (start == std::string::npos)
 		return false;
+
 	size_t fnStart = body.find("filename=\"", start);
 	if (fnStart == std::string::npos)
 		return false;
 	fnStart += 10;
+
 	size_t fnEnd = body.find("\"", fnStart);
 	if (fnEnd == std::string::npos)
 		return false;
@@ -382,6 +543,7 @@ bool	Response::_saveUploadedFile( void )
 	if (contentStart == std::string::npos)
 		return false;
 	contentStart += 4;
+
 	size_t nextBoundaryPos = body.find(boundary, contentStart);
 	if (nextBoundaryPos == std::string::npos)
 	{
@@ -391,9 +553,11 @@ bool	Response::_saveUploadedFile( void )
 	}
 	if (nextBoundaryPos < 2 || nextBoundaryPos < contentStart)
 		return false;
+
 	size_t contentEnd = nextBoundaryPos - 2;
 	if (contentEnd < contentStart)
 		return false;
+
 	std::string fileContent = body.substr(contentStart, contentEnd - contentStart);
 	std::string fullPath = _loc->getUpload() + "/" + filename;
 	std::ofstream out(fullPath, std::ios::binary | std::ios::trunc);
@@ -420,6 +584,7 @@ bool	Response::_saveUser( const std::string & username, const std::string & pass
 	std::ifstream file1(USERS_FILE, std::ifstream::in);
 	if (!file1)
 		return false;
+
 	std::string line;
 	while (std::getline(file1, line))
 	{
@@ -452,6 +617,7 @@ bool	Response::_checkUser( const std::string & username, const std::string & pas
 	std::ifstream file(USERS_FILE, std::ifstream::in);
 	if (!file)
 		return false;
+
 	std::string line;
 	while (std::getline(file, line))
 	{

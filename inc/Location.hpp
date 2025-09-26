@@ -43,9 +43,6 @@ class	Location
 		bool					_autoindex;
 		std::vector<std::string>		_index;
 		std::map<std::string, std::string>	_cgi;
-
-		// parsing
-
 		std::vector<std::string>		_cgi_paths;
 		std::map<std::string, int>		_overwritten;
 

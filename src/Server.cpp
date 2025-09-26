@@ -13,7 +13,6 @@ Server::Server() : _socket(-1), _host(""), _root(""), _default(true), _maxSize(1
 {
 	_port.push_back(80);
 	_index.push_back("index.html");
-
 	_overwritten["host"] = 0;
 	_overwritten["index"] = 0;
 	_overwritten["error_page"] = 0;
@@ -23,7 +22,7 @@ Server::~Server() { shutdown(); }
 
 Server::Server( const Server & s ) { *this = s; }
 
-Server	&Server::operator = ( const Server & s )
+Server	& Server::operator = ( const Server & s )
 {
 	if (this != &s)
 	{
@@ -31,17 +30,17 @@ Server	&Server::operator = ( const Server & s )
 		_address.sin_family = AF_INET;
 		_address.sin_port = 0;
 		_address.sin_addr.s_addr = INADDR_ANY;
-		_host = s.getHost();
-		_port = s.getAllPort();
-		_root = s.getRoot();
-		_default = s.getDefault();
-		_index = s.getIndex();
-		_names = s.getNames();
-		_errorPages = s.getErrorPages();
-		_maxSize = s.getMaxSize();
-		_locations = s.getLocations();
-		_overwritten = s.getOverwritten();
-		_warnings = s.getWarnings();
+		_host = s._host;
+		_port = s._port;
+		_root = s._root;
+		_default = s._default;
+		_index = s._index;
+		_names = s._names;
+		_errorPages = s._errorPages;
+		_maxSize = s._maxSize;
+		_locations = s._locations;
+		_overwritten = s._overwritten;
+		_warnings = s._warnings;
 	}
 	return *this;
 }
@@ -52,37 +51,31 @@ void	Server::startup( void )
 {
 	if (_socket != -1)
 		return ;
-
 	_socket = socket(AF_INET, SOCK_STREAM, 0);
 	if (_socket == -1)
 		throw FailedSocket();
 
-	const int	opt = 1;
-
+	const int opt = 1;
 	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) == -1)
 		throw FailedSetsockopt();
 	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(int)) == -1)
 		throw FailedSetsockopt();
-
 	if (fcntl(_socket, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)
 		throw FailedFcntl();
 
-	struct addrinfo		def;
-	struct addrinfo		*info;
-
+	struct addrinfo def;
+	struct addrinfo * info;
 	std::memset(&def, 0, sizeof(def));
 	def.ai_family = AF_INET;
 	def.ai_socktype = SOCK_STREAM;
 	if (getaddrinfo(getHost().c_str(), NULL, &def, &info))
 		throw FailedGetaddrinfo();
 
-	struct sockaddr_in *add = (struct sockaddr_in *)info->ai_addr;
-
+	struct sockaddr_in * add = (struct sockaddr_in *)info->ai_addr;
 	_address.sin_family = AF_INET;
 	_address.sin_port = htons(getPort());
 	_address.sin_addr = add->sin_addr;
 	freeaddrinfo(info);
-
 	if (bind(_socket, (const struct sockaddr *)&_address, sizeof(_address)) == -1)
 		throw FailedBind();
 	if (listen(_socket, 10) == -1)
@@ -164,7 +157,7 @@ void	Server::myConfig( void ) const
 		Print::endl();
 	}
 	else
-		for ( std::vector<std::string>::const_iterator wit = getWarnings().begin(); wit != getWarnings().end(); ++wit )
+		for (std::vector<std::string>::const_iterator wit = getWarnings().begin(); wit != getWarnings().end(); ++wit)
 			std::cerr << " " << *wit << std::endl;
 	Print::subPart("", BLUE);
 }
@@ -183,13 +176,7 @@ const std::vector<std::string> & Server::getNames() const { return _names; }
 const std::map<int, std::string> & Server::getErrorPages() const { return _errorPages; }
 size_t Server::getMaxSize() const { return _maxSize; }
 const std::vector<Location> & Server::getLocations() const { return _locations; }
-const Location * Server::getXLocation( const std::string & path ) const
-{
-	for (std::vector<Location>::const_iterator it = _locations.begin(); it != _locations.end(); ++it)
-		if (it->getPath() == path)
-			return &(*it);
-	return NULL;
-}
+const Location * Server::getXLocation( const std::string & path ) const { for (std::vector<Location>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) if (it->getPath() == path) return &(*it); return nullptr; }
 const std::map<std::string, int> & Server::getOverwritten() const { return _overwritten; }
 const std::vector<std::string> & Server::getWarnings() const { return _warnings; }
 

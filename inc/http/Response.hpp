@@ -43,9 +43,7 @@ class	Response
 		const Server *				_server;
 		const Client *				_client;
 		const Location *			_loc;
-
 		std::pair<int, std::string>		_status;
-
 		std::map<std::string, std::string>	_headers;
 		std::string				_body;
 
@@ -58,6 +56,7 @@ class	Response
 		void _handleUpload( std::string &, std::string & );
 		void _registry( std::string & );
 		void _handleDelete( std::string & );
+		void _executeCGI( const std::string & );
 
 		// utils
 
@@ -70,12 +69,15 @@ class	Response
 		bool _saveUploadedFile();
 		bool _saveUser( const std::string &, const std::string &, const std::string & );
 		bool _checkUser( const std::string &, const std::string & ) const;
+		std::vector<std::string> _buildCgiEnv( const std::string & );
 
 		// Setters
 
 		void _setStatus( int, const std::string & );
 		void _setBody( const std::string & );
 		void _setHeader( const std::string &, const std::string & );
+
+		// ~Structor
 
 		Response();
 

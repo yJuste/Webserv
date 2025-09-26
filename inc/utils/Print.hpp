@@ -53,7 +53,7 @@
 #  define BOLD "\033[1m"
 # endif
 
-// vivid
+// Vivid
 
 # ifndef VIVID_RED
 #  define VIVID_RED "\033[38;5;196m"
@@ -95,7 +95,7 @@
 #  define VIVID_LIME "\033[38;5;118m"
 # endif
 
-// palette
+// Palette
 
 static const char * g_palette[] =
 {

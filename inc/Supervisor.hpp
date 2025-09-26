@@ -52,7 +52,6 @@ class	Supervisor
 		struct pollfd		_fds[FDS_SIZE];
 		std::vector<Server *>	_servers;
 		std::vector<Client *>	_clients;
-
 		size_t			_size;
 		size_t			_server_size;
 
