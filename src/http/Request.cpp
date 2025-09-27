@@ -9,10 +9,10 @@
 
 # include "Request.hpp"
 
-Request::Request() : _client(NULL), _headerPart(""), _body(""), _method(""), _path(""), _version(""), _query(""), _unchunked(false), _printed(false) {}
+Request::Request() : _client(NULL), _headerPart(""), _method(""), _path(""), _version(""), _query(""), _rawBuf(""), _unchunked(false), _printed(false) {}
 Request::~Request() {}
 
-Request::Request( const Client * client ) : _client(client), _headerPart(""), _body(""), _method(""), _path(""), _version(""), _query(""), _unchunked(false), _printed(false) {}
+Request::Request( const Client * client ) : _client(client), _headerPart(""), _method(""), _path(""), _version(""), _query(""), _rawBuf(""), _unchunked(false), _printed(false) {}
 
 Request::Request( const Request & r ) { *this = r; }
 
@@ -36,19 +36,14 @@ Request	& Request::operator = ( const Request & r )
 
 int	Request::create( const std::string & raw )
 {
-	if (_method == "POST" && getHeader("Content-Type").find("application/x-www-form-urlencoded") != std::string::npos)
-		return _body = raw, 0;
+	_rawBuf.append(raw);
 
-	size_t headerEnd = raw.find("\r\n\r\n");
+	size_t headerEnd = _rawBuf.find("\r\n\r\n");
 	if (headerEnd == std::string::npos)
 		return 1;
-
-	_headerPart = raw.substr(0, headerEnd);
-	_body = raw.substr(headerEnd + 4);
-	if (raw[0] && raw[1] && raw[0] == '-' && raw[1] == '-' && getHeader("Content-Type").find("boundary=") != std::string::npos)
-		_body = raw;
-	else
+	if (_headerPart.empty())
 	{
+		_headerPart = _rawBuf.substr(0, headerEnd);
 		std::stringstream request(_headerPart);
 		request >> _method >> _path >> _version;
 		_version.erase(_version.find_last_not_of(" \t\r\n") + 1);
@@ -72,6 +67,12 @@ int	Request::create( const std::string & raw )
 			_headers[key] = value;
 		}
 	}
+	size_t bodyStart = headerEnd + 4;
+	if (_rawBuf.size() > bodyStart)
+	{
+		_body.insert(_body.end(), _rawBuf.begin() + bodyStart, _rawBuf.end());
+		_rawBuf.erase(bodyStart);
+	}
 	if (!_isComplete())
 		return 2;
 	if (!getPrinted())
@@ -88,41 +89,36 @@ void	Request::reset( void )
 	_version.clear();
 	_query.clear();
 	_headers.clear();
+	_rawBuf.clear();
 	_unchunked = false;
 	_printed = false; 
 }
 
 // Private methods
 
-std::string	Request::_unchunkBody( const std::string & raw )
+std::vector<char>	Request::_unchunkBody( const std::vector<char> & raw )
 {
-	std::string result = "";
+	std::vector<char> result;
 	size_t pos = 0;
-	size_t firstCRLF = raw.find("\r\n");
-	if (firstCRLF != std::string::npos)
-		pos = firstCRLF + 2;
-	else
-		pos = 0;
-	while (true)
+	const char * crlf = "\r\n";
+	while (pos < raw.size())
 	{
-		size_t endOfSize = raw.find("\r\n", pos);
-		if (endOfSize == std::string::npos)
+		size_t lineEnd = std::search(raw.begin() + pos, raw.end(), crlf, crlf + 2) - raw.begin();
+		if (lineEnd >= raw.size())
 			break;
 
-		std::string sizeStr = raw.substr(pos, endOfSize - pos);
+		std::string sizeStr(raw.begin() + pos, raw.begin() + lineEnd);
 		size_t semicolon = sizeStr.find(';');
 		if (semicolon != std::string::npos)
 			sizeStr = sizeStr.substr(0, semicolon);
 
 		int chunkSize = std::strtol(sizeStr.c_str(), NULL, 16);
+		pos = lineEnd + 2;
 		if (chunkSize == 0)
 			break;
-		pos = endOfSize + 2;
 		if (pos + chunkSize > raw.size())
 			break;
-
-		std::string chunkData = raw.substr(pos, chunkSize);
-		result.append(chunkData);
+		result.insert(result.end(), raw.begin() + pos, raw.begin() + pos + chunkSize);
 		pos += chunkSize + 2;
 	}
 	return result;
@@ -135,12 +131,16 @@ bool	Request::_isComplete( void )
 		std::stringstream ss(_headers["Content-Length"]);
 		size_t len = 0;
 		ss >> len;
-		return _body.size() == len;
+		return _body.size() >= len;
 	}
-	if (_headers.count("Transfer-Encoding") && _headers["Transfer-Encoding"] == "chunked")
+	if (_headers.count("Transfer-Encoding"))
 	{
-		if (_body.find("0\r\n\r\n") != std::string::npos)
+		std::string te = _headers["Transfer-Encoding"];
+		if (te.find("chunked") != std::string::npos)
 		{
+			std::string bodyStr(_body.begin(), _body.end());
+			if (bodyStr.find("0\r\n\r\n") == std::string::npos)
+				return false;
 			if (!_unchunked)
 			{
 				_body = _unchunkBody(_body);
@@ -157,7 +157,7 @@ bool	Request::_isComplete( void )
 
 const Client * Request::getClient() const { return _client; }
 const std::string & Request::getHeaderPart() const { return _headerPart; }
-const std::string & Request::getBody() const { return _body; }
+const std::vector<char> & Request::getBody() const { return _body; }
 const std::string & Request::getMethod() const { return _method; }
 const std::string & Request::getPath() const { return _path; }
 const std::string & Request::getVersion() const { return _version; }

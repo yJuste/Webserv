@@ -36,18 +36,19 @@ class	Request
 
 		const Client *				_client;
 		std::string				_headerPart;
-		std::string				_body;
+		std::vector<char>			_body;
 		std::string				_method;
 		std::string				_path;
 		std::string				_version;
 		std::string				_query;
+		std::string				_rawBuf;
 		std::map<std::string, std::string>	_headers;
 		bool					_unchunked;
 		bool					_printed;
 
 		// Methods
 
-		std::string _unchunkBody( const std::string & );
+		std::vector<char> _unchunkBody( const std::vector<char> & );
 		bool _isComplete();
 
 		// ~Structor
@@ -71,7 +72,7 @@ class	Request
 
 		const Client * getClient() const;
 		const std::string & getHeaderPart() const;
-		const std::string & getBody() const;
+		const std::vector<char> & getBody() const;
 		const std::string & getMethod() const;
 		const std::string & getPath() const;
 		const std::string & getVersion() const;

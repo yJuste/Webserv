@@ -179,11 +179,12 @@ void	Response::_handleUpload( std::string & filePath, std::string & contentType 
 		|| contentType.find("text/plain") != std::string::npos
 		|| _req->getHeader("Transfer-Encoding") == "chunked")
 	{
-		std::string data = _req->getBody();
+		const std::vector<char> & data = _req->getBody();
 		std::fstream out((_loc->getUpload() + "/upload.bin").c_str(), std::ios::out | std::ios::binary);
 		if (out)
 		{
-			out.write(data.c_str(), data.size());
+			if (!data.empty())
+				out.write(&data[0], data.size());
 			out.close();
 			if (_autoIndex(filePath))
 				return ;
@@ -196,12 +197,15 @@ void	Response::_handleUpload( std::string & filePath, std::string & contentType 
 
 void	Response::_registry( std::string & contentType )
 {
-	const std::string & body = _req->getBody();
+	const std::vector<char> & binBody = _req->getBody();
+	std::string body;
+	if (!binBody.empty())
+		body.assign(binBody.begin(), binBody.end());
 	std::string username = registryKey(body, "username");
 	std::string password = registryKey(body, "password");
 	std::string email = registryKey(body, "email");
 	if (contentType.find("application/x-www-form-urlencoded") != std::string::npos
-		&& _req->getBody().find("email=") != std::string::npos)
+		&& body.find("email=") != std::string::npos)
 	{
 		bool success = _saveUser(username, password, email);
 		if (success)
@@ -326,11 +330,11 @@ void	Response::_executeCGI( const std::string & filePath )
 	close(outPipe[1]);
 	if (_req->getMethod() == "POST")
 	{
-		const std::string & body = _req->getBody();
+		const std::vector<char> & body = _req->getBody();
 		ssize_t total = 0;
 		while (total < (ssize_t)body.size())
 		{
-			ssize_t w = write(inPipe[1], _req->getBody().c_str(), _req->getBody().size());
+			ssize_t w = write(inPipe[1], &body[total], _body.size() - total);
 			if (w <= 0)
 				break ;
 			total += w;
@@ -528,7 +532,11 @@ bool	Response::_autoIndex( const std::string & path )
 
 bool	Response::_saveUploadedFile( void )
 {
-	std::string body = _req->getBody();
+	const std::vector<char> & binBody = _req->getBody();
+	if (binBody.empty())
+		return false;
+
+	std::string body(binBody.begin(), binBody.end());
 	std::string contentType = _req->getHeader("Content-Type");
 	size_t pos = contentType.find("boundary=");
 	if (pos == std::string::npos)
@@ -569,12 +577,12 @@ bool	Response::_saveUploadedFile( void )
 	if (contentEnd < contentStart)
 		return false;
 
-	std::string fileContent = body.substr(contentStart, contentEnd - contentStart);
 	std::string fullPath = _loc->getUpload() + "/" + filename;
 	std::ofstream out(fullPath.c_str(), std::ios::binary | std::ios::trunc);
 	if (!out)
 		return false;
-	out.write(fileContent.c_str(), fileContent.size());
+	if (contentEnd > contentStart)
+		out.write(&binBody[contentStart], contentEnd - contentStart);
 	out.close();
 
 	std::ifstream in(fullPath.c_str(), std::ios::binary | std::ios::ate);

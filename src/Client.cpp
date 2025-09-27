@@ -41,8 +41,11 @@ Client	& Client::operator = ( const Client & c )
 
 void	Client::read( const std::string & buf )
 {
+	if (buf.empty())
+		return ;
 	_rbuf += buf;
-	if (_request->create(buf) == 2)
+	int status = _request->create(buf);
+	if (status != 0)
 		return ;
 	if (_request->getMethod().find("-") == std::string::npos)
 	{

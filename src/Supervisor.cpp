@@ -116,7 +116,7 @@ void	Supervisor::execution( void )
 					}
 					continue ;
 				}
-				client->read(buffer);
+				client->read(std::string(buffer, rc));
 				client->write();
 			}
 		}
