@@ -39,8 +39,8 @@ Server	& Server::operator = ( const Server & s )
 		_errorPages = s._errorPages;
 		_maxSize = s._maxSize;
 		_locations = s._locations;
-		_overwritten = s._overwritten;
 		_warnings = s._warnings;
+		_overwritten = s._overwritten;
 	}
 	return *this;
 }
