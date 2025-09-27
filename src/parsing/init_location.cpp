@@ -254,7 +254,10 @@ void	create_paths( Location & location, Server & server )
 	for (it = cgi.begin(); it != cgi.end();)
 	{
 		if (it->second == "")
-			it = cgi.erase(it);
+		{
+			std::map<std::string, std::string>::iterator tmp = it++;
+			cgi.erase(tmp);
+		}
 		else
 			++it;
 	}

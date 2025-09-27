@@ -19,6 +19,7 @@
 # include <dirent.h>
 # include <fstream>
 # include <sstream>
+# include <vector>
 
 // ************************************************************************** //
 //                                  Prototypes                                //

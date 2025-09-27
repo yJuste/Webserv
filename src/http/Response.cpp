@@ -518,8 +518,8 @@ bool	Response::_autoIndex( const std::string & path )
 	if (_loc->getAutoindex())
 	{
 		std::string reducedPath = path;
-		while (!reducedPath.empty() && reducedPath.back() != '/')
-			reducedPath.pop_back();
+		while (!reducedPath.empty() && reducedPath[reducedPath.size() - 1] != '/')
+			reducedPath.erase(reducedPath.size() - 1);
 		_response("200\nOK\nContent-Type\ntext/html\n" + generateDirectoryListing(reducedPath, _req->getPath()));
 		return true;
 	}
@@ -571,7 +571,7 @@ bool	Response::_saveUploadedFile( void )
 
 	std::string fileContent = body.substr(contentStart, contentEnd - contentStart);
 	std::string fullPath = _loc->getUpload() + "/" + filename;
-	std::ofstream out(fullPath, std::ios::binary | std::ios::trunc);
+	std::ofstream out(fullPath.c_str(), std::ios::binary | std::ios::trunc);
 	if (!out)
 		return false;
 	out.write(fileContent.c_str(), fileContent.size());

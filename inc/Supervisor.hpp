@@ -14,6 +14,11 @@
 
 # include <poll.h>
 
+// Dependences
+
+# include "Server.hpp"
+# include "Client.hpp"
+
 // Defines
 
 # ifndef FDS_SIZE
@@ -24,20 +29,11 @@
 #  define BUFFER_SIZE 16384
 # endif
 
-// Dependences
-
-# include "Server.hpp"
-# include "Client.hpp"
-
 /*	HELP
  *
  * The Supervisor class waits for an array of Servers allocated on the heap.
  * Warning: supervisor destroys the vector<Server *> itself ( no need to delete[] )
  * Test it with : curl -v http://IPv4:Port
- * Test leaks : add cycles in execution() ( ~10 seconds to test ):
- *
- *	size_t cycles = 0;
- *	while (_running && cycles++ < 1000000) { ... }
  *
  */
 
@@ -62,7 +58,7 @@ class	Supervisor
 		void _clock( bool &, time_t & );
 		void _clean();
 
-		// ~Structor
+		// ~Structors
 
 		Supervisor( const Supervisor & );
 		Supervisor & operator = ( const Supervisor & );
@@ -75,8 +71,8 @@ class	Supervisor
 
 		// Methods
 
-		void hold( const std::vector<Server *> & );	// fournir les serveurs.
-		void execution();	// lance les serveurs sur le web.
+		void hold( const std::vector<Server *> & );
+		void execution();
 
 		// Exceptions
 

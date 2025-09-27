@@ -9,7 +9,7 @@
 
 # include "Client.hpp"
 
-Client::Client() : _socket(-1), _server(nullptr), _color(Print::getColor(-1)), _wbuf(""), _request(nullptr), _keepAlive(1) {}
+Client::Client() : _socket(-1), _server(NULL), _color(Print::getColor(-1)), _wbuf(""), _request(NULL), _keepAlive(1) {}
 Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
 Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server), _wbuf(""), _keepAlive(1)
@@ -91,7 +91,7 @@ void	Client::_unit( int server_socket )
 {
 	if (_socket != -1)
 		return ;
-	_socket = accept(server_socket, nullptr, nullptr);
+	_socket = accept(server_socket, NULL, NULL);
 	if (_socket == -1)
 		throw FailedAccept();
 	if (fcntl(_socket, F_SETFL, O_NONBLOCK | FD_CLOEXEC) == -1)

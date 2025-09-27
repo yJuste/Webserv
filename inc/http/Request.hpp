@@ -16,7 +16,15 @@
 # include <map>
 # include <cstdlib>
 
+// Dependences
+
 class Client;
+
+/*	HELP
+ *
+ * Need a Client class to work.
+ *
+ */
 
 // ************************************************************************** //
 //                                Request Class                               //
@@ -56,7 +64,7 @@ class	Request
 
 		// Methods
 
-		int create( const std::string & );	// forme la requete.
+		int create( const std::string & );
 		void reset();
 
 		// Getters

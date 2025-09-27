@@ -47,7 +47,7 @@ class	Client
 		void _unit( int );
 		void _backout();
 
-		// ~Structor
+		// ~Structors
 
 		Client();
 
@@ -61,8 +61,8 @@ class	Client
 
 		// Methods
 
-		void read( const std::string & );	// lit une requete.
-		void write();	// envoie la requete.
+		void read( const std::string & );
+		void write();
 
 		// Getters
 

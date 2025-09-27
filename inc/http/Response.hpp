@@ -13,11 +13,15 @@
 // Standard Libraries
 
 # include <signal.h>
+# include <sys/wait.h>
 
 // Dependences
 
 # include "Server.hpp"
 # include "utils.hpp"
+
+class Client;
+class Request;
 
 // Defines
 
@@ -25,12 +29,9 @@
 #  define USERS_FILE ".users.db"
 # endif
 
-class Client;
-class Request;
-
 /*	HELP
  *
- * Response Class find the nearest location possible.
+ * Response Class finds the nearest location possible.
  * Users are saved in USERS_FILE.
  *
  */
@@ -95,8 +96,8 @@ class	Response
 
 		// Methods
 
-		void build();	// construit la reponse.
-		std::string string() const;	// convertit en string.
+		void build();
+		std::string string() const;
 
 		// Getters
 

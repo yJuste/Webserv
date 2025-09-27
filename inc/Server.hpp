@@ -68,9 +68,9 @@ class	Server
 
 		// Methods
 
-		void startup();		// start server (protected)
-		void shutdown();	// close server (protected)
-		void myConfig() const;	// print server configuration
+		void startup();		// (protected)
+		void shutdown();	// (protected)
+		void myConfig() const;	// prints the server configuration.
 
 		// Getters
 

@@ -130,7 +130,7 @@ Client * Supervisor::_getClient( int fd )
 	for (std::vector<Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
 		if ((*it)->getSocket() == fd)
 			return *it;
-	return nullptr;
+	return NULL;
 }
 
 Client * Supervisor::_supClient( int fd )
@@ -144,7 +144,7 @@ Client * Supervisor::_supClient( int fd )
 			return *it;
 		}
 	}
-	return nullptr;
+	return NULL;
 }
 
 void	Supervisor::_clock( bool & last_print, time_t & lastHelp )
@@ -171,13 +171,13 @@ void	Supervisor::_clean( void )
 	for (size_t i = 0; i < _servers.size(); ++i)
 	{
 		delete _servers[i];
-		_servers[i] = nullptr;
+		_servers[i] = NULL;
 	}
 	_servers.clear();
 	for (size_t i = 0; i < _clients.size(); ++i)
 	{
 		delete _clients[i];
-		_servers[i] = nullptr;
+		_servers[i] = NULL;
 	}
 	_clients.clear();
 }
