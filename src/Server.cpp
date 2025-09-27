@@ -167,7 +167,7 @@ void	Server::myConfig( void ) const
 int Server::getSocket() const { return _socket; }
 const struct sockaddr_in & Server::getAddress() const { return _address; }
 const std::string & Server::getHost() const { return _host; }
-const std::vector<int> & Server::getAllPort() const { return _port; }
+const std::vector<int> & Server::getEveryPort() const { return _port; }
 int Server::getPort() const { if (!_port.size()) return -1; return _port[0]; }
 const std::string & Server::getRoot() const { return _root; }
 bool Server::getDefault() const { return _default; }

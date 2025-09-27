@@ -77,7 +77,7 @@ class	Server
 		int getSocket() const;
 		const struct sockaddr_in & getAddress() const;
 		const std::string & getHost() const;
-		const std::vector<int> & getAllPort() const;
+		const std::vector<int> & getEveryPort() const;
 		int getPort() const;
 		bool getDefault() const;
 		const std::vector<std::string> & getIndex() const;

@@ -224,7 +224,7 @@ void	missingImportant( Server & server )
 		name.push_back("localhost");
 		server.setNames(name);
 	}
-	if (server.getAllPort().empty())
+	if (server.getEveryPort().empty())
 		throw NoExistingPort();
 }
 

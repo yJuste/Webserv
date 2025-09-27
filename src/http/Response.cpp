@@ -263,7 +263,7 @@ std::vector<std::string>	Response::_buildCgiEnv( const std::string & filePath )
 	env.push_back("CONTENT_TYPE=" + _req->getHeader("Content-Type"));
 	env.push_back("SERVER_NAME=" + _req->getHeader("Host"));
 
-	const std::vector<int> & ports = _server->getAllPort();
+	const std::vector<int> & ports = _server->getEveryPort();
 	std::ostringstream ss;
 	for (size_t i = 0; i < ports.size(); ++i)
 	{
