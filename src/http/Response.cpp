@@ -632,16 +632,16 @@ bool	Response::_checkUser( const std::string & username, const std::string & pas
 	std::string line;
 	while (std::getline(file, line))
 	{
-		size_t sep = line.find(':');
-		if (sep != std::string::npos)
-		{
-			std::string user = line.substr(0, sep);
-			std::string pass = line.substr(sep + 1);
-			size_t sep2 = pass.find(':');
-			pass = line.substr(0, sep2);
+		if (!line.empty() && line[line.size() - 1] == '\r')
+			line.erase(line.size() - 1);
+
+		std::istringstream iss(line);
+		std::string user, pass, email;
+		if (std::getline(iss, user, ':')
+			&& std::getline(iss, pass, ':')
+			&& std::getline(iss, email))
 			if (user == username && pass == password)
 				return true;
-		}
 	}
 	return false;
 }

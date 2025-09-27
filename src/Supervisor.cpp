@@ -84,7 +84,7 @@ void	Supervisor::execution( void )
 				else if (input == "config")
 					for (size_t j = 0; j < _server_size; ++j)
 						_servers[j]->myConfig();
-				else if (input == "stop")
+				else if (input == "stop" || input == "quit")
 					return (void)(std::cout << std::string(APPLE_GREEN) << "Quit properly." << std::string(RESET) << std::endl);
 				continue ;
 			}
@@ -157,7 +157,7 @@ void	Supervisor::_clock( bool & last_print, time_t & lastHelp )
 			std::cout << "    | " << std::string(APPLE_GREEN) << "Helping Page for Webserv" << std::string(RESET) << ": ( write in the terminal )" << std::endl;
 			std::cout << "    |\t- [" << std::string(APPLE_GREEN) << "help" << std::string(RESET) << "]       Show this page." << std::endl;
 			std::cout << "    |\t- [" << std::string(APPLE_GREEN) << "config" << std::string(RESET) << "]     Print the server's configurations." << std::endl;
-			std::cout << "    |\t- [" << std::string(APPLE_GREEN) << "stop" << std::string(RESET) << "]       Stop the server." << std::endl;
+			std::cout << "    |\t- [" << std::string(APPLE_GREEN) << "quit" << std::string(RESET) << "]       Stop the server." << std::endl;
 			lastHelp = now;
 			last_print = false;
 		}
