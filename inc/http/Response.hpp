@@ -56,7 +56,6 @@ class	Response
 
 		int _preparation();
 		void _reconstitution();
-		std::string _resolvePath();
 		void _handlePost( const std::string & );
 		void _handleUpload( std::string &, std::string & );
 		void _registry( std::string & );

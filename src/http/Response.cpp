@@ -108,7 +108,7 @@ int	Response::_preparation( void )
 
 void	Response::_reconstitution( void )
 {
-	std::string filePath = _resolvePath();
+	std::string filePath = concatPaths(my_getcwd() + "/" + _loc->getRoot(), remove_sub_string(_req->getPath(), _loc->getPath()));
 	if (_req->getMethod() == "DELETE")
 		return _handleDelete(filePath);
 	if (_req->getMethod() == "POST")
@@ -448,18 +448,6 @@ void	Response::_response( const std::string & input )
 		_headers[parts[2]] = parts[3];
 	if (!body.empty())
 		_body = body;
-}
-
-std::string	Response::_resolvePath( void )
-{
-	std::string filePath = _loc->getRoot();
-	if (_loc->getPath() == _req->getPath())
-	{
-		if (filePath.size() >= 2 && filePath[0] == '.' && filePath[1] == '/')
-			filePath = my_getcwd() + "/" + filePath;
-		return filePath;
-	}
-	return concatPaths(my_getcwd() + "/" + filePath, _req->getPath());
 }
 
 void	Response::_404_error( const std::string & status )
