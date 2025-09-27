@@ -44,17 +44,17 @@ $(NAME): $(OBJ)
 	@$(CC) $(CFLAGS) $(OBJ) -o $(NAME) -I $(INC_DIR)
 	@echo $(BLUE) "➤ '$(NAME)' is now ready." $(RESET)
 
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	@echo $(BROWN) "Compiling ➤ $<" $(RESET)
+	@$(CC) $(CFLAGS) $< -c -o $@ -I $(INC_DIR) -I $(INC_DIR)/utils -I $(INC_DIR)/http
+
 clean:
 	@rm -rf $(OBJ_DIR)
 
 fclean: clean
 	@rm -f $(NAME)
 	@echo $(YELLOW) "➤ Every files and $(NAME) are removed." $(RESET)
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(dir $@)
-	@echo $(BROWN) "Compiling ➤ $<" $(RESET)
-	@$(CC) $(CFLAGS) $< -c -o $@ -I $(INC_DIR) -I $(INC_DIR)/utils -I $(INC_DIR)/http
 
 re: fclean all
 

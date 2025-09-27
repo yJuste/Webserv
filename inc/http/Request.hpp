@@ -81,10 +81,6 @@ class	Request
 		std::string getHeader( const std::string & ) const;
 		bool getUnchunked() const;
 		bool getPrinted() const;
-
-		// Setter
-
-		void setPrinted( bool );
 };
 
 #endif

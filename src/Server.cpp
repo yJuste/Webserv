@@ -114,7 +114,11 @@ void	Server::myConfig( void ) const
 	{
 		Print::endl();
 		for (std::map<int, std::string>::const_iterator it = getErrorPages().begin(); it != getErrorPages().end(); ++it)
-			{ Print::value(BROWN, "   ["); std::cout << BLUE << std::right << std::setw(3) << it->first; Print::value(BROWN, "] => "); Print::value(YELLOW, it->second); Print::endl(); }
+		{
+			Print::value(BROWN, "   [");
+			std::cout << BLUE << std::right << std::setw(3) << it->first;
+			Print::value(BROWN, "] => "); Print::value(YELLOW, it->second); Print::endl();
+		}
 	}
 	Print::subPart("LOCATION", BLUE);
 	for (size_t i = 0; i < getLocations().size(); ++i)
@@ -176,7 +180,12 @@ const std::vector<std::string> & Server::getNames() const { return _names; }
 const std::map<int, std::string> & Server::getErrorPages() const { return _errorPages; }
 size_t Server::getMaxSize() const { return _maxSize; }
 const std::vector<Location> & Server::getLocations() const { return _locations; }
-const Location * Server::getXLocation( const std::string & path ) const { for (std::vector<Location>::const_iterator it = _locations.begin(); it != _locations.end(); ++it) if (it->getPath() == path) return &(*it); return NULL; }
+const Location * Server::getXLocation( const std::string & path ) const
+{
+	for (std::vector<Location>::const_iterator it = _locations.begin(); it != _locations.end(); ++it)
+		if (it->getPath() == path) return &(*it);
+	return NULL;
+}
 const std::map<std::string, int> & Server::getOverwritten() const { return _overwritten; }
 const std::vector<std::string> & Server::getWarnings() const { return _warnings; }
 

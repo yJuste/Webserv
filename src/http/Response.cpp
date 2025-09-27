@@ -47,7 +47,7 @@ void	Response::build( void )
 	if (code)
 		_reconstitution();
 	if (code == 301)
-		_setStatus(301, "Moved Permanently");
+		_response("301\nMoved Permanently\n\n\n");
 }
 
 std::string	Response::string( void ) const
@@ -84,7 +84,7 @@ int	Response::_preparation( void )
 		_loc = _findLocation(locationUrl);
 		if (_loc)
 		{
-			_setHeader("Location", locationUrl);
+			_headers["Location"] = locationUrl;
 			if (redir.begin()->first == 301)
 				return 301;
 		}
@@ -101,7 +101,7 @@ int	Response::_preparation( void )
 			if (i != methods.size() - 1)
 				allowHeader += ", ";
 		}
-		return _setHeader("Allow", allowHeader), 0;
+		return _headers["Allow"] = allowHeader, 0;
 	}
 	return 200;
 }
@@ -247,33 +247,6 @@ void	Response::_handleDelete( std::string & path )
  *	CGI
  */
 
-std::vector<std::string>	Response::_buildCgiEnv( const std::string & filePath )
-{
-	std::vector<std::string> env;
-	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	env.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	env.push_back("REQUEST_METHOD=" + _req->getMethod());
-	env.push_back("SCRIPT_FILENAME=" + filePath);
-	env.push_back("SCRIPT_NAME=" + _req->getPath());
-	env.push_back("QUERY_STRING=" + _req->getQuery());
-
-	std::ostringstream oss;
-	oss << _req->getBody().size();
-	env.push_back("CONTENT_LENGTH=" + oss.str()); 
-	env.push_back("CONTENT_TYPE=" + _req->getHeader("Content-Type"));
-	env.push_back("SERVER_NAME=" + _req->getHeader("Host"));
-
-	const std::vector<int> & ports = _server->getEveryPort();
-	std::ostringstream ss;
-	for (size_t i = 0; i < ports.size(); ++i)
-	{
-		if (i != 0) ss << ",";
-			ss << ports[i];
-	}
-	env.push_back("SERVER_PORT=" + ss.str());
-	return env;
-}
-
 void	Response::_executeCGI( const std::string & filePath )
 {
 	int inPipe[2];
@@ -388,16 +361,45 @@ void	Response::_executeCGI( const std::string & filePath )
 	if (!_headers.count("Content-Type"))
 		_headers["Content-Type"] = "text/html";
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); ++it)
-		_setHeader(it->first, it->second);
-	_setBody(body);
+		_headers[it->first] = it->second;
+	_body = body;
 	if (!_headers.count("Status"))
-		return _setStatus(200, "OK");
+		return _response("200\nOK\n\n\n");
 	std::istringstream ss(_headers["Status"]);
 	int code;
 	std::string text;
 	ss >> code;
 	std::getline(ss, text);
-	_setStatus(code, text);
+	std::ostringstream oss;
+	oss << code;
+	_response(oss.str() + "\n" + text + "\n\n\n");
+}
+
+std::vector<std::string>	Response::_buildCgiEnv( const std::string & filePath )
+{
+	std::vector<std::string> env;
+	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	env.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	env.push_back("REQUEST_METHOD=" + _req->getMethod());
+	env.push_back("SCRIPT_FILENAME=" + filePath);
+	env.push_back("SCRIPT_NAME=" + _req->getPath());
+	env.push_back("QUERY_STRING=" + _req->getQuery());
+
+	std::ostringstream oss;
+	oss << _req->getBody().size();
+	env.push_back("CONTENT_LENGTH=" + oss.str()); 
+	env.push_back("CONTENT_TYPE=" + _req->getHeader("Content-Type"));
+	env.push_back("SERVER_NAME=" + _req->getHeader("Host"));
+
+	const std::vector<int> & ports = _server->getEveryPort();
+	std::ostringstream ss;
+	for (size_t i = 0; i < ports.size(); ++i)
+	{
+		if (i != 0) ss << ",";
+			ss << ports[i];
+	}
+	env.push_back("SERVER_PORT=" + ss.str());
+	return env;
 }
 
 /*
@@ -439,12 +441,13 @@ void	Response::_response( const std::string & input )
 	{
 		int code = 0;
 		std::istringstream(parts[0]) >> code;
-		_setStatus(code, parts[1]);
+		_status.first = code;
+		_status.second = parts[1];
 	}
 	if (!parts[2].empty() && !parts[3].empty())
-		_setHeader(parts[2], parts[3]);
+		_headers[parts[2]] = parts[3];
 	if (!body.empty())
-		_setBody(body);
+		_body = body;
 }
 
 std::string	Response::_resolvePath( void )
@@ -462,12 +465,12 @@ std::string	Response::_resolvePath( void )
 void	Response::_404_error( const std::string & status )
 {
 	const std::map<int, std::string> & errPages = _server->getErrorPages();
-	_setStatus(404, "Not Found");
+	_response("404\nNot found\n\n\n");
 	if (errPages.find(404) != errPages.end())
-		_setBody(readFile(errPages.find(404)->second));
+		_body = readFile(errPages.find(404)->second);
 	else
-		_setBody(status);
-	_setHeader("Content-Type", getExtension(errPages.find(404)->second));
+		_body = status;
+	_headers["Content-Type"] = getExtension(errPages.find(404)->second);
 }
 
 void	Response::_check_keep_alive( void )
@@ -658,11 +661,10 @@ bool	Response::_checkUser( const std::string & username, const std::string & pas
 
 const std::pair<int, std::string> & Response::getStatus() const { return _status; }
 const std::map<std::string, std::string> & Response::getHeaders() const { return _headers; }
-std::string Response::getHeader( const std::string & type ) const { std::map<std::string, std::string>::const_iterator it = _headers.find(type); if (it != _headers.end()) return it->second; return ""; }
+std::string Response::getHeader( const std::string & type ) const
+{
+	std::map<std::string, std::string>::const_iterator it = _headers.find(type);
+	if (it != _headers.end()) return it->second;
+	return "";
+}
 const std::string & Response::getBody() const { return _body; }
-
-// Setters
-
-void Response::_setStatus( int status, const std::string & statusText ) { _status.first = status; _status.second = statusText; }
-void Response::_setBody( const std::string & body ) { _body = body; }
-void Response::_setHeader( const std::string & key, const std::string & value ) { _headers[key] = value; }

@@ -34,6 +34,7 @@ int	main( int argc, char ** argv )
 /*
  *	By default, the program is running with the port '62034'.
  */
+
 void	create_unique_program( void )
 {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);

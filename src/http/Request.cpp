@@ -27,12 +27,15 @@ Request	& Request::operator = ( const Request & r )
 		_path = r._path;
 		_version = r._version;
 		_query = r._query;
+		_rawBuf = r._rawBuf;
 		_headers = r._headers;
 		_unchunked = r._unchunked;
 		_printed = r._printed;
 	}
 	return *this;
 }
+
+// Methods
 
 int	Request::create( const std::string & raw )
 {
@@ -76,7 +79,7 @@ int	Request::create( const std::string & raw )
 	if (!_isComplete())
 		return 2;
 	if (!getPrinted())
-		setPrinted(true);
+		_printed = true;
 	return 0;
 }
 
@@ -88,8 +91,8 @@ void	Request::reset( void )
 	_path.clear();
 	_version.clear();
 	_query.clear();
-	_headers.clear();
 	_rawBuf.clear();
+	_headers.clear();
 	_unchunked = false;
 	_printed = false; 
 }
@@ -163,10 +166,11 @@ const std::string & Request::getPath() const { return _path; }
 const std::string & Request::getVersion() const { return _version; }
 const std::string & Request::getQuery() const { return _query; }
 const std::map<std::string, std::string> & Request::getHeaders() const { return _headers; }
-std::string Request::getHeader( const std::string & type ) const { std::map<std::string, std::string>::const_iterator it = _headers.find(type); if (it != _headers.end()) return it->second; return ""; }
+std::string Request::getHeader( const std::string & type ) const
+{
+	std::map<std::string, std::string>::const_iterator it = _headers.find(type);
+	if (it != _headers.end()) return it->second;
+	return "";
+}
 bool Request::getUnchunked() const { return _unchunked; }
 bool Request::getPrinted() const { return _printed; }
-
-// Setter
-
-void Request::setPrinted( bool printed ) { _printed = printed; }

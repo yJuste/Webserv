@@ -76,12 +76,6 @@ class	Response
 		bool _checkUser( const std::string &, const std::string & ) const;
 		std::vector<std::string> _buildCgiEnv( const std::string & );
 
-		// Setters
-
-		void _setStatus( int, const std::string & );
-		void _setBody( const std::string & );
-		void _setHeader( const std::string &, const std::string & );
-
 		// ~Structor
 
 		Response();

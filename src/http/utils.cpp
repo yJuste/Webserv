@@ -134,7 +134,6 @@ std::string	remove_sub_string( const std::string & source, const std::string & t
 	return res;
 }
 
-// Generate directory Listing for autoindex
 std::string	generateDirectoryListing( const std::string & dirPath, const std::string & reqPath )
 {
 	DIR * dir;
@@ -144,10 +143,8 @@ std::string	generateDirectoryListing( const std::string & dirPath, const std::st
 	dir = opendir(dirPath.c_str());
 	if (!dir)
 		return "<html><body><h1>403 Forbidden</h1></body></html>";
-
 	html << "<html><head><title>Index of " << reqPath << "</title></head><body>" << std::endl;
 	html << "<h1>Index of " << reqPath << "</h1><ul>" << std::endl;
-
 	while ((entry = readdir(dir)) != NULL)
 	{
 		std::string name(entry->d_name);
@@ -160,7 +157,7 @@ std::string	generateDirectoryListing( const std::string & dirPath, const std::st
 		href += name;
 		html << "<li><a href=\"" << href << "\">" << name << "</a></li>" << std::endl;
 	}
-	closedir(dir);
 	html << "</ul></body></html>" << std::endl;
+	closedir(dir);
 	return html.str();
 }
