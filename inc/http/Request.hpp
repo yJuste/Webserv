@@ -12,9 +12,11 @@
 
 // Standard Libraries
 
-# include <sstream>
 # include <map>
+# include <sstream>
 # include <cstdlib>
+# include <vector>
+# include <algorithm>
 
 // Dependences
 
