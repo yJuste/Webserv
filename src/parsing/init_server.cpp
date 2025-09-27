@@ -215,9 +215,9 @@ void	missingImportant( Server & server )
 	if (server.getHost() == "")
 		server.setHost("0.0.0.0");
 	try { if (server.getRoot() == "") throw MissingImportantValues("root"); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
+	catch (std::exception & e) { server.addWarning(e.what()); }
 	try { if (server.getLocations().empty()) throw MissingImportantValues("location"); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
+	catch (std::exception & e) { server.addWarning(e.what()); }
 	if (server.getNames().empty())
 	{
 		std::vector<std::string> name;
@@ -260,7 +260,7 @@ void	create_paths( Server & server )
 	else if (!status)
 	{
 		try { if (index.size()) throw FailedAcstat(index[0].c_str()); }
-		catch ( std::exception & e ) { server.addWarning(e.what()); }
+		catch (std::exception & e) { server.addWarning(e.what()); }
 	}
 
 	std::vector<std::string>::iterator pos = std::find(index.begin(), index.end(), first);
@@ -278,7 +278,7 @@ void	overwritten( Server & server )
 	for (; cit != server.getOverwritten().end(); ++cit)
 	{
 		try { if (cit->second >= 2) throw OverwrittenParameter(cit->first.c_str()); }
-		catch ( std::exception & e ) { server.addWarning(e.what()); }
+		catch (std::exception & e) { server.addWarning(e.what()); }
 	}
 }
 

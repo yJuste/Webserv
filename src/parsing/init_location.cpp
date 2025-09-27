@@ -235,7 +235,7 @@ void	create_paths( Location & location, Server & server )
 	else if (!status)
 	{
 		try { if (index.size()) throw FailedAcstat(index[0].c_str()); }
-		catch ( std::exception & e ) { server.addWarning(e.what()); }
+		catch (std::exception & e) { server.addWarning(e.what()); }
 	}
 
 	std::vector<std::string>::iterator pos = std::find(index.begin(), index.end(), first);
@@ -270,7 +270,7 @@ void	overwritten( Location & location, Server & server )
 	for (; cit != location.getOverwritten().end(); ++cit)
 	{
 		try { if (cit->second >= 2) throw OverwrittenParameterLocation(location.getPath().c_str(), cit->first.c_str()); }
-		catch ( std::exception & e ) { server.addWarning(e.what()); }
+		catch (std::exception & e) { server.addWarning(e.what()); }
 	}
 }
 

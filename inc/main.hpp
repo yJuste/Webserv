@@ -10,7 +10,7 @@
 #ifndef MAIN_HPP
 # define MAIN_HPP
 
-// Standard Library
+// Standard Libraries
 
 # include <stdint.h>
 # include <algorithm>
