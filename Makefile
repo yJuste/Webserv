@@ -22,6 +22,7 @@ SRC =	main.cpp				\
 	parsing/utils.cpp			\
 	http/Request.cpp			\
 	http/Response.cpp			\
+	http/SessionManager.cpp			\
 	http/utils.cpp				\
 	utils/Print.cpp				\
 	utils/utils.cpp				\

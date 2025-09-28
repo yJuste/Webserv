@@ -1,0 +1,79 @@
+// ************************************************************************** //
+//                                                                            //
+//                SessionManager.cpp                                          //
+//                Created on  : xxx Sep xx xx:xx:xx 2025                      //
+//                Last update : xxx Sep xx xx:xx:xx 2025                      //
+//                Made by     : Layang                                        //
+//                                                                            //
+// ************************************************************************** //
+
+# include "SessionManager.hpp"
+
+SessionManager::SessionManager() { std::srand(std::time(NULL)); }
+SessionManager::~SessionManager() {}
+
+SessionManager::SessionManager( const SessionManager & s ) { *this = s; }
+
+SessionManager & SessionManager::operator = ( const SessionManager & s )
+{
+	if (this != &s)
+		_sessions = s._sessions;
+	return *this;
+}
+
+// Methods
+
+std::string	SessionManager::createSession( const std::string & username )
+{
+	std::string sessionId;
+	do { sessionId = _generateSessionId(); }
+	while (_sessions.find(sessionId) != _sessions.end());
+
+	Session session;
+	session.username = username;
+	session.mode = "normal";
+	session.expire = std::time(NULL) + 3600;
+	_sessions[sessionId] = session;
+	return sessionId;  
+}
+
+void	SessionManager::hasExpired( void )
+{
+	time_t now = std::time(NULL);
+	std::map<std::string, Session>::iterator it = _sessions.begin();
+	while (it != _sessions.end())
+	{
+		if (it->second.expire < now)
+		{
+			std::map<std::string, Session>::iterator toErase = it++;
+			_sessions.erase(toErase);
+		}
+		else
+			++it;
+	} 
+}
+
+// Private Method
+
+std::string	SessionManager::_generateSessionId( void )
+{
+	std::ostringstream oss;
+	for (int i = 0; i < 16; i++)
+	{
+		int r = std::rand() % 256;
+		if (r < 16)
+			oss << '0';
+		oss << std::hex << r;
+	}
+	return oss.str();
+}
+
+// Getter
+
+Session	* SessionManager::getSession( const std::string & sessionId )
+{
+	std::map<std::string, Session>::iterator it = _sessions.find(sessionId);
+	if (it != _sessions.end())
+		return &it->second;
+	return NULL;
+}
