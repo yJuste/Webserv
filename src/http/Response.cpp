@@ -476,27 +476,29 @@ void	Response::_check_keep_alive( void )
 
 const Location *	Response::_findLocation( const std::string & path ) const
 {
-	const std::vector<Location> &locations = _server->getLocations();
-	const Location *best = NULL;
+	const std::vector<Location> & locations = _server->getLocations();
+	const Location * best = NULL;
+	const Location * root = NULL;
 	for (size_t i = 0; i < locations.size(); ++i)
 	{
-		const std::string &locPath = locations[i].getPath();
+		const std::string & locPath = locations[i].getPath();
 		size_t lsize = locPath.size();
 		size_t psize = path.size();
-		if (lsize <= psize && path.compare(0, lsize, locPath) == 0)
+		if (locPath == "/")
 		{
-			if (locPath == "/")
-			{
-				if (!best)
-					best = &locations[i];
-				continue;
-			}
+			root = &locations[i];
+			continue;
+		}
+		if (lsize <= psize && path.compare(0, lsize, locPath) == 0)
 			if (psize == lsize || path[lsize] == '/')
 				if (!best || lsize > best->getPath().size())
 					best = &locations[i];
-		}
 	}
-	return best;
+	if (best)
+		return best;
+	if (path == "/" && root)
+		return root;
+	return NULL;
 }
 
 bool	Response::_allowsMethod( const std::string & method ) const
