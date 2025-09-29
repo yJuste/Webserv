@@ -57,8 +57,9 @@ class	SessionManager
 
 		// Methods
 
-		std::string createSession( const std::string & );
+		std::string create( const std::string & );
 		void hasExpired();
+		std::string getSessionIdFromCookie( const std::string & );
 
 		// Getter
 

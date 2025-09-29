@@ -13,9 +13,10 @@
 // Dependences
 
 # include "Server.hpp"
-# include "Exceptions.hpp"
+# include "SessionManager.hpp"
 # include "Request.hpp"
 # include "Response.hpp"
+# include "Exceptions.hpp"
 
 /*	HELP
  *
@@ -36,6 +37,7 @@ class	Client
 
 		int			_socket;
 		Server *		_server;
+		SessionManager *	_smanager;
 		const char *		_color;
 		std::string		_rbuf;
 		std::string		_wbuf;
@@ -56,7 +58,7 @@ class	Client
 
 	public:
 
-		Client( int, Server * );
+		Client( int, Server *, SessionManager * );
 		~Client();
 
 		// Methods
@@ -68,6 +70,7 @@ class	Client
 
 		int getSocket() const;
 		const Server * getServer() const;
+		SessionManager * getSessionManager() const;
 		const char * getColor() const;
 		bool getKeepAlive() const;
 };

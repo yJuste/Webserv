@@ -52,6 +52,7 @@ void	Supervisor::hold( const std::vector<Server *> & servers )
 	_fds[_size].events = POLLIN;
 	_fds[_size].revents = 0;
 	++_size;
+	_smanager = new SessionManager();
 }
 
 void	Supervisor::execution( void )
@@ -65,6 +66,7 @@ void	Supervisor::execution( void )
 	while (true)
 	{
 		_clock(last_print, lastHelp);
+		_smanager->hasExpired();
 		if (poll(_fds, _size, 0) == -1)
 			throw FailedPoll();
 		for (size_t i = 0; i < _size; ++i)
@@ -92,7 +94,7 @@ void	Supervisor::execution( void )
 			{
 				if (_size >= FDS_SIZE)
 					return (void)Print::debug(RED, "error", "Too many connexions on a server.");
-				Client * client = new Client(fd, _servers[i]);
+				Client * client = new Client(fd, _servers[i], _smanager);
 				_clients.push_back(client);
 				_fds[_size].fd = client->getSocket();
 				_fds[_size].events = POLLIN;
@@ -108,7 +110,7 @@ void	Supervisor::execution( void )
 					continue ;
 				else if (rc == 0)
 				{
-					if (!client->getKeepAlive())
+					if (client->getKeepAlive() == false)
 					{
 						_supClient(fd);
 						_fds[i] = _fds[_size - 1];
@@ -174,4 +176,5 @@ void	Supervisor::_clean( void )
 	for (size_t i = 0; i < _clients.size(); ++i)
 		delete _clients[i];
 	_clients.clear();
+	delete _smanager;
 }

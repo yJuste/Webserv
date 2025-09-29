@@ -9,10 +9,10 @@
 
 # include "Client.hpp"
 
-Client::Client() : _socket(-1), _server(NULL), _color(Print::getColor(-1)), _rbuf(""), _wbuf(""), _request(NULL), _keepAlive(true) {}
+Client::Client() : _socket(-1), _server(NULL), _smanager(NULL), _color(Print::getColor(-1)), _rbuf(""), _wbuf(""), _request(NULL), _keepAlive(true) {}
 Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
-Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server), _rbuf(""), _wbuf(""), _keepAlive(false)
+Client::Client( int server_socket, Server * server, SessionManager * smanager ) : _socket(-1), _server(server), _smanager(smanager), _rbuf(""), _wbuf(""), _keepAlive(false)
 {
 	_unit(server_socket);
 	_color = Print::getColor(_socket);
@@ -28,6 +28,7 @@ Client	& Client::operator = ( const Client & c )
 	{
 		_socket = -1;
 		_server = c._server;
+		_smanager = c._smanager;
 		_color = c._color;
 		_rbuf = c._rbuf;
 		_wbuf = c._wbuf;
@@ -114,5 +115,6 @@ void	Client::_backout( void )
 
 int Client::getSocket() const { return _socket; }
 const Server * Client::getServer() const { return _server; }
+SessionManager * Client::getSessionManager() const { return _smanager; }
 const char * Client::getColor() const { return _color; }
 bool Client::getKeepAlive() const { return _keepAlive; }

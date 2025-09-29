@@ -23,7 +23,7 @@ SessionManager & SessionManager::operator = ( const SessionManager & s )
 
 // Methods
 
-std::string	SessionManager::createSession( const std::string & username )
+std::string	SessionManager::create( const std::string & username )
 {
 	std::string sessionId;
 	do { sessionId = _generateSessionId(); }
@@ -51,6 +51,19 @@ void	SessionManager::hasExpired( void )
 		else
 			++it;
 	} 
+}
+
+std::string	SessionManager::getSessionIdFromCookie( const std::string & cookie )
+{
+	size_t pos = cookie.find("session_id=");
+	if (pos == std::string::npos)
+		return "";
+	pos += 11;
+	size_t end = cookie.find(';', pos);
+	if (end == std::string::npos)
+		return cookie.substr(pos);
+	else
+		return cookie.substr(pos, end - pos);
 }
 
 // Private Method

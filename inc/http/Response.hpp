@@ -18,6 +18,7 @@
 // Dependences
 
 # include "Server.hpp"
+# include "SessionManager.hpp"
 # include "utils.hpp"
 
 class Client;
@@ -48,6 +49,7 @@ class	Response
 		const Server *				_server;
 		const Client *				_client;
 		const Location *			_loc;
+		SessionManager *			_smanager;
 		std::pair<int, std::string>		_status;
 		std::map<std::string, std::string>	_headers;
 		std::string				_body;
@@ -61,12 +63,13 @@ class	Response
 		void _registry( std::string & );
 		void _handleDelete( std::string & );
 		void _executeCGI( const std::string & );
+		void _session_management();
+		void _check_keep_alive();
 
 		// utils
 
 		void _response( const std::string & );
 		void _404_error( const std::string & );
-		void _check_keep_alive();
 		const Location * _findLocation( const std::string & ) const;
 		bool _allowsMethod( const std::string & ) const;
 		bool _autoIndex( const std::string & );

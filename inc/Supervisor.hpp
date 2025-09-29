@@ -18,6 +18,7 @@
 
 # include "Server.hpp"
 # include "Client.hpp"
+# include "SessionManager.hpp"
 
 // Defines
 
@@ -48,6 +49,7 @@ class	Supervisor
 		struct pollfd		_fds[FDS_SIZE];
 		std::vector<Server *>	_servers;
 		std::vector<Client *>	_clients;
+		SessionManager *	_smanager;
 		size_t			_size;
 		size_t			_server_size;
 

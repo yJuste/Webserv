@@ -11,13 +11,14 @@
 # include "Request.hpp"
 # include "Client.hpp"
 
-Response::Response() : _req(NULL), _server(NULL), _client(NULL), _status(200, "OK"), _body("") {}
+Response::Response() : _req(NULL), _server(NULL), _client(NULL), _loc(NULL), _smanager(NULL), _status(200, "OK"), _body("") {}
 Response::~Response() {}
 
-Response::Response( Request * req ) : _req(req), _status(200, "OK"), _body("")
+Response::Response( Request * req ) : _req(req), _loc(NULL), _status(200, "OK"), _body("")
 {
 	_client = _req->getClient();
 	_server = _client->getServer();
+	_smanager = _client->getSessionManager();
 }
 
 Response::Response( const Response & r ) { *this = r; }
@@ -30,6 +31,7 @@ Response & Response::operator = ( const Response & r )
 		_server = r._server;
 		_client = r._client;
 		_loc = r._loc;
+		_smanager = r._smanager;
 		_status = r._status;
 		_headers = r._headers;
 		_body = r._body;
@@ -42,6 +44,7 @@ Response & Response::operator = ( const Response & r )
 void	Response::build( void )
 {
 	_check_keep_alive();
+	_session_management();
 
 	int code = _preparation();
 	if (code)
@@ -375,31 +378,37 @@ void	Response::_executeCGI( const std::string & filePath )
 	_response(oss.str() + "\n" + text + "\n\n\n");
 }
 
-std::vector<std::string>	Response::_buildCgiEnv( const std::string & filePath )
+/*
+ *	SESSION
+ */
+
+void	Response::_session_management( void )
 {
-	std::vector<std::string> env;
-	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
-	env.push_back("SERVER_PROTOCOL=HTTP/1.1");
-	env.push_back("REQUEST_METHOD=" + _req->getMethod());
-	env.push_back("SCRIPT_FILENAME=" + filePath);
-	env.push_back("SCRIPT_NAME=" + _req->getPath());
-	env.push_back("QUERY_STRING=" + _req->getQuery());
-
-	std::ostringstream oss;
-	oss << _req->getBody().size();
-	env.push_back("CONTENT_LENGTH=" + oss.str()); 
-	env.push_back("CONTENT_TYPE=" + _req->getHeader("Content-Type"));
-	env.push_back("SERVER_NAME=" + _req->getHeader("Host"));
-
-	const std::vector<int> & ports = _server->getEveryPort();
-	std::ostringstream ss;
-	for (size_t i = 0; i < ports.size(); ++i)
+	std::string sid = _smanager->getSessionIdFromCookie(_req->getHeader("Cookie"));
+	Session * session = _smanager->getSession(sid);
+	if (!session)
 	{
-		if (i != 0) ss << ",";
-			ss << ports[i];
+		sid = _smanager->create("guest");
+		std::string value = "session_id=" + sid + "; Max-Age=3600; HttpOnly";
+		_headers["Set-Cookie"] = value;
+		session = _smanager->getSession(sid);
 	}
-	env.push_back("SERVER_PORT=" + ss.str());
-	return env;
+}
+
+/*
+ *	KEEP_ALIVE
+ */
+
+void	Response::_check_keep_alive( void )
+{
+	std::string connexion = _req->getHeader("Connection");
+	if (connexion != "")
+	{
+		if (connexion == "close")
+			_headers["Connection"] = "close";
+		else
+			_headers["Connection"] = "keep-alive";
+	}
 }
 
 /*
@@ -459,19 +468,6 @@ void	Response::_404_error( const std::string & status )
 	else
 		_body = status;
 	_headers["Content-Type"] = getExtension(errPages.find(404)->second);
-}
-
-void	Response::_check_keep_alive( void )
-{
-	const std::map<std::string, std::string> headers = _req->getHeaders();
-	std::map<std::string, std::string>::const_iterator it = headers.find("Connection");
-	if (it != headers.end())
-	{
-		if (it->second == "close")
-			_headers["Connection"] = "close";
-		else
-			_headers["Connection"] = "keep-alive";
-	}
 }
 
 const Location *	Response::_findLocation( const std::string & path ) const
@@ -645,6 +641,34 @@ bool	Response::_checkUser( const std::string & username, const std::string & pas
 				return true;
 	}
 	return false;
+}
+
+std::vector<std::string>	Response::_buildCgiEnv( const std::string & filePath )
+{
+	std::vector<std::string> env;
+	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
+	env.push_back("SERVER_PROTOCOL=HTTP/1.1");
+	env.push_back("REQUEST_METHOD=" + _req->getMethod());
+	env.push_back("SCRIPT_FILENAME=" + filePath);
+	env.push_back("SCRIPT_NAME=" + _req->getPath());
+	env.push_back("QUERY_STRING=" + _req->getQuery());
+
+	std::ostringstream oss;
+	oss << _req->getBody().size();
+	env.push_back("CONTENT_LENGTH=" + oss.str()); 
+	env.push_back("CONTENT_TYPE=" + _req->getHeader("Content-Type"));
+	env.push_back("SERVER_NAME=" + _req->getHeader("Host"));
+
+	const std::vector<int> & ports = _server->getEveryPort();
+	std::ostringstream ss;
+	for (size_t i = 0; i < ports.size(); ++i)
+	{
+		if (i != 0)
+			ss << ",";
+		ss << ports[i];
+	}
+	env.push_back("SERVER_PORT=" + ss.str());
+	return env;
 }
 
 // Getters
