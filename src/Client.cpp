@@ -9,10 +9,10 @@
 
 # include "Client.hpp"
 
-Client::Client() : _socket(-1), _server(NULL), _color(Print::getColor(-1)), _wbuf(""), _request(NULL), _keepAlive(1) {}
+Client::Client() : _socket(-1), _server(NULL), _color(Print::getColor(-1)), _rbuf(""), _wbuf(""), _request(NULL), _keepAlive(true) {}
 Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
-Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server), _wbuf(""), _keepAlive(1)
+Client::Client( int server_socket, Server * server ) : _socket(-1), _server(server), _rbuf(""), _wbuf(""), _keepAlive(false)
 {
 	_unit(server_socket);
 	_color = Print::getColor(_socket);
@@ -58,10 +58,9 @@ void	Client::read( const std::string & buf )
 	Response response(_request);
 	response.build();
 	_wbuf = response.string();
-	_keepAlive = 1;
-	std::map<std::string, std::string>::const_iterator it = response.getHeaders().find("Connection");
-	if (it->second == "close")
-		_keepAlive = 0;
+	_keepAlive = true;
+	if (response.getHeader("Connection") == "close")
+		_keepAlive = false;
 	Print::debug(_color, getSocket(), "Response :");
 	std::ostringstream oss;
 	oss << response.getStatus().first << " " << response.getStatus().second;
