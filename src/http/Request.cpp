@@ -36,7 +36,7 @@ Request	& Request::operator = ( const Request & r )
 }
 
 // Methods
-
+# include <iostream>
 int	Request::create( const std::string & raw )
 {
 	_rawBuf.append(raw);
@@ -99,34 +99,6 @@ void	Request::reset( void )
 
 // Private methods
 
-std::vector<char>	Request::_unchunkBody( const std::vector<char> & raw )
-{
-	std::vector<char> result;
-	size_t pos = 0;
-	const char * crlf = "\r\n";
-	while (pos < raw.size())
-	{
-		size_t lineEnd = std::search(raw.begin() + pos, raw.end(), crlf, crlf + 2) - raw.begin();
-		if (lineEnd >= raw.size())
-			break;
-
-		std::string sizeStr(raw.begin() + pos, raw.begin() + lineEnd);
-		size_t semicolon = sizeStr.find(';');
-		if (semicolon != std::string::npos)
-			sizeStr = sizeStr.substr(0, semicolon);
-
-		int chunkSize = std::strtol(sizeStr.c_str(), NULL, 16);
-		pos = lineEnd + 2;
-		if (chunkSize == 0)
-			break;
-		if (pos + chunkSize > raw.size())
-			break;
-		result.insert(result.end(), raw.begin() + pos, raw.begin() + pos + chunkSize);
-		pos += chunkSize + 2;
-	}
-	return result;
-}
-
 bool	Request::_isComplete( void )
 {
 	if (_headers.count("Content-Length"))
@@ -154,6 +126,67 @@ bool	Request::_isComplete( void )
 		return false;
 	}
 	return true;
+}
+
+std::vector<char>	Request::_unchunkBody( const std::vector<char> & raw )
+{
+	std::vector<char> cleaned = raw;
+	std::vector<char> result;
+	const char * crlf = "\r\n";
+	std::vector<char>::iterator firstCRLF = std::search(cleaned.begin(), cleaned.end(), crlf, crlf + 2);
+	if (firstCRLF != cleaned.end())
+	{
+		std::string firstLine(cleaned.begin(), firstCRLF);
+		char * endp = NULL;
+		long globalLen = std::strtol(firstLine.c_str(), &endp, 16);
+		if (endp != firstLine.c_str() && globalLen >= 0)
+		{
+			size_t posAfterHeader = (firstCRLF - cleaned.begin()) + 2;
+			if (posAfterHeader + static_cast<size_t>(globalLen) <= cleaned.size())
+				cleaned.erase(cleaned.begin(), cleaned.begin() + posAfterHeader);
+		}
+	}
+
+	const char term[] = "0\r\n\r\n";
+	if (cleaned.size() >= sizeof(term) - 1)
+	{
+		std::vector<char>::iterator it = std::search(cleaned.begin(), cleaned.end(), term, term + sizeof(term) - 1);
+		if (it != cleaned.end() && it + (sizeof(term) - 1) == cleaned.end())
+			cleaned.erase(it, cleaned.end());
+	}
+
+	size_t pos = 0;
+	while (pos < cleaned.size())
+	{
+		size_t lineEnd = std::search(cleaned.begin() + pos, cleaned.end(), crlf, crlf + 2) - cleaned.begin();
+		if (lineEnd >= cleaned.size())
+			break;
+
+		std::string sizeStr(cleaned.begin() + pos, cleaned.begin() + lineEnd);
+		size_t semicolon = sizeStr.find(';');
+		if (semicolon != std::string::npos)
+			sizeStr = sizeStr.substr(0, semicolon);
+
+		char * endPtr = NULL;
+		long chunkSize = std::strtol(sizeStr.c_str(), &endPtr, 16);
+		if (endPtr == sizeStr.c_str() || chunkSize < 0)
+			break;
+		pos = lineEnd + 2;
+		if (chunkSize == 0)
+			break;
+		if (pos + static_cast<size_t>(chunkSize) > cleaned.size())
+			break;
+		result.insert(result.end(), cleaned.begin() + pos, cleaned.begin() + pos + chunkSize);
+		pos += chunkSize;
+		if (pos + 1 >= cleaned.size())
+			break;
+		if (cleaned[pos] != '\r' || cleaned[pos + 1] != '\n')
+			break;
+		pos += 2;
+	}
+	if (result.empty())
+		return cleaned;
+	return result;
 }
 
 // Getters

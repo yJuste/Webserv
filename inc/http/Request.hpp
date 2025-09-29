@@ -50,8 +50,8 @@ class	Request
 
 		// Methods
 
-		std::vector<char> _unchunkBody( const std::vector<char> & );
 		bool _isComplete();
+		std::vector<char> _unchunkBody( const std::vector<char> & );
 
 		// ~Structor
 
