@@ -282,9 +282,8 @@ void	overwritten( Server & server )
 	}
 }
 
-std::vector<Server *>	create_servers( const std::vector<std::string> & words )
+std::vector<Server *>	create_servers( const std::vector<std::string> & words, std::vector<Server *> & servers )
 {
-	std::vector<Server *> servers;
 	std::vector<std::string>::const_iterator it = words.begin();
 	while (it != words.end())
 	{

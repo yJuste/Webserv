@@ -52,7 +52,7 @@ std::string	trim( const std::string & s )
 	return s.substr(begin, end - begin + 1);
 }
 
-std::vector<Server *>	configure_file( const char * s )
+std::vector<Server *>	configure_file( const char * s, std::vector<Server *> & servers )
 {
 	if (acstat(s, F_OK | R_OK) != 1)
 		throw FailedAcstat(s);
@@ -71,6 +71,6 @@ std::vector<Server *>	configure_file( const char * s )
 		std::vector<std::string> w = split(line);
 		words.insert(words.end(), w.begin(), w.end());
 	}
-	std::vector<Server *> servers = create_servers(words);
+	create_servers(words, servers);
 	return multi_ports(servers);
 }

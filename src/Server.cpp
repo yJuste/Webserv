@@ -68,10 +68,11 @@ void	Server::startup( void )
 	std::memset(&def, 0, sizeof(def));
 	def.ai_family = AF_INET;
 	def.ai_socktype = SOCK_STREAM;
-	if (getaddrinfo(getHost().c_str(), NULL, &def, &info))
+	if (getaddrinfo(_host.c_str(), NULL, &def, &info))
 		throw FailedGetaddrinfo();
 
 	struct sockaddr_in * add = (struct sockaddr_in *)info->ai_addr;
+	std::memset(&_address, 0, sizeof(_address));
 	_address.sin_family = AF_INET;
 	_address.sin_port = htons(getPort());
 	_address.sin_addr = add->sin_addr;

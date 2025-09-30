@@ -11,6 +11,7 @@
 
 int	main( int argc, char ** argv )
 {
+	std::vector<Server *> servers;
 	try
 	{
 		if (argc != 2)
@@ -18,17 +19,32 @@ int	main( int argc, char ** argv )
 		create_unique_program();
 		std::srand(std::time(NULL));
 		Print::newPalette();
-		std::vector<Server *> servers = configure_file(argv[1]);
 
+		configure_file(argv[1], servers);
 		for (size_t i = 0; i < servers.size(); ++i)
 			servers[i]->myConfig();
-
+	}
+	catch (std::exception & e)
+	{
+		std::cerr << e.what() << std::endl;
+		size_t size = servers.size();
+		for (size_t i = 0; i < size; ++i)
+			delete servers[i];
+		servers.clear();
+		return 1;
+	}
+	try
+	{
 		Supervisor supervisor;
 
 		supervisor.hold(servers);
 		supervisor.execution();
 	}
-	catch (std::exception & e) { std::cerr << e.what() << std::endl; }
+	catch (std::exception & e)
+	{
+		std::cerr << e.what() << std::endl;
+		return 2;
+	}
 	return 0;
 }
 

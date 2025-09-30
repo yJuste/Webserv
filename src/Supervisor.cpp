@@ -9,10 +9,10 @@
 
 # include "Supervisor.hpp"
 
-Supervisor::Supervisor() : _size(0), _server_size(0) {}
+Supervisor::Supervisor() : _smanager(NULL), _size(0), _server_size(0) {}
 Supervisor::~Supervisor() { _clean(); }
 
-Supervisor::Supervisor( const std::vector<Server *> & servers ) : _size(0), _server_size(0) { hold(servers); }
+Supervisor::Supervisor( const std::vector<Server *> & servers ) : _smanager(NULL), _size(0), _server_size(0) { hold(servers); }
 
 Supervisor::Supervisor( const Supervisor & s ) { *this = s; }
 
@@ -24,6 +24,7 @@ Supervisor	& Supervisor::operator = ( const Supervisor & s )
 			_fds[i] = s._fds[i];
 		_servers = s._servers;
 		_clients = s._clients;
+		_smanager = s._smanager;
 		_size = s._size;
 		_server_size = s._server_size;
 	}
@@ -182,8 +183,11 @@ void	Supervisor::_clean( void )
 	for (size_t i = 0; i < _server_size; ++i)
 		delete _servers[i];
 	_servers.clear();
-	for (size_t i = 0; i < _clients.size(); ++i)
-		delete _clients[i];
-	_clients.clear();
+	if (!_clients.empty())
+	{
+		for (size_t i = 0; i < _clients.size(); ++i)
+			delete _clients[i];
+		_clients.clear();
+	}
 	delete _smanager;
 }
