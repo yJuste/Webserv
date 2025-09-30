@@ -27,8 +27,7 @@ int	main( int argc, char ** argv )
 	catch (std::exception & e)
 	{
 		std::cerr << e.what() << std::endl;
-		size_t size = servers.size();
-		for (size_t i = 0; i < size; ++i)
+		for (size_t i = 0; i < servers.size(); ++i)
 			delete servers[i];
 		servers.clear();
 		return 1;
