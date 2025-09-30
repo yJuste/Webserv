@@ -23,7 +23,6 @@
 
 struct Session
 {
-	std::string	username;
 	time_t		expire;
 	std::string	bg_color;
 	size_t		counter;
@@ -55,7 +54,8 @@ class	SessionManager
 {
 	private:
 
-		std::map<std::string, Session>	_sessions;
+		std::map<std::string, Session>		_sessions;
+		std::multimap<time_t, std::string>	_expirations;
 
 		// Method
 
@@ -71,8 +71,8 @@ class	SessionManager
 
 		// Methods
 
-		std::string create( const std::string & );
-		void hasExpired();
+		std::string create();
+		void hasExpired( time_t );
 		std::string getSessionIdFromCookie( const std::string & );
 
 		// Getter

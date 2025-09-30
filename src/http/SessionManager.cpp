@@ -23,14 +23,13 @@ SessionManager & SessionManager::operator = ( const SessionManager & s )
 
 // Methods
 
-std::string	SessionManager::create( const std::string & username )
+std::string	SessionManager::create( void )
 {
 	std::string sessionId;
 	do { sessionId = _generateSessionId(); }
 	while (_sessions.find(sessionId) != _sessions.end());
 
 	Session session;
-	session.username = username;
 	session.expire = std::time(NULL) + 3600;
 	session.bg_color = "#ffffff";
 	session.counter = 1;
@@ -38,20 +37,17 @@ std::string	SessionManager::create( const std::string & username )
 	return sessionId;  
 }
 
-void	SessionManager::hasExpired( void )
+void	SessionManager::hasExpired( time_t now )
 {
-	time_t now = std::time(NULL);
-	std::map<std::string, Session>::iterator it = _sessions.begin();
-	while (it != _sessions.end())
+	while (!_expirations.empty())
 	{
-		if (it->second.expire < now)
-		{
-			std::map<std::string, Session>::iterator toErase = it++;
-			_sessions.erase(toErase);
-		}
-		else
-			++it;
-	} 
+		std::multimap<time_t, std::string>::iterator it = _expirations.begin();
+		if (it->first > now)
+			break;
+		const std::string & sid = it->second;
+		_sessions.erase(sid);
+		_expirations.erase(it);
+        }
 }
 
 std::string	SessionManager::getSessionIdFromCookie( const std::string & cookie )

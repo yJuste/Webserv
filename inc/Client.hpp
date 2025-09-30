@@ -40,11 +40,9 @@ class	Client
 		SessionManager *	_smanager;
 
 		const char *		_color;
-		std::string		_rbuf;
 		std::string		_wbuf;
 
 		Request *		_request;
-		bool			_keepAlive;
 
 		// Methods
 

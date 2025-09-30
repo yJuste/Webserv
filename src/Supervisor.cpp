@@ -66,9 +66,11 @@ void	Supervisor::execution( void )
 	while (true)
 	{
 		_clock(last_print, lastHelp);
-		_smanager->hasExpired();
-		if (poll(_fds, _size, 0) == -1)
+		int ret = poll(_fds, _size, 3000);
+		if (ret <= -1)
 			throw FailedPoll();
+		else if (ret == 0)
+			write(1, "Heap", 4);
 		for (size_t i = 0; i < _size; ++i)
 		{
 			if (_fds[i].revents == 0)
@@ -86,7 +88,7 @@ void	Supervisor::execution( void )
 				else if (input == "config")
 					for (size_t j = 0; j < _server_size; ++j)
 						_servers[j]->myConfig();
-				else if (input == "stop" || input == "quit")
+				else if (input == "quit" || input == "stop")
 					return (void)(std::cout << std::string(APPLE_GREEN) << "Quit properly." << std::string(RESET) << std::endl);
 				continue ;
 			}
@@ -109,27 +111,24 @@ void	Supervisor::execution( void )
 				_fds[_size].events = POLLIN;
 				_fds[_size].revents = 0;
 				++_size;
+				continue ;
 			}
-			else
+			Client * client = _getClient(fd);
+			if (!client)
+				continue ;
+			char buffer[BUFFER_SIZE];
+			int rc = recv(fd, buffer, sizeof(buffer), 0);
+			if (rc == -1)
+				continue ;
+			else if (rc == 0)
 			{
-				Client * client = _getClient(fd);
-				char buffer[BUFFER_SIZE] = {0};
-				int rc = recv(fd, buffer, sizeof(buffer), 0);
-				if (rc == -1)
-					continue ;
-				else if (rc == 0)
-				{
-					if (client->getKeepAlive() == false)
-					{
-						_supClient(fd);
-						_fds[i] = _fds[_size - 1];
-						--_size;
-					}
-					continue ;
-				}
-				client->read(std::string(buffer, rc));
-				client->write();
+				_supClient(fd);
+				_fds[i] = _fds[_size - 1];
+				--_size;
+				continue ;
 			}
+			client->read(std::string(buffer, rc));
+			client->write();
 		}
 	}
 }
@@ -163,6 +162,7 @@ void	Supervisor::_clock( bool & last_print, time_t & lastHelp )
 	time_t now = std::time(0);
 	if (now - lastHelp >= 1)
 	{
+		_smanager->hasExpired(now);
 		if (last_print)
 		{
 			std::cout << "    | " << std::string(APPLE_GREEN) << "Helping Page for Webserv" << std::string(RESET) << ": ( write in the terminal )" << std::endl;

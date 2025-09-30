@@ -393,7 +393,7 @@ int	Response::_session_management( void )
 	_session = _smanager->getSession(sid);
 	if (!_session)
 	{
-		sid = _smanager->create("guest");
+		sid = _smanager->create();
 		std::string value = "session_id=" + sid + "; Max-Age=3600; HttpOnly; SameSite=Strict";
 		_headers["Set-Cookie"] = value;
 		_session = _smanager->getSession(sid);
