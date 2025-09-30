@@ -9,10 +9,10 @@
 
 # include "Client.hpp"
 
-Client::Client() : _socket(-1), _server(NULL), _smanager(NULL), _color(Print::getColor(-1)), _rbuf(""), _wbuf(""), _request(NULL), _keepAlive(true) {}
+Client::Client() : _socket(-1), _server(NULL), _smanager(NULL), _color(Print::getColor(-1)), _rbuf(""), _wbuf(""), _ready(false), _request(NULL), _keepAlive(true) {}
 Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
-Client::Client( int server_socket, Server * server, SessionManager * smanager ) : _socket(-1), _server(server), _smanager(smanager), _rbuf(""), _wbuf(""), _keepAlive(false)
+Client::Client( int server_socket, Server * server, SessionManager * smanager ) : _socket(-1), _server(server), _smanager(smanager), _rbuf(""), _wbuf(""), _ready(false), _keepAlive(false)
 {
 	_unit(server_socket);
 	_color = Print::getColor(_socket);
@@ -40,12 +40,12 @@ Client	& Client::operator = ( const Client & c )
 
 // Methods
 
-void	Client::read( const std::string & buf )
+void	Client::read( const char * buf, ssize_t len )
 {
-	if (buf.empty())
+	if (len == 0)
 		return ;
-	_rbuf += buf;
-	int status = _request->create(buf);
+	_rbuf.append(buf, len);
+	int status = _request->create(_rbuf);
 	if (status != 0)
 		return ;
 	if (_request->getMethod().find("-") == std::string::npos)
@@ -60,6 +60,7 @@ void	Client::read( const std::string & buf )
 	response.build();
 	_wbuf = response.string();
 	_keepAlive = response.getHeader("Connection") == "close" ? false : true;
+	_ready = true;
 
 	std::ostringstream oss;
 	Print::debug(_color, getSocket(), "Response :");
@@ -70,7 +71,7 @@ void	Client::read( const std::string & buf )
 
 void	Client::write( void )
 {
-	if (_wbuf.empty())
+	if (!_ready)
 		return ;
 
 	size_t total = 0;
@@ -83,6 +84,7 @@ void	Client::write( void )
 		total += n;
 	}
 	Print::enval(_color, "     | Sent", RESET, "[" + std::string(APPLE_GREEN) + rounded(total) + "/" + rounded(original) + std::string(RESET) + "]");
+	_ready = false;
 	_rbuf.clear();
 	_wbuf.clear();
 }
@@ -116,4 +118,5 @@ int Client::getSocket() const { return _socket; }
 const Server * Client::getServer() const { return _server; }
 SessionManager * Client::getSessionManager() const { return _smanager; }
 const char * Client::getColor() const { return _color; }
+bool Client::getReady() const { return _ready; }
 bool Client::getKeepAlive() const { return _keepAlive; }

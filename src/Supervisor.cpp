@@ -66,17 +66,24 @@ void	Supervisor::execution( void )
 	while (true)
 	{
 		_clock(last_print, lastHelp);
-		_smanager->hasExpired();
-		if (poll(_fds, _size, 0) == -1)
+		int ret = poll(_fds, _size, 3000);
+		if (ret == -1)
 			throw FailedPoll();
+		else if (ret == 0)
+			continue ;
 		for (size_t i = 0; i < _size; ++i)
 		{
 			if (_fds[i].revents == 0)
 				continue ;
-			if (!(_fds[i].revents & POLLIN))
-				continue ;
 
 			int fd = _fds[i].fd;
+			if (_fds[i].revents & (POLLERR | POLLHUP))
+			{
+				_supClient(fd);
+				_fds[i] = _fds[_size - 1];
+				--_size;
+				continue;
+			}
 			if (fd == STDIN_FILENO)
 			{
 				std::string input;
@@ -86,7 +93,7 @@ void	Supervisor::execution( void )
 				else if (input == "config")
 					for (size_t j = 0; j < _server_size; ++j)
 						_servers[j]->myConfig();
-				else if (input == "stop" || input == "quit")
+				else if (input == "quit" || input == "stop")
 					return (void)(std::cout << std::string(APPLE_GREEN) << "Quit properly." << std::string(RESET) << std::endl);
 				continue ;
 			}
@@ -110,25 +117,40 @@ void	Supervisor::execution( void )
 				_fds[_size].revents = 0;
 				++_size;
 			}
-			else
+			Client * client = _getClient(fd);
+			if (!client)
+				continue ;
+			if (_fds[i].revents & POLLIN)
 			{
-				Client * client = _getClient(fd);
-				char buffer[BUFFER_SIZE] = {0};
-				int rc = recv(fd, buffer, sizeof(buffer), 0);
-				if (rc == -1)
-					continue ;
-				else if (rc == 0)
+				while (true)
 				{
-					if (client->getKeepAlive() == false)
+					char buffer[BUFFER_SIZE];
+					ssize_t rc = recv(fd, buffer, sizeof(buffer), 0);
+					if (rc == -1)
+						break ;
+					else if (rc == 0)
 					{
 						_supClient(fd);
 						_fds[i] = _fds[_size - 1];
 						--_size;
+						break ;
 					}
-					continue ;
+					client->read(buffer, rc);
 				}
-				client->read(std::string(buffer, rc));
+				if (client->getReady())
+					_fds[i].events = POLLIN | POLLOUT;
+			}
+			if (_fds[i].revents & POLLOUT)
+			{
 				client->write();
+				if (!client->getKeepAlive())
+				{
+					_supClient(fd);
+					_fds[i] = _fds[_size - 1];
+					--_size;
+				}
+				else if (!client->getReady())
+					_fds[i].events = POLLIN;
 			}
 		}
 	}
@@ -163,6 +185,7 @@ void	Supervisor::_clock( bool & last_print, time_t & lastHelp )
 	time_t now = std::time(0);
 	if (now - lastHelp >= 1)
 	{
+		_smanager->hasExpired(now);
 		if (last_print)
 		{
 			std::cout << "    | " << std::string(APPLE_GREEN) << "Helping Page for Webserv" << std::string(RESET) << ": ( write in the terminal )" << std::endl;

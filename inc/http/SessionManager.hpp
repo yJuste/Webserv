@@ -55,7 +55,8 @@ class	SessionManager
 {
 	private:
 
-		std::map<std::string, Session>	_sessions;
+		std::map<std::string, Session>		_sessions;
+		std::multimap<time_t, std::string>	_expirations;
 
 		// Method
 
@@ -72,7 +73,7 @@ class	SessionManager
 		// Methods
 
 		std::string create( const std::string & );
-		void hasExpired();
+		void hasExpired( time_t );
 		std::string getSessionIdFromCookie( const std::string & );
 
 		// Getter

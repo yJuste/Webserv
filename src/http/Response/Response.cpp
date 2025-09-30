@@ -187,12 +187,12 @@ void	Response::_handleUpload( std::string & filePath, std::string & contentType 
 		|| contentType.find("text/plain") != std::string::npos
 		|| _req->getHeader("Transfer-Encoding") == "chunked")
 	{
-		const std::vector<char> & data = _req->getBody();
+		const std::vector<unsigned char> & data = _req->getBody();
 		std::fstream out((_loc->getUpload() + "/upload.bin").c_str(), std::ios::out | std::ios::binary);
 		if (out)
 		{
 			if (!data.empty())
-				out.write(&data[0], data.size());
+				out.write(reinterpret_cast<const char *>(&data[0]), data.size());
 			out.close();
 			if (_autoIndex(filePath))
 				return ;
@@ -205,7 +205,7 @@ void	Response::_handleUpload( std::string & filePath, std::string & contentType 
 
 void	Response::_registry( std::string & contentType )
 {
-	const std::vector<char> & binBody = _req->getBody();
+	const std::vector<unsigned char> & binBody = _req->getBody();
 	std::string body;
 	if (!binBody.empty())
 		body.assign(binBody.begin(), binBody.end());
@@ -311,7 +311,7 @@ void	Response::_executeCGI( const std::string & filePath )
 	close(outPipe[1]);
 	if (_req->getMethod() == "POST")
 	{
-		const std::vector<char> & body = _req->getBody();
+		const std::vector<unsigned char> & body = _req->getBody();
 		ssize_t total = 0;
 		while (total < (ssize_t)body.size())
 		{
@@ -401,7 +401,7 @@ int	Response::_session_management( void )
 	}
 	if (_req->getPath() == "/session_set_background_color")
 	{
-		const std::vector<char> & body = _req->getBody();
+		const std::vector<unsigned char> & body = _req->getBody();
 		std::string data(body.begin(), body.end());
 		_session->setBgColor(url_decode(data.substr(6)));
 		_response("200\nOK\nContent-Type\ntext/plain\nColor has changed.");

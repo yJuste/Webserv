@@ -42,6 +42,7 @@ class	Client
 		const char *		_color;
 		std::string		_rbuf;
 		std::string		_wbuf;
+		bool			_ready;
 
 		Request *		_request;
 		bool			_keepAlive;
@@ -65,7 +66,7 @@ class	Client
 
 		// Methods
 
-		void read( const std::string & );
+		void read( const char *, ssize_t );
 		void write();
 
 		// Getters
@@ -74,6 +75,7 @@ class	Client
 		const Server * getServer() const;
 		SessionManager * getSessionManager() const;
 		const char * getColor() const;
+		bool getReady() const;
 		bool getKeepAlive() const;
 };
 

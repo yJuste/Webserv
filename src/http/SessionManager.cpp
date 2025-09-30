@@ -31,27 +31,25 @@ std::string	SessionManager::create( const std::string & username )
 
 	Session session;
 	session.username = username;
-	session.expire = std::time(NULL) + 3600;
+	session.expire = std::time(NULL) + 1;
 	session.bg_color = "#ffffff";
 	session.counter = 1;
 	_sessions[sessionId] = session;
+	_expirations.insert(std::make_pair(session.expire, sessionId));
 	return sessionId;  
 }
 
-void	SessionManager::hasExpired( void )
+void	SessionManager::hasExpired( time_t now )
 {
-	time_t now = std::time(NULL);
-	std::map<std::string, Session>::iterator it = _sessions.begin();
-	while (it != _sessions.end())
+	while (!_expirations.empty())
 	{
-		if (it->second.expire < now)
-		{
-			std::map<std::string, Session>::iterator toErase = it++;
-			_sessions.erase(toErase);
-		}
-		else
-			++it;
-	} 
+		std::multimap<time_t, std::string>::iterator it = _expirations.begin();
+		if (it->first > now)
+			break;
+		const std::string& sid = it->second;
+		_sessions.erase(sid);
+		_expirations.erase(it);
+        }
 }
 
 std::string	SessionManager::getSessionIdFromCookie( const std::string & cookie )

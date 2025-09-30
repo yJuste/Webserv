@@ -117,7 +117,7 @@ bool	Response::_autoIndex( const std::string & path )
 
 bool	Response::_saveUploadedFile( void )
 {
-	const std::vector<char> & binBody = _req->getBody();
+	const std::vector<unsigned char> & binBody = _req->getBody();
 	if (binBody.empty())
 		return false;
 
@@ -167,7 +167,7 @@ bool	Response::_saveUploadedFile( void )
 	if (!out)
 		return false;
 	if (contentEnd > contentStart)
-		out.write(&binBody[contentStart], contentEnd - contentStart);
+		out.write(reinterpret_cast<const char *>(&binBody[contentStart]), contentEnd - contentStart);
 	out.close();
 
 	std::ifstream in(fullPath.c_str(), std::ios::binary | std::ios::ate);

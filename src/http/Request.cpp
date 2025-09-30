@@ -128,12 +128,12 @@ bool	Request::_isComplete( void )
 	return true;
 }
 
-std::vector<char>	Request::_unchunkBody( const std::vector<char> & raw )
+std::vector<unsigned char>	Request::_unchunkBody( const std::vector<unsigned char> & raw )
 {
-	std::vector<char> cleaned = raw;
-	std::vector<char> result;
+	std::vector<unsigned char> cleaned = raw;
+	std::vector<unsigned char> result;
 	const char * crlf = "\r\n";
-	std::vector<char>::iterator firstCRLF = std::search(cleaned.begin(), cleaned.end(), crlf, crlf + 2);
+	std::vector<unsigned char>::iterator firstCRLF = std::search(cleaned.begin(), cleaned.end(), crlf, crlf + 2);
 	if (firstCRLF != cleaned.end())
 	{
 		std::string firstLine(cleaned.begin(), firstCRLF);
@@ -150,7 +150,7 @@ std::vector<char>	Request::_unchunkBody( const std::vector<char> & raw )
 	const char term[] = "0\r\n\r\n";
 	if (cleaned.size() >= sizeof(term) - 1)
 	{
-		std::vector<char>::iterator it = std::search(cleaned.begin(), cleaned.end(), term, term + sizeof(term) - 1);
+		std::vector<unsigned char>::iterator it = std::search(cleaned.begin(), cleaned.end(), term, term + sizeof(term) - 1);
 		if (it != cleaned.end() && it + (sizeof(term) - 1) == cleaned.end())
 			cleaned.erase(it, cleaned.end());
 	}
@@ -193,7 +193,7 @@ std::vector<char>	Request::_unchunkBody( const std::vector<char> & raw )
 
 const Client * Request::getClient() const { return _client; }
 const std::string & Request::getHeaderPart() const { return _headerPart; }
-const std::vector<char> & Request::getBody() const { return _body; }
+const std::vector<unsigned char> & Request::getBody() const { return _body; }
 const std::string & Request::getMethod() const { return _method; }
 const std::string & Request::getPath() const { return _path; }
 const std::string & Request::getVersion() const { return _version; }
