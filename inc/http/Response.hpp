@@ -50,6 +50,7 @@ class	Response
 		const Client *				_client;
 		const Location *			_loc;
 		SessionManager *			_smanager;
+		Session *				_session;
 		std::pair<int, std::string>		_status;
 		std::map<std::string, std::string>	_headers;
 		std::string				_body;
@@ -63,7 +64,7 @@ class	Response
 		void _registry( std::string & );
 		void _handleDelete( std::string & );
 		void _executeCGI( const std::string & );
-		void _session_management();
+		int _session_management();
 		void _check_keep_alive();
 
 		// utils
@@ -77,6 +78,7 @@ class	Response
 		bool _saveUser( const std::string &, const std::string &, const std::string & );
 		bool _checkUser( const std::string &, const std::string & ) const;
 		std::vector<std::string> _buildCgiEnv( const std::string & );
+		void _apply_session_parameter();
 
 		// ~Structor
 

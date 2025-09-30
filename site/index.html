@@ -6,7 +6,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f9f9f9;
+            background-color: {{session_set_background_color}};
             margin: 50px;
             text-align: center;
         }
@@ -188,6 +188,7 @@
     ">
         <label for="colorSelect">Background: </label>
         <select id="colorSelect">
+		<option value="#FFFFFF" selected>White</option>
             <option value="#FF6B6B">Red</option>
             <option value="#FFA94D">Orange</option>
             <option value="#FFD93D">Yellow</option>
@@ -196,40 +197,32 @@
             <option value="#845EC2">Purple</option>
             <option value="#F9F871">Light Yellow</option>
         </select>
+	<div style="font-size: 12px; color: #555; margin-top: 6px;">
+        Visits: {{session_set_counter}}
     </div>
+    </div>
+<script>
+const select = document.getElementById("colorSelect");
 
-    <script>
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-        }
+window.onload = function() {
+    const currentColor = document.body.style.backgroundColor;
+    if (currentColor) {
+        select.value = currentColor;
+    }
+};
 
-        function setCookie(name, value, days) {
-            const d = new Date();
-            d.setTime(d.getTime() + (days*24*60*60*1000));
-            document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/`;
-        }
+select.addEventListener("change", function() {
+    const color = this.value;
+    document.body.style.backgroundColor = color;
 
-        const select = document.getElementById("colorSelect");
-
-        window.onload = function() {
-            const savedColor = getCookie("bgColor");
-            if (savedColor) {
-                document.body.style.backgroundColor = savedColor;
-                select.value = savedColor;
-                sessionStorage.setItem("bgColor", savedColor);
-            }
-        };
-
-        select.addEventListener("change", function() {
-            const color = this.value;
-            document.body.style.backgroundColor = color;
-            setCookie("bgColor", color, 30);
-            sessionStorage.setItem("bgColor", color);
-        });
-    </script>
-
+    fetch("/session_set_background_color", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "color=" + encodeURIComponent(color),
+        credentials: "include"
+    });
+});
+</script>
 
 </body>
 </html>

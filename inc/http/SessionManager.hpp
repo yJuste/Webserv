@@ -24,8 +24,22 @@
 struct Session
 {
 	std::string	username;
-	std::string	mode;
 	time_t		expire;
+	std::string	bg_color;
+	size_t		counter;
+
+	// Methods
+
+	void incrementCounter() { counter++; }
+
+	// Getters
+
+	const std::string & getBgColor() const { return bg_color; }
+	size_t getCounter() const { return counter; }
+
+	// Setter
+
+	void setBgColor( const std::string & color ) { bg_color = color; }
 };
 
 /*	HELP

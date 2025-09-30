@@ -40,10 +40,12 @@ std::string	registryKey( const std::string &, const std::string & );
 std::string	concatPaths( const std::string &, const std::string & );
 std::string	remove_sub_string( const std::string &, const std::string & );
 std::string	generateDirectoryListing( const std::string &, const std::string & );
+void		replaceAll( std::string &, const std::string &, const std::string & );
 
 // ------ Others -----
 
 std::string	rounded( size_t );
 std::string	getExtension( const std::string & );
+std::string	url_decode( const std::string & );
 
 #endif

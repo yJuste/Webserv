@@ -36,7 +36,7 @@ Request	& Request::operator = ( const Request & r )
 }
 
 // Methods
-# include <iostream>
+
 int	Request::create( const std::string & raw )
 {
 	_rawBuf.append(raw);

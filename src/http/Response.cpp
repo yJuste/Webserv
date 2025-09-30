@@ -44,7 +44,8 @@ Response & Response::operator = ( const Response & r )
 void	Response::build( void )
 {
 	_check_keep_alive();
-	_session_management();
+	if (_session_management() == 1)
+		return ;
 
 	int code = _preparation();
 	if (code)
@@ -125,7 +126,10 @@ void	Response::_reconstitution( void )
 		if (it != cgiMap.end())
 			return _executeCGI(filePath);
 		if (_req->getMethod() == "GET")
-			return _response("200\nOK\nContent-Type\n" + getContentType(filePath) + "\n" + readFile(filePath));
+		{
+			_response("200\nOK\nContent-Type\n" + getContentType(filePath) + "\n" + readFile(filePath));
+			return _apply_session_parameter();
+		}
 		return _response("405\nMethod Not Allowed\n\n\nPost not allowed on static file.");
 	}
 	else if (status == 2)
@@ -135,7 +139,8 @@ void	Response::_reconstitution( void )
 			return ;
 		if (acstat(index.c_str(), F_OK) == -1)
 			return _response("403\nForbidden\n\n\nFile does not exist, forbidden path. ( you should add a default file, like 'index.html')");
-		return _response("200\nOK\nContent-Type\n" + getContentType(index) + "\n" + readFile(index));
+		_response("200\nOK\nContent-Type\n" + getContentType(index) + "\n" + readFile(index));
+		return _apply_session_parameter();
 	}
 	return _404_error("Path does not exist, File not found.");
 }
@@ -382,17 +387,38 @@ void	Response::_executeCGI( const std::string & filePath )
  *	SESSION
  */
 
-void	Response::_session_management( void )
+int	Response::_session_management( void )
 {
 	std::string sid = _smanager->getSessionIdFromCookie(_req->getHeader("Cookie"));
-	Session * session = _smanager->getSession(sid);
-	if (!session)
+	_session = _smanager->getSession(sid);
+	if (!_session)
 	{
 		sid = _smanager->create("guest");
-		std::string value = "session_id=" + sid + "; Max-Age=3600; HttpOnly";
+		std::string value = "session_id=" + sid + "; Max-Age=3600; HttpOnly; SameSite=Strict";
 		_headers["Set-Cookie"] = value;
-		session = _smanager->getSession(sid);
+		_session = _smanager->getSession(sid);
+		return 0;
 	}
+	if (_req->getPath() == "/session_set_background_color")
+	{
+		const std::vector<char> & body = _req->getBody();
+		std::string data(body.begin(), body.end());
+		_session->setBgColor(url_decode(data.substr(6)));
+		_response("200\nOK\nContent-Type\ntext/plain\nColor has changed.");
+		return 1;
+	}
+	if (_req->getPath() == "/")
+		_session->incrementCounter();
+	return 0;
+}
+
+void	Response::_apply_session_parameter( void )
+{
+	replaceAll(_body, "{{session_set_background_color}}", _session->getBgColor());
+	std::ostringstream oss;
+	oss << _session->getCounter();
+	std::string counter = oss.str();
+	replaceAll(_body, "{{session_set_counter}}", counter);
 }
 
 /*

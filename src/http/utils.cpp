@@ -161,3 +161,32 @@ std::string	generateDirectoryListing( const std::string & dirPath, const std::st
 	closedir(dir);
 	return html.str();
 }
+
+void	replaceAll( std::string & str, const std::string & from, const std::string & to )
+{
+	size_t start_pos = 0;
+	while((start_pos = str.find(from, start_pos)) != std::string::npos)
+	{
+		str.replace(start_pos, from.length(), to);
+		start_pos += to.length();
+	}
+}
+
+std::string	url_decode( const std::string & src )
+{
+	std::string ret;
+	for (size_t i = 0; i < src.size(); i++)
+	{
+		if (src[i] == '%' && i + 2 < src.size())
+		{
+			int hex = std::stoi(src.substr(i+1, 2), nullptr, 16);
+			ret.push_back(static_cast<char>(hex));
+			i += 2;
+		}
+		else if (src[i] == '+')
+			ret.push_back(' ');
+		else
+			ret.push_back(src[i]);
+	}
+	return ret;
+}

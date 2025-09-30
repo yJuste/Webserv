@@ -31,8 +31,9 @@ std::string	SessionManager::create( const std::string & username )
 
 	Session session;
 	session.username = username;
-	session.mode = "normal";
 	session.expire = std::time(NULL) + 3600;
+	session.bg_color = "#ffffff";
+	session.counter = 1;
 	_sessions[sessionId] = session;
 	return sessionId;  
 }
