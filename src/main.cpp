@@ -16,6 +16,7 @@ int	main( int argc, char ** argv )
 		if (argc != 2)
 			throw FailedMainParameter();
 		create_unique_program();
+		std::srand(std::time(NULL));
 		Print::newPalette();
 		std::vector<Server *> servers = configure_file(argv[1]);
 

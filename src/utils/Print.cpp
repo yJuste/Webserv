@@ -50,7 +50,6 @@ const char *	Print::getColor( int socket )
 
 void	Print::newPalette( void )
 {
-	std::srand(static_cast<unsigned int>(std::time(NULL)));
 	for (size_t i = 0; i < g_palette_size; ++i)
 		_palette[i] = g_palette[i];
 	for (size_t i = g_palette_size - 1; i > 0; --i)

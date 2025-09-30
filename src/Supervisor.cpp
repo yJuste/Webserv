@@ -93,7 +93,16 @@ void	Supervisor::execution( void )
 			if (i < _server_size)
 			{
 				if (_size >= FDS_SIZE)
-					return (void)Print::debug(RED, "error", "Too many connexions on a server.");
+				{
+					size_t first_client = _server_size + 1;
+					int old_fd = _fds[first_client].fd;
+					Client * old_client = _getClient(old_fd);
+					if (old_client)
+						_supClient(old_fd);
+					for (size_t j = first_client; j < _size - 1; ++j)
+						_fds[j] = _fds[j + 1];
+					--_size;
+				}
 				Client * client = new Client(fd, _servers[i], _smanager);
 				_clients.push_back(client);
 				_fds[_size].fd = client->getSocket();
