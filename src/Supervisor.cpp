@@ -70,7 +70,7 @@ void	Supervisor::execution( void )
 		if (ret <= -1)
 			throw FailedPoll();
 		else if (ret == 0)
-			write(1, "Heap", 4);
+			continue ;
 		for (size_t i = 0; i < _size; ++i)
 		{
 			if (_fds[i].revents == 0)
