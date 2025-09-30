@@ -179,7 +179,9 @@ std::string	url_decode( const std::string & src )
 	{
 		if (src[i] == '%' && i + 2 < src.size())
 		{
-			int hex = std::stoi(src.substr(i+1, 2), nullptr, 16);
+			std::istringstream iss(src.substr(i + 1, 2));
+			int hex = 0;
+			iss >> std::hex >> hex;
 			ret.push_back(static_cast<char>(hex));
 			i += 2;
 		}
