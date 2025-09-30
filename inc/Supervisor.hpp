@@ -50,6 +50,7 @@ class	Supervisor
 		std::vector<Server *>	_servers;
 		std::vector<Client *>	_clients;
 		SessionManager *	_smanager;
+
 		size_t			_size;
 		size_t			_server_size;
 

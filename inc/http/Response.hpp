@@ -51,6 +51,7 @@ class	Response
 		const Location *			_loc;
 		SessionManager *			_smanager;
 		Session *				_session;
+
 		std::pair<int, std::string>		_status;
 		std::map<std::string, std::string>	_headers;
 		std::string				_body;

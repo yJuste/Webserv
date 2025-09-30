@@ -37,6 +37,7 @@ class	Request
 	private:
 
 		const Client *				_client;
+
 		std::string				_headerPart;
 		std::vector<char>			_body;
 		std::string				_method;

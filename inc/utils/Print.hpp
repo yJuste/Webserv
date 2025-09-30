@@ -163,7 +163,7 @@ template <typename T>
 std::ostream	& Print::debug( const std::string & COLOR, const T & type, const std::string & message )
 {
 	if (typeid(type) == typeid(int))
-		return std::cout << " " << COLOR << type << "  | " << RESET << message << std::endl;
+		return std::cout << " " << COLOR << std::setw(3) << type << " | " << RESET << message << std::endl;
 	else
 		return std::cout << COLOR << type << RESET << ": " << message << std::endl;
 }
