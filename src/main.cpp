@@ -20,7 +20,7 @@ int	main( int argc, char ** argv )
 		std::srand(std::time(NULL));
 		Print::newPalette();
 
-		configure_file(argv[1], servers);
+		servers = configure_file(argv[1], servers);
 		for (size_t i = 0; i < servers.size(); ++i)
 			servers[i]->myConfig();
 	}
