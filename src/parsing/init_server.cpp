@@ -16,10 +16,9 @@ void	init_max_size( std::string str, Server & server )
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
 
-	char		suff = str[str.size() - 1];
-	std::string	number = str;
-	size_t		mult = 1;
-
+	char suff = str[str.size() - 1];
+	std::string number = str;
+	size_t mult = 1;
 	if (!std::isdigit(suff))
 	{
 		switch (suff)
@@ -36,27 +35,23 @@ void	init_max_size( std::string str, Server & server )
 		number = str.substr(0, str.size() - 1);
 	}
 
-	std::stringstream	ss(number);
-	size_t			nb;
-
+	std::stringstream ss(number);
+	size_t nb;
 	if (!(ss >> nb) || !ss.eof())
 		throw MaxSizeNotGiven();
 	if (nb > SIZE_MAX / mult)
 		throw Overflow();
-
 	server.setMaxSize(nb * mult);
 	server.setOverwritten("client_max_body_size");
 }
 
 void	init_error_pages( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
-	std::vector<int>	codes;
-
+	std::vector<int> codes;
 	while (it != words.end())
 	{
-		std::stringstream	ss(*it);
-		int			code;
-
+		std::stringstream ss(*it);
+		int code;
 		if (ss >> code && ss.eof())
 		{
 			codes.push_back(code);
@@ -65,14 +60,13 @@ void	init_error_pages( const std::vector<std::string> & words, std::vector<std::
 			continue ;
 		}
 
-		std::string	path = *it;
-		bool		semicolon = !path.empty() && path[path.size() - 1] == ';';
-
+		std::string path = *it;
+		bool semicolon = !path.empty() && path[path.size() - 1] == ';';
 		if (semicolon)
 			path.erase(path.size() - 1);
 		if (path.empty())
 			throw NoEndingSemicolon();
-		for ( std::vector<int>::const_iterator it = codes.begin(); it != codes.end(); ++it )
+		for (std::vector<int>::const_iterator it = codes.begin(); it != codes.end(); ++it)
 			server.addErrorPage(*it, path.c_str());
 		if (semicolon)
 			break ;
@@ -80,7 +74,6 @@ void	init_error_pages( const std::vector<std::string> & words, std::vector<std::
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
-
 	server.setOverwritten("error_page");
 }
 
@@ -103,7 +96,6 @@ void	init_names( const std::vector<std::string> & words, std::vector<std::string
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
-
 	server.setNames(names);
 }
 
@@ -126,7 +118,6 @@ void	init_index( const std::vector<std::string> & words, std::vector<std::string
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
-
 	server.setIndex(tabs);
 	server.setOverwritten("index");
 }
@@ -136,21 +127,19 @@ void	init_root( std::string str, Server & server )
 	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
-
 	if (server.getRoot() != "")
 		throw DuplicateParameter("root");
-
 	server.setRoot(str.c_str());
 	server.setOverwritten("root");
 }
 
 void	init_listen( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
+	std::vector<int> ports;
 	while (it != words.end())
 	{
 		std::string str = *it;
 		bool semicolon = false;
-
 		if (!str.empty() && str[str.size() - 1] == ';')
 		{
 			str.erase(str.size() - 1);
@@ -159,33 +148,33 @@ void	init_listen( const std::vector<std::string> & words, std::vector<std::strin
 		if (str.empty())
 			throw NoEndingSemicolon();
 
-		size_t		sep = str.find(':');
-		std::string	host = "";
-		std::string	port = "";
-
+		size_t sep = str.find(':');
+		std::string host = "";
+		std::string port = "";
 		if (sep != std::string::npos)
 		{
-			if (server.getHost() != "0.0.0.0")
-				throw DuplicateParameter("host");
 			host = str.substr(0, sep);
+			if (host == "localhost")
+				host = "127.0.0.1";
 			port = str.substr(sep + 1);
 			server.setHost(host);
+			server.setOverwritten("host");
 		}
 		else
 			port = str;
 
-		std::stringstream	ss(port);
-		int			nb;
-
+		std::stringstream ss(port);
+		int nb;
 		if (!(ss >> nb))
 			throw InvalidListen();
-		server.addPort(nb);
+		ports.push_back(nb);
 		if (semicolon)
 			break ;
 		++it;
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
+	server.setPort(ports);
 }
 
 void	init_host( std::string str, Server & server )
@@ -193,18 +182,14 @@ void	init_host( std::string str, Server & server )
 	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	str.erase(str.size() - 1);
-
-	if (server.getHost() != "0.0.0.0")
-		throw DuplicateParameter("host");
-
+	if (str == "localhost")
+		str = "127.0.0.1";
 	server.setHost(str);
+	server.setOverwritten("host");
 }
 
 void	init_server( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )
 {
-	try { if (server.getOverwrittenX(*it)) throw OverwrittenParameter(it->c_str()); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
-
 	if (*it == "host")
 		init_host(*(++it), server);
 	else if (*it == "listen")
@@ -225,25 +210,21 @@ void	init_server( const std::vector<std::string> & words, std::vector<std::strin
 		throw InvalidParameter(it->c_str());
 }
 
-void	missingImportant( std::vector<Server *> & servers, Server & server )
+void	missingImportant( Server & server )
 {
-	server.setDefault(true);
-	for (std::vector<Server *>::const_iterator cit = servers.begin(); cit != servers.end(); ++cit)
-		if (cit != servers.end() - 1 && (*cit)->getHost() == server.getHost() && (*cit)->getPort() == server.getPort())
-			server.setDefault(false);
-	try { if (server.getHost() == "0.0.0.0") throw MissingImportantValues("host"); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
+	if (server.getHost() == "")
+		server.setHost("0.0.0.0");
 	try { if (server.getRoot() == "") throw MissingImportantValues("root"); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
+	catch (std::exception & e) { server.addWarning(e.what()); }
 	try { if (server.getLocations().empty()) throw MissingImportantValues("location"); }
-	catch ( std::exception & e ) { server.addWarning(e.what()); }
+	catch (std::exception & e) { server.addWarning(e.what()); }
 	if (server.getNames().empty())
 	{
 		std::vector<std::string> name;
 		name.push_back("localhost");
 		server.setNames(name);
 	}
-	if (!server.getPort().size())
+	if (server.getEveryPort().empty())
 		throw NoExistingPort();
 }
 
@@ -263,26 +244,47 @@ void	create_paths( Server & server )
 	}
 
 	bool status = false;
+	std::string first = "";
 	std::vector<std::string> index = server.getIndex();
-	for ( std::vector<std::string>::iterator it = index.begin(); it != index.end(); ++it )
+	for (std::vector<std::string>::iterator it = index.begin(); it != index.end(); ++it)
 	{
 		*it = server.getRoot() + *it;
-		if (acstat(it->c_str(), F_OK | R_OK) == 1)
+		if (!status && acstat(it->c_str(), F_OK | R_OK) == 1)
+		{
+			first = *it;
 			status = true;
+		}
 	}
-	if (!status)
+	if (index.empty())
+		index.push_back(server.getRoot() + "index.html");
+	else if (!status)
 	{
 		try { if (index.size()) throw FailedAcstat(index[0].c_str()); }
-		catch ( std::exception & e ) { server.addWarning(e.what()); }
+		catch (std::exception & e) { server.addWarning(e.what()); }
+	}
+
+	std::vector<std::string>::iterator pos = std::find(index.begin(), index.end(), first);
+	if (pos != index.end())
+	{
+		index.erase(pos);
+		index.insert(index.begin(), first);
 	}
 	server.setIndex(index);
 }
 
-std::vector<Server *>	create_servers( const std::vector<std::string> & words )
+void	overwritten( Server & server )
 {
-	std::vector<Server *>		servers;
-	std::vector<std::string>::const_iterator it = words.begin();
+	std::map<std::string, int>::const_iterator cit = server.getOverwritten().begin();
+	for (; cit != server.getOverwritten().end(); ++cit)
+	{
+		try { if (cit->second >= 2) throw OverwrittenParameter(cit->first.c_str()); }
+		catch (std::exception & e) { server.addWarning(e.what()); }
+	}
+}
 
+std::vector<Server *>	create_servers( const std::vector<std::string> & words, std::vector<Server *> & servers )
+{
+	std::vector<std::string>::const_iterator it = words.begin();
 	while (it != words.end())
 	{
 		if (*it == "server")
@@ -294,7 +296,6 @@ std::vector<Server *>	create_servers( const std::vector<std::string> & words )
 
 			Server * server = new Server();
 			servers.push_back(server);
-
 			while (*it != "}")
 			{
 				if (*it == "{")
@@ -304,7 +305,8 @@ std::vector<Server *>	create_servers( const std::vector<std::string> & words )
 				init_server(words, it, *server);
 				++it;
 			}
-			missingImportant(servers, *server);
+			missingImportant(*server);
+			overwritten(*server);
 			create_paths(*server);
 		}
 		else

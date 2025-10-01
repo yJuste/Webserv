@@ -2,25 +2,230 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Welcome to My Webserv</title>
+    <title>My Webserv Test Page</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            background-color: {{session_set_background_color}};
+            margin: 50px;
             text-align: center;
-            margin-top: 100px;
         }
-        h1 {
-            color: #333;
+        h1 { color: #333; }
+        .form-container {
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            width: 400px;
+            background-color: #fff;
+            border-radius: 8px;
         }
-        p {
-            color: #666;
+        input[type=text], input[type=password], input[type=file] {
+            width: 90%;
+            padding: 8px;
+            margin: 5px 0;
         }
+        input[type=submit], button {
+            padding: 8px 16px;
+            margin-top: 10px;
+        }
+        a { display: block; margin-top: 15px; }
+        textarea { width: 95%; height: 100px; margin-top: 10px; }
     </style>
+    <link rel="icon" href="/images/alien.png" type="image/png">
+    <link rel="apple-touch-icon" href="/images/alien.png">
+    <link rel="apple-touch-icon-precomposed" href="/images/alien.png">
 </head>
 <body>
-    <h1>It works!</h1>
-    <img src="detective_cool.gif" alt="Cool Detective GIF">
-    <p>This is the default index.html served by your webserv.</p>
+    <h1>Welcome to My Webserv</h1>
+
+    <!-- Login Form -->
+    <div class="form-container">
+        <h2>Login</h2>
+        <form action="/login" method="POST">
+            <input type="text" name="username" placeholder="Username" required><br>
+            <input type="password" name="password" placeholder="Password" required><br>
+            <input type="submit" value="Login">
+        </form>
+    </div>
+
+    <!-- Register Form -->
+    <div class="form-container">
+        <h2>Register</h2>
+        <form action="/register" method="POST">
+            <input type="text" name="username" placeholder="Username" required><br>
+            <input type="password" name="password" placeholder="Password" required><br>
+            <input type="email" name="email" placeholder="Email" required><br>
+            <input type="submit" value="Register">
+        </form>
+    </div>
+
+    <!-- File Upload Form -->
+    <div class="form-container">
+        <h2>Upload a File</h2>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" required><br>
+            <input type="submit" value="Upload">
+        </form>
+    </div>
+
+    <!-- Delete File Form -->
+    <div class="form-container">
+        <h2>Delete a File</h2>
+        <input type="text" id="deletePath" placeholder="File path (e.g. /upload/test.txt)" required><br>
+        <button onclick="sendDelete()">Delete</button>
+        <p id="deleteResult"></p>
+    </div>
+
+    <script>
+        function sendDelete() {
+            var path = document.getElementById("deletePath").value.trim();
+            if (!path) {
+                alert("Please enter a file path to delete");
+                return;
+            }
+
+            fetch(path, { method: "DELETE" })
+                .then(response => {
+                    // Attempt to parse JSON response
+                    return response.json()
+                        .then(data => {
+                            if (data.status === "deleted") {
+                                document.getElementById("deleteResult").innerText = "Success: " + data.path + " deleted.";
+                                alert("Success: " + data.path + " deleted.");
+                            } else if (data.status === "error") {
+                                document.getElementById("deleteResult").innerText = "Error: " + data.message;
+                                alert("Error: " + data.message);
+                            } else {
+                                document.getElementById("deleteResult").innerText = "Unknown response";
+                            }
+                        })
+                        .catch(() => {
+                            // fallback: if response is not JSON
+                            response.text().then(text => {
+                                document.getElementById("deleteResult").innerText =
+                                    "Error " + response.status + ": " + text;
+                            });
+                        });
+                })
+                .catch(err => {
+                    document.getElementById("deleteResult").innerText = "Request failed: " + err;
+                    alert("Request failed: " + err);
+                });
+        }
+    </script>
+
+
+    <!-- Autoindex Test Button -->
+    <div class="form-container">
+        <h2>Test Autoindex</h2>
+        <button onclick="goAutoindex()">Go to /files</button>
+    </div>
+
+    <script>
+        function goAutoindex() { window.location.href = "/files"; }
+    </script>
+
+    <!-- CGI Test Form -->
+    <div class="form-container">
+        <h2>Test CGI Scripts</h2>
+        <input type="text" id="cgiName" placeholder="Enter name (e.g. go123)" required><br>
+        <div>
+            <button onclick="goCgi('/cgi/test.py')">Test Python CGI (.py)</button>
+            <button onclick="goCgi('/cgi/test.pl')">Test Perl CGI (.pl)</button>
+            <button onclick="goCgi('/cgi/test.sh')">Test Bash CGI (.sh)</button>
+        </div>
+
+        <script>
+        function goCgi(scriptPath) {
+            var name = encodeURIComponent(document.getElementById('cgiName').value);
+            window.location.href = scriptPath + '?name=' + name;
+        }
+        </script>
+    </div>
+
+
+    <!-- Links -->
+    <a href="/resources/gif_view.html">View GIF</a>
+
+    <!-- Chunked Test -->
+    <div class="form-container">
+        <h2>Chunked Upload Test</h2>
+        <p>Copy and paste this command into your terminal to test chunked upload:</p>
+        <textarea readonly rows="6" style="width:95%;">
+    curl -v -X POST http://localhost:8081/upload \
+        -H "Transfer-Encoding: chunked" \
+        -H "Content-Type: text/plain" \
+        --data-binary @<(printf '5\r\nHello\r\n6\r\n World\r\n0\r\n\r\n')
+        </textarea>
+        <br>
+        <button onclick="showChunkedFile()">Show /upload/upload.bin</button>
+        <pre id="chunkedResult" style="background:#f0f0f0; padding:8px; margin-top:10px;"></pre>
+    </div>
+
+    <script>
+    function showChunkedFile() {
+        fetch("/upload/upload.bin")
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to read file: " + res.status);
+                return res.text();
+            })
+            .then(text => {
+                document.getElementById("chunkedResult").innerText = text;
+            })
+            .catch(err => {
+                document.getElementById("chunkedResult").innerText = "Error: " + err;
+            });
+    }
+    </script>
+
+    <!-- Cookie Test -->
+    <div id="colorPickerContainer" style="
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(255,255,255,0.9);
+        padding: 8px 12px;
+        border-radius: 6px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        z-index: 1000;
+    ">
+        <label for="colorSelect">Background: </label>
+        <select id="colorSelect">
+		<option value="#FFFFFF" selected>White</option>
+            <option value="#FF6B6B">Red</option>
+            <option value="#FFA94D">Orange</option>
+            <option value="#FFD93D">Yellow</option>
+            <option value="#6BCB77">Green</option>
+            <option value="#4D96FF">Blue</option>
+            <option value="#845EC2">Purple</option>
+            <option value="#F9F871">Light Yellow</option>
+        </select>
+	<div style="font-size: 12px; color: #555; margin-top: 6px;">
+        Visits: {{session_set_counter}}
+    </div>
+    </div>
+<script>
+const select = document.getElementById("colorSelect");
+
+window.onload = function() {
+    const currentColor = document.body.style.backgroundColor;
+    if (currentColor) {
+        select.value = currentColor;
+    }
+};
+
+select.addEventListener("change", function() {
+    const color = this.value;
+    document.body.style.backgroundColor = color;
+
+    fetch("/session_set_background_color", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "color=" + encodeURIComponent(color),
+        credentials: "include"
+    });
+});
+</script>
+
 </body>
 </html>

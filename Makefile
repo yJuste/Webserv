@@ -2,7 +2,7 @@ NAME = webserv
 
 # Flags
 CC = c++
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
 
 # Directories
 SRC_DIR = src
@@ -20,6 +20,13 @@ SRC =	main.cpp				\
 	parsing/init_server.cpp			\
 	parsing/init_location.cpp		\
 	parsing/utils.cpp			\
+	http/Request.cpp			\
+	http/Response/Response.cpp		\
+	http/Response/utils.cpp			\
+	http/SessionManager.cpp			\
+	http/utils.cpp				\
+	utils/Print.cpp				\
+	utils/utils.cpp				\
 
 OBJ = $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 
@@ -39,17 +46,17 @@ $(NAME): $(OBJ)
 	@$(CC) $(CFLAGS) $(OBJ) -o $(NAME) -I $(INC_DIR)
 	@echo $(BLUE) "➤ '$(NAME)' is now ready." $(RESET)
 
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
+	@echo $(BROWN) "Compiling ➤ $<" $(RESET)
+	@$(CC) $(CFLAGS) $< -c -o $@ -I $(INC_DIR) -I $(INC_DIR)/utils -I $(INC_DIR)/http
+
 clean:
 	@rm -rf $(OBJ_DIR)
 
 fclean: clean
 	@rm -f $(NAME)
 	@echo $(YELLOW) "➤ Every files and $(NAME) are removed." $(RESET)
-
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	@mkdir -p $(dir $@)
-	@echo $(BROWN) "Compiling ➤ $<" $(RESET)
-	@$(CC) $(CFLAGS) $< -c -o $@ -I $(INC_DIR)
 
 re: fclean all
 

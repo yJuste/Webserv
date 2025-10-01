@@ -9,32 +9,48 @@
 
 # include "main.hpp"
 
-// Si la longeur stipulé sur le message est trop grande par rapport au message, ca bloque attention.
-
-int	main(int argc, char **argv)
+int	main( int argc, char ** argv )
 {
+	std::vector<Server *> servers;
 	try
 	{
 		if (argc != 2)
 			throw FailedMainParameter();
 		create_unique_program();
-		std::vector<Server *> servers = configure_file(argv[1]);
+		std::srand(std::time(NULL));
+		Print::newPalette();
 
+		servers = configure_file(argv[1], servers);
 		for (size_t i = 0; i < servers.size(); ++i)
 			servers[i]->myConfig();
-
+	}
+	catch (std::exception & e)
+	{
+		std::cerr << e.what() << std::endl;
+		for (size_t i = 0; i < servers.size(); ++i)
+			delete servers[i];
+		servers.clear();
+		return 1;
+	}
+	try
+	{
 		Supervisor supervisor;
 
 		supervisor.hold(servers);
 		supervisor.execution();
 	}
-	catch (std::exception & e) { std::cerr << e.what() << std::endl; }
+	catch (std::exception & e)
+	{
+		std::cerr << e.what() << std::endl;
+		return 2;
+	}
 	return 0;
 }
 
 /*
  *	By default, the program is running with the port '62034'.
  */
+
 void	create_unique_program( void )
 {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -45,7 +61,6 @@ void	create_unique_program( void )
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(62034);
 	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-
 	if (bind(sock, (sockaddr *)&addr, sizeof(addr)) == -1)
 		throw NotUniqueProcessus();
 }

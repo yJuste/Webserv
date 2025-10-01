@@ -7,14 +7,12 @@
 //                                                                            //
 // ************************************************************************** //
 
-# include "main.hpp"
+# include "utils.hpp"
 # include "Exceptions.hpp"
 
-// handle file/folder accessibilty. (access + stat)
 int	acstat( const char * path, int mode )
 {
-	struct stat	buf;
-
+	struct stat buf;
 	if (stat(path, &buf) == -1)
 		return -1;
 	if (access(path, mode) == -1)
@@ -32,29 +30,9 @@ int	acstat( const char * path, int mode )
 	return -1;
 }
 
-// DEBUG FUNCTION: str_to_ascii
-void	stoa( const std::string & path )
-{
-	std::cout << std::endl;
-	std::cout << "\033[91mDEBUG MODE:\033[0m stoa(): '\033[93m" << path << "\033[0m'.\n";
-
-	for (size_t i = 0; i < path.size(); ++i)
-	{
-		std::cout << std::setw(10) << "[\033[93m" << std::setw(2) << i << "\033[0m]"
-		<< " = '\033[91m" << path[i] << "\033[0m'"
-		<< " (" << std::setw(3) << static_cast<int>(path[i]) << ")   ";
-
-		if ((i + 1) % 3 == 0)
-			std::cout << "\n";
-	}
-	std::cout << std::endl << std::endl;
-}
-
-// Regarde si le chemin est relatif et si oui, normalise.
 int	relative( const std::string & path )
 {
-	int	i = 0;
-
+	int i = 0;
 	if (path[0] == '.')
 	{
 		if (path[++i] != '/')
@@ -66,7 +44,6 @@ int	relative( const std::string & path )
 	return i;
 }
 
-// Test un dossier et le normalise.
 std::string	handle_folder( std::string s )
 {
 	if (!s.size())

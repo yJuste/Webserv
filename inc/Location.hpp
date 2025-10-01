@@ -12,7 +12,7 @@
 
 // Standard Libraries
 
-# include <iostream>
+# include <string>
 # include <vector>
 # include <map>
 
@@ -23,7 +23,6 @@ extern const char * g_methods[];
 /*	HELP
  *
  * The Location class needs arrays for supported extensions and allowed methods.
- * Cgi works as : cgi [.extension] [executable];
  *
  */
 
@@ -43,11 +42,8 @@ class	Location
 		bool					_autoindex;
 		std::vector<std::string>		_index;
 		std::map<std::string, std::string>	_cgi;
-
-		// parsing
-
 		std::vector<std::string>		_cgi_paths;
-		std::map<std::string, bool>		_overwritten;
+		std::map<std::string, int>		_overwritten;
 
 	public:
 
@@ -68,8 +64,7 @@ class	Location
 		const std::vector<std::string> & getIndex() const;
 		const std::map<std::string, std::string> & getCgi() const;
 		const std::vector<std::string> & getCgiPaths() const;
-		const std::map<std::string, bool> & getOverwritten() const;
-		bool getOverwrittenX( const std::string & ) const;
+		const std::map<std::string, int> & getOverwritten() const;
 
 		// Setters
 

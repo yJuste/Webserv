@@ -14,6 +14,12 @@
 
 # include <poll.h>
 
+// Dependences
+
+# include "Server.hpp"
+# include "Client.hpp"
+# include "SessionManager.hpp"
+
 // Defines
 
 # ifndef FDS_SIZE
@@ -21,23 +27,14 @@
 # endif
 
 # ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 1024
+#  define BUFFER_SIZE 16384
 # endif
-
-// Dependences
-
-# include "Server.hpp"
-# include "Client.hpp"
 
 /*	HELP
  *
  * The Supervisor class waits for an array of Servers allocated on the heap.
  * Warning: supervisor destroys the vector<Server *> itself ( no need to delete[] )
  * Test it with : curl -v http://IPv4:Port
- * Test leaks : add cycles in execution() ( ~10 seconds to test ):
- *
- *	size_t cycles = 0;
- *	while (_running && cycles++ < 1000000) { ... }
  *
  */
 
@@ -50,15 +47,21 @@ class	Supervisor
 	private:
 
 		struct pollfd		_fds[FDS_SIZE];
+		std::vector<Server *>	_servers;
+		std::vector<Client *>	_clients;
+		SessionManager *	_smanager;
+
 		size_t			_size;
 		size_t			_server_size;
 
-		std::vector<Server *>	_servers;
-		std::vector<Client *>	_clients;
+		// Methods
 
-		bool			_find( const std::vector<Server *> &, int );
-		bool			_supClient( int );
-		void			_clean();
+		Client * _getClient( int );
+		Client * _supClient( int );
+		void _clock( bool &, time_t & );
+		void _clean();
+
+		// ~Structors
 
 		Supervisor( const Supervisor & );
 		Supervisor & operator = ( const Supervisor & );
@@ -74,22 +77,11 @@ class	Supervisor
 		void hold( const std::vector<Server *> & );
 		void execution();
 
-		// Getter
-
-		size_t getSize() const;
-
-		// Setters
-
-		void addClient( Client * );
-
 		// Exceptions
 
 		class NoServerAdded;
-		class SupNoClient;
 };
 
 class	Supervisor::NoServerAdded : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Supervisor cannot monitor without a server."; } };
-
-class	Supervisor::SupNoClient : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Cannot find the client to suppress."; } };
 
 #endif

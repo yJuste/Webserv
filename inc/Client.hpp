@@ -10,21 +10,20 @@
 #ifndef CLIENT_HPP
 # define CLIENT_HPP
 
-// Standard Libraries
-
-# include <iostream>
-# include <netdb.h>
-# include <unistd.h>
-# include <fcntl.h>
-
 // Dependences
 
+# include "Server.hpp"
+# include "SessionManager.hpp"
+# include "Request.hpp"
+# include "Response.hpp"
 # include "Exceptions.hpp"
 
 /*	HELP
  *
  * Client is a RAII class.
- * Warning: Copying is forbidden because it's dangerous to duplicate a fd.
+ * Warning: Copying is dangerous, be careful to have an unique fd.
+ *
+ * Autoindex test: curl -v http://127.0.0.1:8080 -H "Connection: close"
  *
  */
 
@@ -36,10 +35,21 @@ class	Client
 {
 	private:
 
-		int		_socket;
+		int			_socket;
+		Server *		_server;
+		SessionManager *	_smanager;
 
-		void		_unit( int );
-		void		_backout();
+		const char *		_color;
+		std::string		_wbuf;
+
+		Request *		_request;
+
+		// Methods
+
+		void _unit( int );
+		void _backout();
+
+		// ~Structors
 
 		Client();
 
@@ -48,12 +58,21 @@ class	Client
 
 	public:
 
-		Client( int );
+		Client( int, Server *, SessionManager * );
 		~Client();
 
-		// Getter
+		// Methods
+
+		void read( const std::string & );
+		void write();
+
+		// Getters
 
 		int getSocket() const;
+		const Server * getServer() const;
+		SessionManager * getSessionManager() const;
+		const char * getColor() const;
+		bool getKeepAlive() const;
 };
 
 #endif

@@ -12,15 +12,14 @@
 
 // Standard Libraries
 
-# include <algorithm>
-# include <sys/stat.h>
-# include <dirent.h>
 # include <stdint.h>
+# include <algorithm>
 
 // Dependences
 
 # include "Server.hpp"
 # include "Supervisor.hpp"
+# include "utils.hpp"
 
 // Defines
 
@@ -42,20 +41,9 @@ void	create_unique_program();
 
 // ----- Parsing -----
 
-// configure_file.cpp
-std::vector<Server *>	configure_file( const char * );
+std::vector<Server *>	configure_file( const char *, std::vector<Server *> & );
 std::vector<Server *>	multi_ports( std::vector<Server *> & );
-
-// init_server.cpp
-std::vector<Server *>	create_servers( const std::vector<std::string> & );
-
-// init_location.cpp
-Location	create_location( const std::vector<std::string> &, std::vector<std::string>::const_iterator &, Server & );
-
-// utils.cpp
-int	acstat( const char *, int );
-void	stoa( const std::string & );
-int	relative( const std::string & );
-std::string	handle_folder( std::string s );
+std::vector<Server *>	create_servers( const std::vector<std::string> &, std::vector<Server *> & );
+Location		create_location( const std::vector<std::string> &, std::vector<std::string>::const_iterator &, Server & );
 
 #endif
