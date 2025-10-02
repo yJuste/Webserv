@@ -105,7 +105,10 @@ int	Response::_preparation( void )
 	{
 		std::string allowHeader;
 		const std::vector<std::string> & methods = _loc->getMethods();
-		_response("405\nMethod Not Allowed\n\n\nMethod Not Allowed");
+		if (_req->getMethod() == "DELETE")
+			_response("405\nMethod Not Allowed\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
+		else
+			_response("405\nMethod Not Allowed\n\n\nMethod Not Allowed");
 		for (size_t i = 0; i < methods.size(); ++i)
 		{
 			allowHeader += methods[i];
@@ -170,7 +173,7 @@ void	Response::_handlePost( const std::string & path )
 	if (_req->getBody().size() > _server->getMaxSize())
 	{
 		std::stringstream ss;
-		ss << "Failed to save uploaded file: > " << rounded(_server->getMaxSize());
+		ss << "POST request has a content too large: > " << rounded(_server->getMaxSize());
 		return _response("413\nPayload Too Large\n\n\n" + ss.str());
 	}
 

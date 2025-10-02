@@ -39,20 +39,37 @@ void	Supervisor::hold( const std::vector<Server *> & servers )
 		return ;
 	_servers = servers;
 	_server_size = servers.size();
-	_size = _server_size;
 	if (_server_size != 0)
 		Print::header("DEBUG INFO", APPLE_GREEN);
+	std::vector<std::string> used;
+	size_t idx = 0;
 	for (size_t i = 0; i < _server_size; ++i)
 	{
-		servers[i]->startup();
-		_fds[i].fd = _servers[i]->getSocket();
-		_fds[i].events = POLLIN;
-		_fds[i].revents = 0;
+		std::string key = _servers[i]->getHostPort();
+		bool duplicate = false;
+		for (size_t j = 0; j < used.size(); ++j)
+		{
+			if (used[j] == key)
+			{
+				std::cerr << "    | " << std::string(APPLE_GREEN) << "Warning " << std::string(RESET) << ": duplicate listen " + std::string(APPLE_GREEN) + key + std::string(RESET) + " -> server not started." << std::endl;
+				duplicate = true;
+				break;
+			}
+		}
+		if (duplicate)
+			continue;
+		used.push_back(key);
+		_servers[i]->startup();
+		_fds[idx].fd = _servers[i]->getSocket();
+		_fds[idx].events = POLLIN;
+		_fds[idx].revents = 0;
+		++idx;
 	}
-	_fds[_size].fd = STDIN_FILENO;
-	_fds[_size].events = POLLIN;
-	_fds[_size].revents = 0;
-	++_size;
+	_server_size = idx;
+	_fds[idx].fd = STDIN_FILENO;
+	_fds[idx].events = POLLIN;
+	_fds[idx].revents = 0;
+	_size = idx + 1;
 	_smanager = new SessionManager();
 }
 

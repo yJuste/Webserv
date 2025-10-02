@@ -79,6 +79,7 @@ class	Server
 		const std::string & getHost() const;
 		const std::vector<int> & getEveryPort() const;
 		int getPort() const;
+		std::string getHostPort() const;
 		bool getDefault() const;
 		const std::vector<std::string> & getIndex() const;
 		const std::vector<std::string> & getNames() const;

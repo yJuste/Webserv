@@ -174,6 +174,7 @@ const struct sockaddr_in & Server::getAddress() const { return _address; }
 const std::string & Server::getHost() const { return _host; }
 const std::vector<int> & Server::getEveryPort() const { return _port; }
 int Server::getPort() const { if (!_port.size()) return -1; return _port[0]; }
+std::string Server::getHostPort() const { std::ostringstream oss; oss << _host << ":" << getPort(); return oss.str(); }
 const std::string & Server::getRoot() const { return _root; }
 bool Server::getDefault() const { return _default; }
 const std::vector<std::string> & Server::getIndex() const { return _index; }
