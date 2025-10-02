@@ -87,7 +87,7 @@ void	Supervisor::execution( void )
 					return ;
 			}
 			else if (i < _server_size && (revents & POLLIN))
-				_new_client(fd, i);
+				_new_client(fd);
 			Client * client = _getClient(fd);
 			if (!client)
 				continue ;
@@ -123,7 +123,7 @@ bool	Supervisor::_supervise_stdin( bool & last_print )
  *	NEW_CLIENT
  */
 
-void	Supervisor::_new_client( int fd, int idx )
+void	Supervisor::_new_client( int fd )
 {
 	if (_size >= FDS_SIZE)
 	{
@@ -136,7 +136,7 @@ void	Supervisor::_new_client( int fd, int idx )
 			_fds[j] = _fds[j + 1];
 		--_size;
 	}
-	Client * client = new Client(fd, _servers[idx], _smanager);
+	Client * client = new Client(fd, _smanager);
 	_clients.push_back(client);
 	_fds[_size].fd = client->getSocket();
 	_fds[_size].events = POLLIN;
@@ -161,7 +161,10 @@ void	Supervisor::_reading( Client * client, int fd, int idx )
 			--_size;
 			return ;
 		}
-		if (client->retrieve(std::string(buffer, rc)) == 1)
+		if (client->retrieve(std::string(buffer, rc)) != 1)
+			return ;
+		client->setServer(client->select_server(_servers));
+		if (client->response() == 1)
 		{
 			_fds[_size].fd = client->getSv();
 			_fds[_size].events = POLLIN;

@@ -34,7 +34,10 @@
  *
  * The Supervisor class waits for an array of Servers allocated on the heap.
  * Warning: supervisor destroys the vector<Server *> itself ( no need to delete[] )
- * Test it with : curl -v http://IPv4:Port
+ * Test it with :
+ * curl -v http://IPv4:Port
+ * Test virtual hosts :
+ * curl -X GET --resolve lan:8090:127.0.0.1 http://lan:8090
  *
  */
 
@@ -57,7 +60,7 @@ class	Supervisor
 		// Methods
 
 		bool _supervise_stdin( bool & );
-		void _new_client( int, int );
+		void _new_client( int );
 		void _reading( Client *, int, int );
 		void _writing( Client *, int, int );
 

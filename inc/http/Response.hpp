@@ -60,6 +60,7 @@ class	Response
 
 		int _preparation();
 		void _reconstitution();
+		void _handleGet( const std::string & );
 		void _handlePost( const std::string & );
 		void _handleUpload( std::string &, std::string & );
 		void _registry( std::string & );

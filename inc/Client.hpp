@@ -62,15 +62,17 @@ class	Client
 
 	public:
 
-		Client( int, Server *, SessionManager * );
+		Client( int, SessionManager * );
 		~Client();
 
 		// Methods
 
 		int retrieve( const std::string & );
+		int response();
 		int receive( int, char *, size_t );
 		ssize_t write();
 		void sent();
+		Server * select_server( const std::vector<Server *> & );
 
 		// Getters
 
@@ -84,6 +86,7 @@ class	Client
 
 		// Setters
 
+		void setServer( Server * );
 		void setSv( int );
 		void setOriginal( ssize_t );
 };

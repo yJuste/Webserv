@@ -12,7 +12,7 @@
 Client::Client() : _socket(-1), _server(NULL), _smanager(NULL), _color(Print::getColor(-1)), _wbuf(""), _request(NULL), _sv(-1), _original(0), _total(0) {}
 Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
-Client::Client( int server_socket, Server * server, SessionManager * smanager ) : _socket(-1), _server(server), _smanager(smanager), _wbuf(""), _sv(-1), _original(0), _total(0)
+Client::Client( int server_socket, SessionManager * smanager ) : _socket(-1), _server(NULL), _smanager(smanager), _wbuf(""), _sv(-1), _original(0), _total(0)
 {
 	_unit(server_socket);
 	_color = Print::getColor(_socket);
@@ -33,6 +33,8 @@ Client	& Client::operator = ( const Client & c )
 		_wbuf = c._wbuf;
 		_request = c._request;
 		_sv = c._sv;
+		_original = c._original;
+		_total = c._total;
 	}
 	return *this;
 }
@@ -55,7 +57,11 @@ int	Client::retrieve( const std::string & buf )
 	}
 	_original = 0;
 	_total = 0;
+	return 1;
+}
 
+int	Client::response( void )
+{
 	Response response(_request);
 	response.build();
 	_wbuf = response.string();
@@ -93,6 +99,53 @@ void	Client::sent( void )
 	_wbuf.clear();
 }
 
+Server *	Client::select_server( const std::vector<Server *> & servers )
+{
+	std::string host = _request->getHeader("Host");
+	int port = -1;
+	size_t pos = host.find(':');
+	if (pos != std::string::npos)
+	{
+		std::string portStr = host.substr(pos + 1);
+		host = host.substr(0, pos);
+		if (!portStr.empty())
+			port = std::atoi(portStr.c_str());
+	}
+	if (port == -1)
+	{
+		struct sockaddr_in addr;
+		socklen_t len = sizeof(addr);
+		if (getsockname(_socket, (struct sockaddr *)&addr, &len) == 0)
+			port = ntohs(addr.sin_port);
+	}
+	std::vector<Server *> candidates;
+	for (size_t i = 0; i < servers.size(); ++i)
+	{
+		const std::vector<int> & ports = servers[i]->getEveryPort();
+		for (size_t j = 0; j < ports.size(); ++j)
+		{
+			if (ports[j] == port)
+			{
+				candidates.push_back(servers[i]);
+				break;
+			}
+		}
+	}
+	if (candidates.empty())
+		return servers[0];
+	for (size_t i = 0; i < candidates.size(); ++i)
+	{
+		const std::vector<std::string> & names = candidates[i]->getNames();
+		for (size_t j = 0; j < names.size(); ++j)
+			if (names[j] == host)
+				return candidates[i];
+	}
+	for (size_t i = 0; i < candidates.size(); ++i)
+		if (candidates[i]->getDefault())
+			return candidates[i];
+	return candidates[0];
+}
+
 // Private Methods
 
 void	Client::_unit( int server_socket )
@@ -128,5 +181,6 @@ int Client::getSv() const { return _sv; }
 
 // Setters
 
+void Client::setServer( Server * server ) { _server = server; }
 void Client::setSv( int sv ) { _sv = sv; }
 void Client::setOriginal( ssize_t original ) { _original = original; }

@@ -78,4 +78,3 @@ void	finish_cgi( std::string & buf )
 		buf.insert(sep + 2, newType);
 	}
 }
-

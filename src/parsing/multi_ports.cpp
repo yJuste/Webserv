@@ -34,12 +34,5 @@ std::vector<Server *>	multi_ports( std::vector<Server *> & servers )
 		for (std::vector<Server *>::iterator cit = it + 1; cit != res.end(); ++cit)
 			if ((*it)->getHost() == (*cit)->getHost() && (*it)->getPort() == (*cit)->getPort())
 				(*cit)->setDefault(false);
-	for (it = res.begin(); it != res.end();)
-	{
-		if ((*it)->getDefault() == false)
-			it = res.erase(it);
-		else
-			++it;
-	}
 	return res;
 }

@@ -79,7 +79,7 @@ int	Response::_preparation( void )
 {
 	_loc = _findLocation(_req->getPath());
 	if (!_loc)
-		return _404_error("No matching location."), 0;
+		return _handleGet(concatPaths(my_getcwd() + "/", _server->getIndex()[0])), 0;
 
 	const std::map<int, std::string> & redir = _loc->getReturn();
 	if (!redir.empty())
@@ -117,24 +117,33 @@ void	Response::_reconstitution( void )
 		return _handleDelete(filePath);
 	if (_req->getMethod() == "POST")
 		return _handlePost(filePath);
+	if (_req->getMethod() == "GET")
+		return _handleGet(filePath);
+	//return _response("500\nInternal Server Error\n\n\nReconstitution failed.");
+}
 
-	int status = acstat(filePath.c_str(), F_OK | R_OK);
+/*
+ *	GET
+ */
+
+void	Response::_handleGet( const std::string & path )
+{
+	int status = acstat(path.c_str(), F_OK | R_OK);
 	if (status == 1)
 	{
-		const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
-		std::map<std::string, std::string>::const_iterator it = cgiMap.find(getExtension(filePath));
-		if (it != cgiMap.end())
-			return _executeCGI(filePath);
-		if (_req->getMethod() == "GET")
+		if (_loc)
 		{
-			_response("200\nOK\nContent-Type\n" + getContentType(filePath) + "\n" + readFile(filePath));
-			return _apply_session_parameter();
+			const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
+			std::map<std::string, std::string>::const_iterator it = cgiMap.find(getExtension(path));
+			if (it != cgiMap.end())
+				return _executeCGI(path);
 		}
-		return _response("405\nMethod Not Allowed\n\n\nPost not allowed on static file.");
+		_response("200\nOK\nContent-Type\n" + getContentType(path) + "\n" + readFile(path));
+		return _apply_session_parameter();
 	}
 	else if (status == 2)
 	{
-		std::string index = concatPaths(filePath, _loc->getIndex()[0]);
+		std::string index = concatPaths(path, _loc->getIndex()[0]);
 		if (_autoIndex(index))
 			return ;
 		if (acstat(index.c_str(), F_OK) == -1)
@@ -142,7 +151,8 @@ void	Response::_reconstitution( void )
 		_response("200\nOK\nContent-Type\n" + getContentType(index) + "\n" + readFile(index));
 		return _apply_session_parameter();
 	}
-	return _404_error("Path does not exist, File not found.");
+	else
+		return _response("403\nForbidden\n\n\nFile does not exist, forbidden path.");
 }
 
 /*
@@ -154,7 +164,7 @@ void	Response::_handlePost( const std::string & path )
 	if (_req->getBody().size() > _server->getMaxSize())
 	{
 		std::stringstream ss;
-		ss << "Failed to save uploaded file: > " << rounded(_server->getMaxSize()) << " bytes";
+		ss << "Failed to save uploaded file: > " << rounded(_server->getMaxSize());
 		return _response("413\nPayload Too Large\n\n\n" + ss.str());
 	}
 

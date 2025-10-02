@@ -36,9 +36,13 @@ void	init_max_size( std::string str, Server & server )
 	}
 
 	std::stringstream ss(number);
-	size_t nb;
-	if (!(ss >> nb) || !ss.eof())
+	long long nb_signed;
+	if (!(ss >> nb_signed) || !ss.eof())
 		throw MaxSizeNotGiven();
+	if (nb_signed < 0)
+		throw MaxSizeNegative();
+
+	size_t nb = static_cast<size_t>(nb_signed);
 	if (nb > SIZE_MAX / mult)
 		throw Overflow();
 	server.setMaxSize(nb * mult);

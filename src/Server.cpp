@@ -103,7 +103,7 @@ void	Server::myConfig( void ) const
 		Print::value(BEIGE, *it + " ");
 	Print::endl();
 	Print::enval(BROWN, "Default Server", BEIGE, getDefault() ? APPLE_GREEN "Yes" RESET : RED "No" RESET);
-	Print::enval(BROWN, "Max Body Server", BEIGE, rounded(getMaxSize()) + " bytes"); Print::endl();
+	Print::enval(BROWN, "Max Body Server", BEIGE, rounded(getMaxSize())); Print::endl();
 	Print::entry(BROWN, "Server Names(s)"); Print::endl();
 	for (std::vector<std::string>::const_iterator it = getNames().begin(); it != getNames().end(); ++it)
 		{ Print::value(BEIGE, "   - " + *it); Print::endl(); }

@@ -72,6 +72,8 @@ class	LocationNotGiven : public std::exception { public : const char * what() co
 
 class	MaxSizeNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Client max body size has to be a number."; } };
 
+class	MaxSizeNegative : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: Client max body size has to be positive."; } };
+
 class	Overflow : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: A number has overflowed, please be careful."; } };
 
 class	MethodErrors : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: A method does not exist or is duplicated."; } };
