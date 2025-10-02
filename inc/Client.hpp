@@ -23,8 +23,6 @@
  * Client is a RAII class.
  * Warning: Copying is dangerous, be careful to have an unique fd.
  *
- * Autoindex test: curl -v http://127.0.0.1:8080 -H "Connection: close"
- *
  */
 
 // ************************************************************************** //

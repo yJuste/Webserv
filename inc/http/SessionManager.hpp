@@ -43,7 +43,7 @@ struct Session
 
 /*	HELP
  *
- *
+ *	Session supports background_color, counter.
  */
 
 // ************************************************************************** //

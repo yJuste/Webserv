@@ -34,10 +34,6 @@ class Request;
  *
  * Response Class finds the nearest location possible.
  * Users are saved in USERS_FILE.
- * Test with content too large :
- * head -c 2000000 /dev/zero | curl -X POST \
- * -H "Content-Type: text/plain" \
- * --data-binary @- http://127.0.0.1:8090/login
  *
  */
 
