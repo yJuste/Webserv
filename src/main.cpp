@@ -9,9 +9,6 @@
 
 # include "main.hpp"
 
-// meme ip:port, si server_name vaut : host, alors on le choisit.
-// si aucun correspond, c'est le premier declare.
-
 int	main( int argc, char ** argv )
 {
 	std::vector<Server *> servers;

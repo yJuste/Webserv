@@ -79,7 +79,7 @@ void	Server::startup( void )
 	freeaddrinfo(info);
 	if (bind(_socket, (const struct sockaddr *)&_address, sizeof(_address)) == -1)
 		throw FailedBind();
-	if (listen(_socket, 10) == -1)
+	if (listen(_socket, SOMAXCONN) == -1)
 		throw FailedListen();
 }
 

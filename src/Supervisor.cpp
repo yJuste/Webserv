@@ -9,10 +9,10 @@
 
 # include "Supervisor.hpp"
 
-Supervisor::Supervisor() : _smanager(NULL), _size(0), _server_size(0) {}
+Supervisor::Supervisor() : _smanager(NULL), _size(0), _server_size(0), _original_size(0) {}
 Supervisor::~Supervisor() { _clean(); }
 
-Supervisor::Supervisor( const std::vector<Server *> & servers ) : _smanager(NULL), _size(0), _server_size(0) { hold(servers); }
+Supervisor::Supervisor( const std::vector<Server *> & servers ) : _smanager(NULL), _size(0), _server_size(0), _original_size(0) { hold(servers); }
 
 Supervisor::Supervisor( const Supervisor & s ) { *this = s; }
 
@@ -27,6 +27,7 @@ Supervisor	& Supervisor::operator = ( const Supervisor & s )
 		_smanager = s._smanager;
 		_size = s._size;
 		_server_size = s._server_size;
+		_original_size = s._original_size;
 	}
 	return *this;
 }
@@ -39,6 +40,7 @@ void	Supervisor::hold( const std::vector<Server *> & servers )
 		return ;
 	_servers = servers;
 	_server_size = servers.size();
+	_original_size = _server_size;
 	if (_server_size != 0)
 		Print::header("DEBUG INFO", APPLE_GREEN);
 	std::vector<std::string> used;
@@ -286,7 +288,7 @@ void	Supervisor::_clock( bool & last_print, time_t & lastHelp )
 
 void	Supervisor::_clean( void )
 {
-	for (size_t i = 0; i < _server_size; ++i)
+	for (size_t i = 0; i < _original_size; ++i)
 		delete _servers[i];
 	_servers.clear();
 	if (!_clients.empty())
