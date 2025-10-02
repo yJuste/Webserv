@@ -173,7 +173,7 @@ bool	Response::_saveUploadedFile( void )
 	std::ifstream in(fullPath.c_str(), std::ios::binary | std::ios::ate);
 	std::streamsize size = in.tellg();
 	in.close();
-	Print::enval(RESET, "    | File", RESET, "[" + rounded(static_cast<size_t>(size)) + std::string(RESET) + "]");
+	Print::enval(RESET, "     | File", RESET, "[" + rounded(static_cast<size_t>(size)) + std::string(RESET) + "]");
 	return true;
 }
 

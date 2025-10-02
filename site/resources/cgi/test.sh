@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# Obligatoire : l'en-tête HTTP
-echo "Content-Type: text/html"
-echo ""
-
 # Le contenu HTML
 cat <<EOF
 <html>

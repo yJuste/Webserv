@@ -12,7 +12,7 @@
 Request::Request() : _client(NULL), _headerPart(""), _method(""), _path(""), _version(""), _query(""), _rawBuf(""), _unchunked(false), _printed(false) {}
 Request::~Request() {}
 
-Request::Request( const Client * client ) : _client(client), _headerPart(""), _method(""), _path(""), _version(""), _query(""), _rawBuf(""), _unchunked(false), _printed(false) {}
+Request::Request( Client * client ) : _client(client), _headerPart(""), _method(""), _path(""), _version(""), _query(""), _rawBuf(""), _unchunked(false), _printed(false) {}
 
 Request::Request( const Request & r ) { *this = r; }
 
@@ -191,7 +191,7 @@ std::vector<char>	Request::_unchunkBody( const std::vector<char> & raw )
 
 // Getters
 
-const Client * Request::getClient() const { return _client; }
+Client * Request::getClient() const { return _client; }
 const std::string & Request::getHeaderPart() const { return _headerPart; }
 const std::vector<char> & Request::getBody() const { return _body; }
 const std::string & Request::getMethod() const { return _method; }

@@ -5,13 +5,11 @@ use warnings;
 use CGI;
 use POSIX qw(strftime);
 
-my $q = CGI->new;
+my $q    = CGI->new;
 my $name = $q->param('name') || 'inconnu';
 my $time = strftime "%H:%M:%S", localtime;
 
-print $q->header('text/html; charset=UTF-8');
-
-print <<'HTML';
+print <<HTML;
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -40,13 +38,9 @@ print <<'HTML';
     </style>
 </head>
 <body>
-HTML
-
-print "<h1>Salut, $name ! 👋</h1>\n";
-print "<p>Il est actuellement $time</p>\n";
-print "<p>Bienvenue sur notre page CGI dynamique ✨</p>\n";
-
-print <<'HTML';
+<h1>Salut, $name ! 👋</h1>
+<p>Il est actuellement $time</p>
+<p>Bienvenue sur notre page CGI dynamique ✨</p>
 </body>
 </html>
 HTML

@@ -44,6 +44,10 @@ class	Client
 
 		Request *		_request;
 
+		int			_sv;
+		ssize_t			_original;
+		ssize_t			_total;
+
 		// Methods
 
 		void _unit( int );
@@ -63,8 +67,10 @@ class	Client
 
 		// Methods
 
-		void read( const std::string & );
-		void write();
+		int retrieve( const std::string & );
+		int receive( int, char *, size_t );
+		ssize_t write();
+		void sent();
 
 		// Getters
 
@@ -72,7 +78,14 @@ class	Client
 		const Server * getServer() const;
 		SessionManager * getSessionManager() const;
 		const char * getColor() const;
-		bool getKeepAlive() const;
+		std::string & wbuf();
+		Request * getRequest();
+		int getSv() const;
+
+		// Setters
+
+		void setSv( int );
+		void setOriginal( ssize_t );
 };
 
 #endif

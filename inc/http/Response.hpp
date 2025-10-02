@@ -47,7 +47,7 @@ class	Response
 
 		const Request *				_req;
 		const Server *				_server;
-		const Client *				_client;
+		Client *				_client;
 		const Location *			_loc;
 		SessionManager *			_smanager;
 		Session *				_session;

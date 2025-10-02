@@ -61,7 +61,7 @@ std::string	Response::string( void ) const
 	if (_headers.find("Content-Type") == _headers.end())
 	{
 		std::string type = getContentType(_req->getPath());
-		response << "Content-Type: " << type << "; charset=UTF-8\r\n";
+		response << "Content-Type: " << type << "\r\n";
 	}
 	std::stringstream ss;
 	ss << _body.size();
@@ -257,26 +257,23 @@ void	Response::_handleDelete( std::string & path )
 
 void	Response::_executeCGI( const std::string & filePath )
 {
-	int inPipe[2];
-	int outPipe[2];
-	if (pipe(inPipe) < 0 || pipe(outPipe) < 0)
-		return _response("500\nInternal Server Error\n\n\nFailed to create pipes for CGI");
+	int sv[2];
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) < 0)
+		return _response("500\nInternal Server Error\n\n\nFailed to create socketpair CGI");
 	pid_t pid = fork();
 	if (pid < 0)
 	{
-		close(inPipe[0]); close(inPipe[1]);
-		close(outPipe[0]); close(outPipe[1]);
+		close(sv[0]);
+		close(sv[1]);
 		return _response("500\nInternal Server Error\n\n\nFailed to fork() CGI process.");
 	}
 	if (pid == 0)
 	{
         	signal(SIGPIPE, SIG_IGN);
-		close(inPipe[1]);
-		close(outPipe[0]);
-		dup2(inPipe[0], 0);
-		dup2(outPipe[1], 1);
-		close(inPipe[0]);
-		close(outPipe[1]);
+		close(sv[0]);
+		dup2(sv[1], STDIN_FILENO);
+		dup2(sv[1], STDOUT_FILENO);
+		close(sv[1]);
 
 		std::string ext;
 		size_t dotPos = filePath.rfind('.');
@@ -292,95 +289,17 @@ void	Response::_executeCGI( const std::string & filePath )
 		const char * scriptPath = filePath.c_str();
 		const char * argv[] = { cgiPath, scriptPath, NULL };
 		std::vector<std::string> env = _buildCgiEnv(filePath);
-		std::vector<char*> envp;
-		std::vector<char*> buffers;
+		std::vector<char *> envp;
+		std::vector<char *> buffers;
 		for (size_t i = 0; i < env.size(); ++i)
-		{
-			char * copy = new char[env[i].size() + 1]; 
-			std::strcpy(copy, env[i].c_str());
-			envp.push_back(copy);
-			buffers.push_back(copy);
-		}
+			envp.push_back(const_cast<char *>(env[i].c_str()));
 		envp.push_back(NULL);
-		execve(cgiPath, (char * const *)argv, (char * const *)&envp[0]);
-		for (size_t i = 0; i < buffers.size(); ++i)
-			delete [] buffers[i];
+		execve(cgiPath, (char * const *)argv, &envp[0]);
 		kill(getpid(), SIGTERM);
 	}
-	close(inPipe[0]); 
-	close(outPipe[1]);
-	if (_req->getMethod() == "POST")
-	{
-		const std::vector<char> & body = _req->getBody();
-		ssize_t total = 0;
-		while (total < (ssize_t)body.size())
-		{
-			ssize_t w = write(inPipe[1], &body[total], _body.size() - total);
-			if (w <= 0)
-				break ;
-			total += w;
-		}
-	}
-	close(inPipe[1]);
-
-	char buffer[4096];
-	std::string cgiOutput;
-	ssize_t n;
-	while ((n = read(outPipe[0], buffer, sizeof(buffer))) > 0)
-		cgiOutput.append(buffer, n);
-	close(outPipe[0]);
-
-	int status;
-	waitpid(pid, &status, 0);
-	std::string rawHeaders;
-	std::string body;
-	size_t headerEndPos = std::string::npos;
-	size_t rnPos = cgiOutput.find("\r\n\r\n");
-	size_t nPos  = cgiOutput.find("\n\n");
-	if (rnPos != std::string::npos)
-		headerEndPos = rnPos;
-	else if (nPos != std::string::npos)
-		headerEndPos = nPos;
-	if (headerEndPos != std::string::npos)
-	{
-		rawHeaders = cgiOutput.substr(0, headerEndPos);
-		size_t bodyStart = (headerEndPos == rnPos) ? headerEndPos + 4 : headerEndPos + 2;
-		body = cgiOutput.substr(bodyStart);
-		std::istringstream headerStream(rawHeaders);
-		std::string line;
-		while (std::getline(headerStream, line))
-		{
-			if (!line.empty() && line[line.size() - 1] == '\r')
-				line.erase(line.size() - 1, 1);
-
-			size_t colon = line.find(':');
-			if (colon != std::string::npos)
-			{
-				std::string key = line.substr(0, colon);
-				std::string value = line.substr(colon + 1);
-				if (!value.empty() && value[0] == ' ')
-					value.erase(0, 1);
-				_headers[key] = value;
-			}
-		}
-	}
-	else
-		body = cgiOutput;
-	if (!_headers.count("Content-Type"))
-		_headers["Content-Type"] = "text/html";
-	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); ++it)
-		_headers[it->first] = it->second;
-	_body = body;
-	if (!_headers.count("Status"))
-		return _response("200\nOK\n\n\n");
-	std::istringstream ss(_headers["Status"]);
-	int code;
-	std::string text;
-	ss >> code;
-	std::getline(ss, text);
-	std::ostringstream oss;
-	oss << code;
-	_response(oss.str() + "\n" + text + "\n\n\n");
+	close(sv[1]);
+	if (_status.first == 200)
+		_client->setSv(sv[0]);
 }
 
 /*

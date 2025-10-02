@@ -39,6 +39,7 @@ std::string	concatPaths( const std::string &, const std::string & );
 std::string	remove_sub_string( const std::string &, const std::string & );
 std::string	generateDirectoryListing( const std::string &, const std::string & );
 void		replaceAll( std::string &, const std::string &, const std::string & );
+void		finish_cgi( std::string & );
 
 // ------ Others -----
 

@@ -36,7 +36,7 @@ class	Request
 {
 	private:
 
-		const Client *				_client;
+		Client *				_client;
 
 		std::string				_headerPart;
 		std::vector<char>			_body;
@@ -60,7 +60,7 @@ class	Request
 
 	public:
 
-		Request( const Client * );
+		Request( Client * );
 		~Request();
 
 		Request( const Request & );
@@ -73,7 +73,7 @@ class	Request
 
 		// Getters
 
-		const Client * getClient() const;
+		Client * getClient() const;
 		const std::string & getHeaderPart() const;
 		const std::vector<char> & getBody() const;
 		const std::string & getMethod() const;

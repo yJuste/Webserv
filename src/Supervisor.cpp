@@ -72,74 +72,160 @@ void	Supervisor::execution( void )
 			throw FailedPoll();
 		else if (ret == 0)
 			continue ;
+		int status;
+		while (waitpid(-1, &status, WNOHANG) > 0)
+			;
 		for (size_t i = 0; i < _size; ++i)
 		{
+			short revents = _fds[i].revents;
 			if (_fds[i].revents == 0)
 				continue ;
-			if (!(_fds[i].revents & POLLIN))
-				continue ;
-
 			int fd = _fds[i].fd;
-			if (fd == STDIN_FILENO)
+			if (fd == STDIN_FILENO && (revents & POLLIN))
 			{
-				std::string input;
-				std::getline(std::cin, input);
-				if (input == "help")
-					last_print = true;
-				else if (input == "config")
-					for (size_t j = 0; j < _server_size; ++j)
-						_servers[j]->myConfig();
-				else if (input == "quit" || input == "stop")
-					return (void)(std::cout << std::string(APPLE_GREEN) << "Quit properly." << std::string(RESET) << std::endl);
-				continue ;
+				if (_supervise_stdin(last_print))
+					return ;
 			}
-			if (i < _server_size)
-			{
-				if (_size >= FDS_SIZE)
-				{
-					size_t first_client = _server_size + 1;
-					int old_fd = _fds[first_client].fd;
-					Client * old_client = _getClient(old_fd);
-					if (old_client)
-						_supClient(old_fd);
-					for (size_t j = first_client; j < _size - 1; ++j)
-						_fds[j] = _fds[j + 1];
-					--_size;
-				}
-				Client * client = new Client(fd, _servers[i], _smanager);
-				_clients.push_back(client);
-				_fds[_size].fd = client->getSocket();
-				_fds[_size].events = POLLIN;
-				_fds[_size].revents = 0;
-				++_size;
-				continue ;
-			}
+			else if (i < _server_size && (revents & POLLIN))
+				_new_client(fd, i);
 			Client * client = _getClient(fd);
 			if (!client)
 				continue ;
-			char buffer[BUFFER_SIZE];
-			int rc = recv(fd, buffer, sizeof(buffer), 0);
-			if (rc == -1)
-				continue ;
-			else if (rc == 0)
-			{
-				_supClient(fd);
-				_fds[i] = _fds[_size - 1];
-				--_size;
-				continue ;
-			}
-			client->read(std::string(buffer, rc));
-			client->write();
+			else if (revents & POLLIN)
+				_reading(client, fd, i);
+			else if (revents & POLLOUT)
+				_writing(client, fd, i);
 		}
 	}
 }
 
 // Private Methods
 
+/*
+ *	STDIN
+ */
+
+bool	Supervisor::_supervise_stdin( bool & last_print )
+{
+	std::string input;
+	std::getline(std::cin, input);
+	if (input == "help")
+		last_print = true;
+	else if (input == "config")
+		for (size_t j = 0; j < _server_size; ++j)
+			_servers[j]->myConfig();
+	else if (input == "quit" || input == "stop")
+		return std::cout << std::string(APPLE_GREEN) << "Quit properly." << std::string(RESET) << std::endl, true;
+	return false;
+}
+
+/*
+ *	NEW_CLIENT
+ */
+
+void	Supervisor::_new_client( int fd, int idx )
+{
+	if (_size >= FDS_SIZE)
+	{
+		size_t first_client = _server_size + 1;
+		int old_fd = _fds[first_client].fd;
+		Client * old_client = _getClient(old_fd);
+		if (old_client)
+			_supClient(old_fd);
+		for (size_t j = first_client; j < _size - 1; ++j)
+			_fds[j] = _fds[j + 1];
+		--_size;
+	}
+	Client * client = new Client(fd, _servers[idx], _smanager);
+	_clients.push_back(client);
+	_fds[_size].fd = client->getSocket();
+	_fds[_size].events = POLLIN;
+	_fds[_size].revents = 0;
+	++_size;
+}
+
+/*
+ *	READING
+ */
+
+void	Supervisor::_reading( Client * client, int fd, int idx )
+{
+	char buffer[BUFFER_SIZE];
+	if (fd == client->getSocket())
+	{
+		int rc = client->receive(fd, buffer, sizeof(buffer));
+		if (rc <= 0)
+		{
+			_supClient(fd);
+			_fds[idx] = _fds[_size - 1];
+			--_size;
+			return ;
+		}
+		if (client->retrieve(std::string(buffer, rc)) == 1)
+		{
+			_fds[_size].fd = client->getSv();
+			_fds[_size].events = POLLIN;
+			_fds[_size].revents = 0;
+			++_size;
+			return ;
+		}
+		client->setOriginal(client->wbuf().size());
+		_fds[idx].events = POLLIN | POLLOUT;
+	}
+	else if (fd == client->getSv())
+	{
+		int rc = client->receive(fd, buffer, sizeof(buffer));
+		if (rc <= 0)
+		{
+			close(fd);
+			_fds[idx] = _fds[_size - 1];
+			--_size;
+			finish_cgi(client->wbuf());
+			client->getRequest()->reset();
+			client->setSv(-1);
+			for (size_t j = 0; j < _size; ++j)
+			{
+				if (_fds[j].fd == client->getSocket())
+				{
+					_fds[j].events = POLLIN | POLLOUT;
+					break;
+				}
+			}
+			client->setOriginal(client->wbuf().size());
+		}
+		client->wbuf().append(buffer, rc);
+	}
+}
+
+/*
+ *	WRITING
+ */
+
+void	Supervisor::_writing( Client * client, int fd, int idx )
+{
+	ssize_t n = client->write();
+	if (n <= 0)
+	{
+		_supClient(fd);
+		_fds[idx] = _fds[_size - 1];
+		--_size;
+		return ;
+	}
+	if (client->wbuf().empty())
+	{
+		_fds[idx].events = POLLIN;
+		client->sent();
+	}
+}
+
+/*
+ *	UTILS
+ */
+
 Client * Supervisor::_getClient( int fd )
 {
 	for (std::vector<Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
-		if ((*it)->getSocket() == fd)
+		if ((*it)->getSocket() == fd || (*it)->getSv() == fd)
 			return *it;
 	return NULL;
 }

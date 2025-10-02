@@ -56,6 +56,13 @@ class	Supervisor
 
 		// Methods
 
+		bool _supervise_stdin( bool & );
+		void _new_client( int, int );
+		void _reading( Client *, int, int );
+		void _writing( Client *, int, int );
+
+		// utils
+
 		Client * _getClient( int );
 		Client * _supClient( int );
 		void _clock( bool &, time_t & );
