@@ -53,7 +53,7 @@ void	Supervisor::hold( const std::vector<Server *> & servers )
 		{
 			if (used[j] == key)
 			{
-				std::cerr << "    | " << std::string(APPLE_GREEN) << "Warning " << std::string(RESET) << ": duplicate listen " + std::string(APPLE_GREEN) + key + std::string(RESET) + " -> server not started." << std::endl;
+				std::cerr << "     | " << std::string(APPLE_GREEN) << "Warning " << std::string(RESET) << ": duplicate listen " + std::string(APPLE_GREEN) + key + std::string(RESET) + " -> server not started." << std::endl;
 				duplicate = true;
 				break;
 			}
@@ -274,10 +274,10 @@ void	Supervisor::_clock( bool & last_print, time_t & lastHelp )
 		_smanager->hasExpired(now);
 		if (last_print)
 		{
-			std::cout << "    | " << std::string(APPLE_GREEN) << "Helping Page for Webserv" << std::string(RESET) << ": ( write in the terminal )" << std::endl;
-			std::cout << "    |\t- [" << std::string(APPLE_GREEN) << "help" << std::string(RESET) << "]       Show this page." << std::endl;
-			std::cout << "    |\t- [" << std::string(APPLE_GREEN) << "config" << std::string(RESET) << "]     Print the server's configurations." << std::endl;
-			std::cout << "    |\t- [" << std::string(APPLE_GREEN) << "quit" << std::string(RESET) << "]       Quit the server." << std::endl;
+			std::cout << "     | " << std::string(APPLE_GREEN) << "Helping Page for Webserv" << std::string(RESET) << ": ( write in the terminal )" << std::endl;
+			std::cout << "     |\t- [" << std::string(APPLE_GREEN) << "help" << std::string(RESET) << "]       Show this page." << std::endl;
+			std::cout << "     |\t- [" << std::string(APPLE_GREEN) << "config" << std::string(RESET) << "]     Print the server's configurations." << std::endl;
+			std::cout << "     |\t- [" << std::string(APPLE_GREEN) << "quit" << std::string(RESET) << "]       Quit the server." << std::endl;
 			lastHelp = now;
 			last_print = false;
 		}
