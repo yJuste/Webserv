@@ -152,19 +152,19 @@
         <h2>Chunked Upload Test</h2>
         <p>Copy and paste this command into your terminal to test chunked upload:</p>
         <textarea readonly rows="6" style="width:95%;">
-    curl -v -X POST http://localhost:8081/upload \
+    curl -v -X POST http://localhost:8090/upload \
         -H "Transfer-Encoding: chunked" \
         -H "Content-Type: text/plain" \
         --data-binary @<(printf '5\r\nHello\r\n6\r\n World\r\n0\r\n\r\n')
         </textarea>
         <br>
-        <button onclick="showChunkedFile()">Show /upload/upload.bin</button>
+        <button onclick="showChunkedFile()">Show /upload/.upload.bin</button>
         <pre id="chunkedResult" style="background:#f0f0f0; padding:8px; margin-top:10px;"></pre>
     </div>
 
     <script>
     function showChunkedFile() {
-        fetch("/upload/upload.bin")
+        fetch("/upload/.upload.bin")
             .then(res => {
                 if (!res.ok) throw new Error("Failed to read file: " + res.status);
                 return res.text();

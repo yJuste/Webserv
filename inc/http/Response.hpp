@@ -59,12 +59,12 @@ class	Response
 		// Methods
 
 		int _preparation();
-		void _reconstitution();
+		void _reconstitution( const std::string & );
 		void _handleGet( const std::string & );
 		void _handlePost( const std::string & );
 		void _handleUpload( std::string &, std::string & );
 		void _registry( std::string & );
-		void _handleDelete( std::string & );
+		void _handleDelete( const std::string &, const std::string & );
 		void _executeCGI( const std::string & );
 		int _session_management();
 		void _check_keep_alive();
@@ -72,7 +72,6 @@ class	Response
 		// utils
 
 		void _response( const std::string & );
-		void _404_error( const std::string & );
 		const Location * _findLocation( const std::string & ) const;
 		bool _allowsMethod( const std::string & ) const;
 		bool _autoIndex( const std::string & );

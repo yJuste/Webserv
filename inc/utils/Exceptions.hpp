@@ -44,8 +44,6 @@ class	FailedPoll : public std::exception { public : const char * what() const th
 
 class	FailedAccept : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: accept() failed."; } };
 
-class	FailedSend : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: send() failed."; } };
-
 class	FailedFcntl : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: fcntl() failed."; } };
 
 // Main

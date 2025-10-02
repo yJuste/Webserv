@@ -51,19 +51,24 @@ void	Response::_response( const std::string & input )
 	}
 	if (!parts[2].empty() && !parts[3].empty())
 		_headers[parts[2]] = parts[3];
-	if (!body.empty())
+	if (!body.empty() && body[0] == '{')
+	{
 		_body = body;
-}
-
-void	Response::_404_error( const std::string & status )
-{
-	const std::map<int, std::string> & errPages = _server->getErrorPages();
-	_response("404\nNot found\n\n\n");
-	if (errPages.find(404) != errPages.end())
-		_body = readFile(errPages.find(404)->second);
-	else
-		_body = status;
-	_headers["Content-Type"] = getExtension(errPages.find(404)->second);
+		_headers["Content-Type"] = "application/json";
+		return;
+	}
+	const std::map<int, std::string>::const_iterator it = _server->getErrorPages().find(_status.first);
+	if (it != _server->getErrorPages().end())
+	{
+		_body = readFile(it->second);
+		if (!_body.empty())
+		{
+			_headers["Content-Type"] = getExtension(it->second);
+			return ;
+		}
+	}
+	_body = body;
+	_headers["Content-Type"] = getExtension(".txt");
 }
 
 const Location *	Response::_findLocation( const std::string & path ) const

@@ -49,7 +49,7 @@ void	Response::build( void )
 
 	int code = _preparation();
 	if (code)
-		_reconstitution();
+		_reconstitution(concatPaths(my_getcwd() + "/" + _loc->getRoot(), remove_sub_string(_req->getPath(), _loc->getPath())));
 	if (code == 301)
 		_response("301\nMoved Permanently\n\n\n");
 }
@@ -79,7 +79,14 @@ int	Response::_preparation( void )
 {
 	_loc = _findLocation(_req->getPath());
 	if (!_loc)
-		return _handleGet(concatPaths(my_getcwd() + "/", _server->getIndex()[0])), 0;
+	{
+		std::string filePath = concatPaths(my_getcwd() + "/", _server->getIndex()[0]);
+		if (_req->getMethod() == "DELETE")
+			return _handleDelete(filePath, _req->getPath()), 0;
+		if (_req->getMethod() == "GET")
+			return _handleGet(filePath), 0;
+		return _response("500\nInternal Server Error\n\n\nReconstitution failed."), 0;
+	}
 
 	const std::map<int, std::string> & redir = _loc->getReturn();
 	if (!redir.empty())
@@ -92,7 +99,7 @@ int	Response::_preparation( void )
 			if (redir.begin()->first == 301)
 				return 301;
 		}
-		return _404_error("Redirect not found."), 0;
+		return _response("404\nNot Found\n\n\nRedirect not found."), 0;
 	}
 	if (!_allowsMethod(_req->getMethod()))
 	{
@@ -110,16 +117,15 @@ int	Response::_preparation( void )
 	return 200;
 }
 
-void	Response::_reconstitution( void )
+void	Response::_reconstitution( const std::string & filePath )
 {
-	std::string filePath = concatPaths(my_getcwd() + "/" + _loc->getRoot(), remove_sub_string(_req->getPath(), _loc->getPath()));
 	if (_req->getMethod() == "DELETE")
-		return _handleDelete(filePath);
+		return _handleDelete(filePath, _loc->getPath());
 	if (_req->getMethod() == "POST")
 		return _handlePost(filePath);
 	if (_req->getMethod() == "GET")
 		return _handleGet(filePath);
-	//return _response("500\nInternal Server Error\n\n\nReconstitution failed.");
+	return _response("500\nInternal Server Error\n\n\nReconstitution failed.");
 }
 
 /*
@@ -177,7 +183,7 @@ void	Response::_handlePost( const std::string & path )
 		return _handleUpload(filePath, contentType);
 	if (contentType.find("application/x-www-form-urlencoded") != std::string::npos)
 		return _registry(contentType);
-	return _404_error("POST route not found.");
+	return _response("404\nNot Found\n\n\nPost route not found.");
 }
 
 void	Response::_handleUpload( std::string & filePath, std::string & contentType )
@@ -198,7 +204,7 @@ void	Response::_handleUpload( std::string & filePath, std::string & contentType 
 		|| _req->getHeader("Transfer-Encoding") == "chunked")
 	{
 		const std::vector<char> & data = _req->getBody();
-		std::fstream out((_loc->getUpload() + "/upload.bin").c_str(), std::ios::out | std::ios::binary);
+		std::fstream out((_loc->getUpload() + "/.upload.bin").c_str(), std::ios::out | std::ios::binary);
 		if (out)
 		{
 			if (!data.empty())
@@ -236,19 +242,18 @@ void	Response::_registry( std::string & contentType )
 			return _response("200\nOK\n\n\nLogin successful.");
 		return _response("401\nUnauthorized\n\n\nInvalid username or password.");
 	}
-	return _404_error("POST route not found.");
+	return _response("404\nNot Found\n\n\nPost route not found.");
 }
 
 /*
  *	DELETE
  */
 
-void	Response::_handleDelete( std::string & path )
+void	Response::_handleDelete( const std::string & path, const std::string & locPath )
 {
-	if (_loc->getPath().find("upload") == std::string::npos)
+	if (locPath.find("upload") == std::string::npos)
 		return _response("403\nForbidden\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"DELETE allowed only in /upload\"}");
 
-	path = concatPaths(path, _req->getPath());
 	int status = acstat(path.c_str(), F_OK | R_OK);
 	if (status == 1)
 	{
