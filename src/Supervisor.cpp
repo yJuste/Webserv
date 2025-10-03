@@ -85,10 +85,16 @@ void	Supervisor::execution( void )
 	_clock(last_print, lastHelp);
 	while (true)
 	{
+		if (g_stop)
+			return ;
 		_clock(last_print, lastHelp);
 		int ret = poll(_fds, _size, 3000);
 		if (ret <= -1)
+		{
+			if (errno == EINTR)
+				return (void)(std::cout << std::string(APPLE_GREEN) << "Quit with Ctrl+C." << std::string(RESET) << std::endl);
 			throw FailedPoll();
+		}
 		else if (ret == 0)
 			continue ;
 		int status;

@@ -14,12 +14,18 @@
 
 # include <stdint.h>
 # include <algorithm>
+# include <csignal>
 
 // Dependences
 
 # include "Server.hpp"
 # include "Supervisor.hpp"
 # include "utils.hpp"
+
+// Signals
+
+extern volatile sig_atomic_t	g_stop;
+extern "C" void	on_stop( int );
 
 // Defines
 

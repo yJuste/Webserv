@@ -16,6 +16,7 @@
 
 // Dependences
 
+# include "main.hpp"
 # include "Server.hpp"
 # include "Client.hpp"
 # include "SessionManager.hpp"

@@ -9,6 +9,9 @@
 
 # include "main.hpp"
 
+volatile sig_atomic_t		g_stop = 0;
+extern "C" void			on_stop( int ) { g_stop = 1; }
+
 int	main( int argc, char ** argv )
 {
 	std::vector<Server *> servers;
@@ -34,6 +37,8 @@ int	main( int argc, char ** argv )
 	}
 	try
 	{
+		signal(SIGINT, on_stop);
+		signal(SIGTERM, on_stop);
 		Supervisor supervisor;
 
 		supervisor.hold(servers);
