@@ -96,17 +96,27 @@ void	Server::myConfig( void ) const
 {
 	Print::header("SERVER CONFIGURATION", BLUE);
 	Print::enval(BROWN, "Host", BEIGE, getHost() == "127.0.0.1" ? "localhost" : getHost() );
-	Print::enval(BROWN, "Port(s)", BEIGE, getPort());
+	Print::enval(BROWN, "Port", BEIGE, getPort());
 	Print::enval(BROWN, "Root", BEIGE, getRoot());
 	Print::entry(BROWN, "Index");
 	for (std::vector<std::string>::const_iterator it = getIndex().begin(); it != getIndex().end(); ++it)
-		Print::value(BEIGE, *it + " ");
+	{
+		if (it + 1 != getIndex().end())
+			Print::value(BEIGE, *it + ", ");
+		else
+			Print::value(BEIGE, *it);
+	}
 	Print::endl();
 	Print::enval(BROWN, "Default Server", BEIGE, getDefault() ? APPLE_GREEN "Yes" RESET : RED "No" RESET);
 	Print::enval(BROWN, "Max Body Server", BEIGE, rounded(getMaxSize())); Print::endl();
-	Print::entry(BROWN, "Server Names(s)"); Print::endl();
+	Print::entry(BROWN, "Server Names(s)");
 	for (std::vector<std::string>::const_iterator it = getNames().begin(); it != getNames().end(); ++it)
-		{ Print::value(BEIGE, "   - " + *it); Print::endl(); }
+	{
+		if (it + 1 != getNames().end())
+			Print::value(BEIGE, *it + ", ");
+		else
+			Print::value(BEIGE, *it);
+	}
 	Print::endl();
 	Print::entry(BROWN, "Error Page(s)");
 	if (getErrorPages().empty())
@@ -132,12 +142,13 @@ void	Server::myConfig( void ) const
 		for (std::vector<std::string>::const_iterator mit = loc.getMethods().begin(); mit != loc.getMethods().end(); ++mit)
 			Print::value(BLUE, *mit + " ");
 		Print::endl();
-		Print::entry(BROWN, "\tRedirection");
 		std::map<int, std::string>::const_iterator rit = loc.getReturn().begin();
 		if (rit != loc.getReturn().end())
-			{ Print::value(BLUE, rit->first); Print::value(BEIGE, " " + rit->second); }
-		else
-			Print::value(RED, "Disabled");
+		{
+			Print::entry(BROWN, "\tRedirection");
+			Print::value(BLUE, rit->first);
+			Print::value(BEIGE, " " + rit->second);
+		}
 		Print::endl();
 		Print::entry(BROWN, "\tDefault File(s)");
 		for (std::vector<std::string>::const_iterator it = loc.getIndex().begin(); it != loc.getIndex().end(); ++it)

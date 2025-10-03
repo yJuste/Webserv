@@ -33,7 +33,6 @@ void	init_cgi_path( const std::vector<std::string> & words, std::vector<std::str
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
-	location.setOverwritten("cgi");
 }
 
 void	init_cgi_ext( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
@@ -58,7 +57,6 @@ void	init_cgi_ext( const std::vector<std::string> & words, std::vector<std::stri
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
-	location.setOverwritten("cgi");
 }
 
 void	init_cgi( std::vector<std::string>::const_iterator & it, Location & location )
@@ -73,7 +71,6 @@ void	init_cgi( std::vector<std::string>::const_iterator & it, Location & locatio
 	if (acstat(program.c_str(), F_OK | X_OK) != 1)
 		throw ProgramCgi(program.c_str());
 	location.addCgi(extension, program.c_str());
-	location.setOverwritten("cgi");
 }
 
 void	init_index( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )

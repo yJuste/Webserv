@@ -13,7 +13,6 @@ Location::Location() : _path(""), _root(""), _upload(""), _autoindex(false)
 {
 	for (int i = 0; g_methods[i]; ++i)
 		_methods.push_back(g_methods[i]);
-	_overwritten["cgi"] = 0;
 	_overwritten["root"] = 0;
 	_overwritten["index"] = 0;
 	_overwritten["upload"] = 0;
