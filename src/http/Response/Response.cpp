@@ -81,10 +81,16 @@ int	Response::_preparation( void )
 	if (!_loc)
 	{
 		std::string filePath = concatPaths(my_getcwd() + "/", _server->getIndex()[0]);
+		std::cout << filePath << std::endl;
 		if (_req->getMethod() == "DELETE")
 			return _handleDelete(filePath, _req->getPath()), 0;
 		if (_req->getMethod() == "GET")
-			return _handleGet(filePath), 0;
+		{
+			if (_server->getLocations().empty())
+				return _handleGet(filePath), 0;
+			else
+				return _response("404\nNot Found\n\n\nRedirect not found."), 0;
+		}
 		return _response("500\nInternal Server Error\n\n\nReconstitution failed."), 0;
 	}
 
