@@ -117,7 +117,7 @@ bool	Response::_autoIndex( const std::string & path )
 		_response("200\nOK\nContent-Type\ntext/html\n" + generateDirectoryListing(reducedPath, _req->getPath()));
 		return true;
 	}
-	return false;
+	return _response("404\nNot Found\n\n\nFile not found."), false;
 }
 
 bool	Response::_saveUploadedFile( void )

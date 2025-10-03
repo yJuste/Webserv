@@ -156,12 +156,12 @@ void	Response::_handleGet( const std::string & path )
 		if (_autoIndex(index))
 			return ;
 		if (acstat(index.c_str(), F_OK) == -1)
-			return _response("403\nForbidden\n\n\nFile does not exist, forbidden path. ( you should add a default file, like 'index.html')");
+			return _response("404\nNot Found\n\n\nFile not found (you should add a default file, like 'index.html')");
 		_response("200\nOK\nContent-Type\n" + getContentType(index) + "\n" + readFile(index));
 		return _apply_session_parameter();
 	}
 	else
-		return _response("403\nForbidden\n\n\nFile does not exist, forbidden path.");
+		return _response("404\nNot Found\n\n\nFile not found.");
 }
 
 /*
@@ -170,7 +170,10 @@ void	Response::_handleGet( const std::string & path )
 
 void	Response::_handlePost( const std::string & path )
 {
-	if (_req->getBody().size() > _server->getMaxSize())
+	std::string expect = _req->getHeader("Expect");
+	std::string cl = _req->getHeader("Content-Length");
+	size_t maxSize = _server->getMaxSize();
+	if (expect == "100-continue" || (!cl.empty() && std::stoul(cl) > maxSize))
 	{
 		std::stringstream ss;
 		ss << "POST request has a content too large: > " << rounded(_server->getMaxSize());
