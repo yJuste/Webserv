@@ -186,8 +186,11 @@ void	Response::_handlePost( const std::string & path )
 {
 	std::string expect = _req->getHeader("Expect");
 	std::string cl = _req->getHeader("Content-Length");
+	std::stringstream ss(cl);
+	size_t nb;
+	ss >> nb;
 	size_t maxSize = _server->getMaxSize();
-	if (expect == "100-continue" || (!cl.empty() && std::stoul(cl) > maxSize))
+	if (expect == "100-continue" || (!cl.empty() && nb > maxSize))
 	{
 		std::stringstream ss;
 		ss << "POST request has a content too large: > " << rounded(_server->getMaxSize());

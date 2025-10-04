@@ -152,11 +152,6 @@ void	Supervisor::_new_client( int fd )
 {
 	if (_size >= FDS_SIZE - 1)
 	{
-		size_t first_client = _server_size + 1;
-		int old_fd = _fds[first_client].fd;
-		Client * old_client = _getClient(old_fd);
-		if (old_client)
-			_supClient(old_fd);
 		size_t victim_index = _server_size + 1;
 		while (victim_index < _size)
 		{
@@ -171,7 +166,7 @@ void	Supervisor::_new_client( int fd )
 		}
 		if (victim_index < _size)
 		{
-			for (size_t j = first_client; j < _size - 1; ++j)
+			for (size_t j = _server_size + 1; j < _size - 1; ++j)
 				_fds[j] = _fds[j + 1];
 			--_size;
 		}
