@@ -80,8 +80,11 @@ int	Response::_preparation( void )
 	_loc = _findLocation(_req->getPath());
 	if (!_loc)
 	{
-		std::string filePath = concatPaths(my_getcwd() + "/", _server->getIndex()[0]);
-		std::cout << filePath << std::endl;
+		std::string filePath;
+		if (_req->getPath() == "/")
+			filePath = concatPaths(my_getcwd() + "/", _server->getIndex()[0]);
+		else
+			filePath = concatPaths(my_getcwd() + "/" + _server->getRoot(), _req->getPath());
 		if (_req->getMethod() == "DELETE")
 			return _handleDelete(filePath, _req->getPath()), 0;
 		if (_req->getMethod() == "GET")
@@ -89,7 +92,7 @@ int	Response::_preparation( void )
 			if (_server->getLocations().empty())
 				return _handleGet(filePath), 0;
 			else
-				return _response("404\nNot Found\n\n\nRedirect not found."), 0;
+				return _response("404\nNot Found\n\n\nNot found."), 0;
 		}
 		return _response("500\nInternal Server Error\n\n\nReconstitution failed."), 0;
 	}
@@ -158,7 +161,12 @@ void	Response::_handleGet( const std::string & path )
 	}
 	else if (status == 2)
 	{
-		std::string index = concatPaths(path, _loc->getIndex()[0]);
+		std::string base;
+		if (_loc)
+			base = _loc->getIndex()[0];
+		else
+			base = _server->getIndex()[0];
+		std::string index = concatPaths(path, base);
 		if (_autoIndex(index))
 			return ;
 		if (acstat(index.c_str(), F_OK) == -1)
