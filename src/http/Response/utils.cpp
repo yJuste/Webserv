@@ -114,7 +114,11 @@ bool	Response::_autoIndex( const std::string & path )
 		std::string reducedPath = path;
 		while (!reducedPath.empty() && reducedPath[reducedPath.size() - 1] != '/')
 			reducedPath.erase(reducedPath.size() - 1);
-		_response("200\nOK\nContent-Type\ntext/html\n" + generateDirectoryListing(reducedPath, _req->getPath()));
+		std::string generate = generateDirectoryListing(reducedPath, _req->getPath());
+		if (generate == "<html><body><h1>403 Forbidden</h1></body></html>")
+			_response("403\nForbidden\n\n\n" + generate);
+		else
+			_response("200\nOK\nContent-Type\ntext/html\n" + generate);
 		return true;
 	}
 	return _response("404\nNot Found\n\n\nFile not found."), false;
