@@ -79,6 +79,15 @@ extern "C" void	on_stop( int );
  *	head -c 2000000 /dev/zero | curl -X POST \
  *	-H "Content-Type: text/plain" \
  *	--data-binary @- http://127.0.0.1:8090/login
+ * -- Test Cgi :
+ *		with POST:
+ *			curl -X POST \
+ *			-d "name=Alice&email=alice@example.com" \
+ *			http://localhost:8090/cgi/process.py
+ *		with GET:
+ *			curl -X GET \
+ *			http://localhost:8090/cgi/test.py
+ *
  *
  */
 

@@ -66,6 +66,7 @@ class	Supervisor
 
 		Client * _getClient( int );
 		Client * _supClient( int );
+		void _removeFirstClient();
 		void _clock( bool &, time_t & );
 		void _clean();
 
