@@ -207,8 +207,12 @@ void	Supervisor::_reading( Client * client, int fd, int idx )
 		int rc = client->receive(fd, buffer, sizeof(buffer));
 		if (rc <= 0)
 		{
-			close(client->getSvRead());
-			close(client->getSvWrite());
+			int fd_read = client->getSvRead();
+			int fd_write = client->getSvWrite();
+			if (fd_read != -1)
+				close(fd_read);
+			if (fd_write != -1)
+				close(fd_write);
 			_fds[idx] = _fds[_size - 1];
 			--_size;
 			finish_cgi(client->wbuf());
