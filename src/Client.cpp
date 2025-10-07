@@ -50,10 +50,12 @@ int	Client::retrieve( const std::string & buf )
 		return 0;
 	if (_request->getMethod().find("-") == std::string::npos)
 	{
+		Print::debug(_color, getSocket(), ".......................................................");		
 		Print::debug(_color, getSocket(), "New request.");
 		Print::debug(_color, getSocket(), "Request :");
 		Print::enval(_color, "     | Method", RESET, _request->getMethod());
 		Print::enval(_color, "     | Path", RESET, _request->getPath());
+		Print::debug(_color, getSocket(), ".......................................................");
 	}
 	_original = 0;
 	_total = 0;

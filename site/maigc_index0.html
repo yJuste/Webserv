@@ -88,15 +88,19 @@ body, html {
 <!-- Hero Section -->
 <section id="start" class="hero-section">
     <div class="hero-wrapper">
-        <h1 class="hero-title">Welcome to My Webserv Site</h1>
-        <p class="hero-subtitle" id="datetime"></p>
+        <h1 class="hero-title">Welcome to My Botanic Site</h1>
+        <p class="hero-subtitle">A clean, interactive, animated hero page</p>
     </div>
     <div class="scroll-indicator"></div>
 </section>
 
 <!-- About Section -->
 <section class="section">
-    <h2 class="section-title">You can  go to the Test page</h2>
+    <h2 class="section-title">About Me</h2>
+    <p class="section-content">
+        This is an example of a minimalist static site with smooth scroll and beautiful hero animation.
+        You can replace this content with your own description or project showcase.
+    </p>
     <!-- Test Mode Button -->
     <button onclick="window.location.href='/resources/test.html'" 
             style="
@@ -134,26 +138,6 @@ lottie.loadAnimation({
     autoplay: true,
     path: 'https://assets10.lottiefiles.com/packages/lf20_x62chJ.json' // URL
 });
-</script>
-
-<script>
-function updateParisTime() {
-  const now = new Date();
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const parisOffset = 2 * 60 * 60 * 1000;
-  const parisTime = new Date(utc + parisOffset);
-
-  document.getElementById("datetime").textContent =
-    parisTime.getFullYear() + '-' +
-    String(parisTime.getMonth() + 1).padStart(2, '0') + '-' +
-    String(parisTime.getDate()).padStart(2, '0') + ' ' +
-    String(parisTime.getHours()).padStart(2, '0') + ':' +
-    String(parisTime.getMinutes()).padStart(2, '0') + ':' +
-    String(parisTime.getSeconds()).padStart(2, '0');
-}
-
-updateParisTime();
-setInterval(updateParisTime, 1000);
 </script>
 
 </body>

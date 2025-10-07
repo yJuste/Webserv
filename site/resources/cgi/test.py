@@ -39,7 +39,7 @@ except Exception as e:
 
 # HTML content uniquement
 print("<html>")
-print("<head><title>Python CGI Test</title></head>")
+print("<head><meta charset='UTF-8'><title>Python CGI Test</title></head>")
 print("<body>")
 print("<h1>Python CGI Test</h1>")
 

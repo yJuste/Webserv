@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Webserv Test Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body {
+    background: #f4f4f6;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+.navbar {
+    background-color: #6e7c7c;
+}
+.navbar-brand {
+    color: white;
+    font-weight: bold;
+}
+.card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s;
+    min-height: 300px;
+    border-radius: 12px;
+    padding: 20px;
+    color: #333;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    text-align: center;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.12);
+}
+.btn-primary {
+    background-color: #6495ED; 
+    color: #333;              
+    border: none;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+.btn-primary:hover {
+    background-color: #bfc7c2; 
+    color: #000;
+}
+.btn-danger {
+    background-color: #d98989; 
+    color: #333;              
+    border: none;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+.btn-danger:hover {
+    background-color: #FF4500; 
+    color: #000;
+}
+.btn-secondary {
+    background-color: #778899; 
+    color: #333;              
+    border: none;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+.btn-secondary:hover {
+    background-color: #bfc7c2; 
+    color: #000;
+}
+
+.btn-success:hover {
+    background-color: #32CD32; 
+    color: #000;
+}
+
+textarea {
+    resize: none;
+}
+.card-title {
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #4b4b4b;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.15);
+}
+/* Color Morandi */
+.row > .col:nth-child(1) .card { background-color: #d8a39d; }
+.row > .col:nth-child(2) .card { background-color: #e0b998; }
+.row > .col:nth-child(3) .card { background-color: #e7d5a3; }
+.row > .col:nth-child(4) .card { background-color: #b8c9a9; }
+.row > .col:nth-child(5) .card { background-color: #a3c7c9; }
+.row > .col:nth-child(6) .card { background-color: #9db7d3; }
+.row > .col:nth-child(7) .card { background-color: #c0a3d3; }
+.row > .col:nth-child(8) .card { background-color: #d9a3c3; }
+.row > .col:nth-child(9) .card { background-color: #c0c9d3; }
+</style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+      <a class="navbar-brand" >My webserv</a>
+    </div>
+  </nav>
+  
+
+<main class="container py-4">
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+
+    <!-- View GIF -->
+    <div class="col">
+      <div class="card">
+        <h5 class="card-title">Want to test?</h5>
+        <a href="/resources/test.html" class="btn btn-success mt-2">Go to Test Page</a>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+
+</body>
+</html>
