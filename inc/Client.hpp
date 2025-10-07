@@ -42,9 +42,14 @@ class	Client
 
 		Request *		_request;
 
-		int			_sv;
 		ssize_t			_original;
 		ssize_t			_total;
+
+		int			_svRead;
+		int			_svWrite;
+		std::vector<char>	_cgiBody;
+		size_t			_cgiSent;
+		bool			_cgiSending;
 
 		// Methods
 
@@ -67,8 +72,9 @@ class	Client
 
 		int retrieve( const std::string & );
 		int response();
-		int receive( int, char *, size_t );
-		ssize_t write();
+		ssize_t receive( int, char *, size_t );
+		ssize_t dispatch( int, const char *, size_t );
+		ssize_t writing();
 		void sent();
 		Server * select_server( const std::vector<Server *> & );
 
@@ -80,13 +86,18 @@ class	Client
 		const char * getColor() const;
 		std::string & wbuf();
 		Request * getRequest();
-		int getSv() const;
+		int getSvRead() const;
+		int getSvWrite() const;
+		const std::vector<char> & getCgiBody() const;
+		bool isCgiSending() const;
 
 		// Setters
 
 		void setServer( Server * );
-		void setSv( int );
 		void setOriginal( ssize_t );
+		void setSvRead( int );
+		void setSvWrite( int );
+		void setCgiBody( const std::vector<char> & body );
 };
 
 #endif

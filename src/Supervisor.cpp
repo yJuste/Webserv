@@ -208,26 +208,35 @@ void	Supervisor::_reading( Client * client, int fd, int idx )
 		client->setServer(client->select_server(_servers));
 		if (client->response() == 1)
 		{
-			_fds[_size].fd = client->getSv();
+			_fds[_size].fd = client->getSvRead();
 			_fds[_size].events = POLLIN;
 			_fds[_size].revents = 0;
 			++_size;
+			if (client->isCgiSending())
+			{
+				_fds[_size].fd = client->getSvWrite();
+				_fds[_size].events = POLLOUT;
+				_fds[_size].revents = 0;
+				++_size;
+			}
 			return ;
 		}
 		client->setOriginal(client->wbuf().size());
 		_fds[idx].events = POLLIN | POLLOUT;
 	}
-	else if (fd == client->getSv())
+	else if (fd == client->getSvRead())
 	{
 		int rc = client->receive(fd, buffer, sizeof(buffer));
 		if (rc <= 0)
 		{
-			close(fd);
+			close(client->getSvRead());
+			close(client->getSvWrite());
 			_fds[idx] = _fds[_size - 1];
 			--_size;
 			finish_cgi(client->wbuf());
 			client->getRequest()->reset();
-			client->setSv(-1);
+			client->setSvRead(-1);
+			client->setSvWrite(-1);
 			for (size_t j = 0; j < _size; ++j)
 			{
 				if (_fds[j].fd == client->getSocket())
@@ -248,7 +257,25 @@ void	Supervisor::_reading( Client * client, int fd, int idx )
 
 void	Supervisor::_writing( Client * client, int fd, int idx )
 {
-	ssize_t n = client->write();
+	if (fd == client->getSvWrite())
+	{
+		ssize_t n = client->writing();
+		if (n < 0)
+		{
+			close(fd);
+			_fds[idx] = _fds[_size - 1];
+			--_size;
+			client->setSvWrite(-1);
+			return;
+		}
+		if (!client->isCgiSending() || client->getSvWrite() < 0)
+		{
+			_fds[idx] = _fds[_size - 1];
+			--_size;
+		}
+		return;
+	}
+	ssize_t n = client->writing();
 	if (n <= 0)
 	{
 		_supClient(fd);
@@ -270,7 +297,7 @@ void	Supervisor::_writing( Client * client, int fd, int idx )
 Client * Supervisor::_getClient( int fd )
 {
 	for (std::vector<Client *>::const_iterator it = _clients.begin(); it != _clients.end(); ++it)
-		if ((*it)->getSocket() == fd || (*it)->getSv() == fd)
+		if ((*it)->getSocket() == fd || (*it)->getSvRead() == fd || (*it)->getSvWrite() == fd)
 			return *it;
 	return NULL;
 }

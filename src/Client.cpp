@@ -9,10 +9,10 @@
 
 # include "Client.hpp"
 
-Client::Client() : _socket(-1), _server(NULL), _smanager(NULL), _color(Print::getColor(-1)), _wbuf(""), _request(NULL), _sv(-1), _original(0), _total(0) {}
+Client::Client() : _socket(-1), _server(NULL), _smanager(NULL), _color(Print::getColor(-1)), _wbuf(""), _request(NULL), _original(0), _total(0), _svRead(-1), _svWrite(-1), _cgiSent(0), _cgiSending(false) {}
 Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
-Client::Client( int server_socket, SessionManager * smanager ) : _socket(-1), _server(NULL), _smanager(smanager), _wbuf(""), _sv(-1), _original(0), _total(0)
+Client::Client( int server_socket, SessionManager * smanager ) : _socket(-1), _server(NULL), _smanager(smanager), _wbuf(""), _original(0), _total(0), _svRead(-1), _svWrite(-1), _cgiSent(0), _cgiSending(false)
 {
 	_unit(server_socket);
 	_color = Print::getColor(_socket);
@@ -32,9 +32,13 @@ Client	& Client::operator = ( const Client & c )
 		_color = c._color;
 		_wbuf = c._wbuf;
 		_request = c._request;
-		_sv = c._sv;
 		_original = c._original;
 		_total = c._total;
+		_svRead = c._svRead;
+		_svWrite = c._svWrite;
+		_cgiBody = c._cgiBody;
+		_cgiSent = c._cgiSent;
+		_cgiSending = c._cgiSending;
 	}
 	return *this;
 }
@@ -65,7 +69,7 @@ int	Client::response( void )
 	Response response(_request);
 	response.build();
 	_wbuf = response.string();
-	if (_sv >= 0)
+	if (_svWrite >= 0 || _svRead >= 0)
 		return 1;
 
 	std::ostringstream oss;
@@ -76,17 +80,40 @@ int	Client::response( void )
 	return 0;
 }
 
-int	Client::receive( int fd, char * buffer, size_t size )
+ssize_t	Client::receive( int fd, char * buffer, size_t size )
 {
 	return recv(fd, buffer, size, 0);
 }
 
-ssize_t	Client::write( void )
+ssize_t	Client::dispatch( int fd, const char * buffer, size_t size )
 {
+	return send(fd, buffer, size, 0);
+}
+
+ssize_t	Client::writing( void )
+{
+	ssize_t n;
+
+	if (_svWrite >= 0 && isCgiSending())
+	{
+		size_t remaining = _cgiBody.size() - _cgiSent;
+		n = dispatch(_svWrite, &_cgiBody[_cgiSent], remaining);
+		if (n > 0)
+		{
+			_cgiSent += n;
+			if (_cgiSent == _cgiBody.size())
+			{
+				_cgiSending = false;
+				close(_svWrite);
+				_svWrite = -1;
+			}
+		}
+		return n;
+	}
 	if (_wbuf.empty())
 		return 0;
 
-	ssize_t n = send(_socket, _wbuf.data(), _wbuf.size(), 0);
+	n = dispatch(_socket, _wbuf.data(), _wbuf.size());
 	if (n > 0)
 		_wbuf.erase(0, n);
 	_total += n;
@@ -177,10 +204,15 @@ SessionManager * Client::getSessionManager() const { return _smanager; }
 const char * Client::getColor() const { return _color; }
 std::string & Client::wbuf() { return _wbuf; }
 Request * Client::getRequest() { return _request; }
-int Client::getSv() const { return _sv; }
+int Client::getSvRead() const { return _svRead; }
+int Client::getSvWrite() const { return _svWrite; }
+const std::vector<char> & Client::getCgiBody() const { return _cgiBody; }
+bool Client::isCgiSending() const { return _cgiSending && _cgiSent < _cgiBody.size(); }
 
 // Setters
 
 void Client::setServer( Server * server ) { _server = server; }
-void Client::setSv( int sv ) { _sv = sv; }
 void Client::setOriginal( ssize_t original ) { _original = original; }
+void Client::setSvWrite( int fd ) { _svWrite = fd; }
+void Client::setSvRead( int fd ) { _svRead = fd; }
+void Client::setCgiBody( const std::vector<char> & body ) { _cgiBody = body; _cgiSent = 0; _cgiSending = true; }
