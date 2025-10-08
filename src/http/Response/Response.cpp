@@ -196,14 +196,10 @@ void	Response::_handlePost( const std::string & path )
 		ss << "POST request has a content too large: > " << rounded(_server->getMaxSize());
 		return _response("413\nPayload Too Large\n\n\n" + ss.str());
 	}
-	if (_loc)
-	{
-		const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
-		std::map<std::string, std::string>::const_iterator it = cgiMap.find(getExtension(path));
-		if (it != cgiMap.end())
-			return _executeCGI(path);
-		return _response("500\nInternal Server Error\n\n\nFailed to post with cgi.");
-	}
+	const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
+	std::map<std::string, std::string>::const_iterator it = cgiMap.find(getExtension(path));
+	if (it != cgiMap.end())
+		return _executeCGI(path);
 	std::string filePath = path;
 	std::string contentType = _req->getHeader("Content-Type");
 	if (contentType.find("multipart/form-data") != std::string::npos
