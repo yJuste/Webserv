@@ -161,12 +161,7 @@ void	Response::_handleGet( const std::string & path )
 	}
 	else if (status == 2)
 	{
-		std::string base;
-		if (_loc)
-			base = _loc->getIndex()[0];
-		else
-			base = _server->getIndex()[0];
-		std::string index = concatPaths(path, base);
+		std::string index = concatPaths(path, _loc ? _loc->getIndex()[0] : _server->getIndex()[0]);
 		if (_autoIndex(index))
 			return ;
 		if (acstat(index.c_str(), F_OK) == -1)
@@ -184,16 +179,15 @@ void	Response::_handleGet( const std::string & path )
 
 void	Response::_handlePost( const std::string & path )
 {
-	std::string expect = _req->getHeader("Expect");
 	std::string cl = _req->getHeader("Content-Length");
 	size_t maxSize = _server->getMaxSize();
-	std::stringstream ss(cl);
+	std::stringstream css(cl);
 	size_t nb;
-	ss >> nb;
-	if (expect == "100-continue" || (!cl.empty() && nb > maxSize))
+	css >> nb;
+	if (_req->getHeader("Expect") == "100-continue" || (!cl.empty() && nb > maxSize))
 	{
 		std::stringstream ss;
-		ss << "POST request has a content too large: > " << rounded(_server->getMaxSize());
+		ss << "POST request has a content too large: > " << rounded(maxSize);
 		return _response("413\nPayload Too Large\n\n\n" + ss.str());
 	}
 	const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
@@ -248,9 +242,7 @@ void	Response::_handleUpload( std::string & filePath, std::string & contentType 
 void	Response::_registry( std::string & contentType )
 {
 	const std::vector<char> & binBody = _req->getBody();
-	std::string body;
-	if (!binBody.empty())
-		body.assign(binBody.begin(), binBody.end());
+	std::string body(binBody.begin(), binBody.end());
 	std::string username = registryKey(body, "username");
 	std::string password = registryKey(body, "password");
 	std::string email = registryKey(body, "email");
@@ -380,8 +372,7 @@ void	Response::_apply_session_parameter( void )
 	replaceAll(_body, "{{session_set_background_color}}", _session->getBgColor());
 	std::ostringstream oss;
 	oss << _session->getCounter();
-	std::string counter = oss.str();
-	replaceAll(_body, "{{session_set_counter}}", counter);
+	replaceAll(_body, "{{session_set_counter}}", oss.str());
 }
 
 /*
@@ -392,12 +383,7 @@ void	Response::_check_keep_alive( void )
 {
 	std::string connexion = _req->getHeader("Connection");
 	if (connexion != "")
-	{
-		if (connexion == "close")
-			_headers["Connection"] = "close";
-		else
-			_headers["Connection"] = "keep-alive";
-	}
+		_headers["Connection"] = connexion == "close" ? "close" : "keep-alive";
 }
 
 // Getters

@@ -92,11 +92,9 @@ ssize_t	Client::dispatch( int fd, const char * buffer, size_t size )
 ssize_t	Client::writing( void )
 {
 	ssize_t	n;
-
 	if (_svWrite >= 0 && isCgiSending())
 	{
-		size_t remaining = _cgiBody.size() - _cgiSent;
-		n = dispatch(_svWrite, &_cgiBody[_cgiSent], remaining);
+		n = dispatch(_svWrite, &_cgiBody[_cgiSent], _cgiBody.size() - _cgiSent);
 		if (n > 0)
 		{
 			_cgiSent += n;
@@ -111,7 +109,6 @@ ssize_t	Client::writing( void )
 	}
 	if (_wbuf.empty())
 		return 0;
-
 	n = dispatch(_socket, _wbuf.data(), _wbuf.size());
 	if (n > 0)
 		_wbuf.erase(0, n);
