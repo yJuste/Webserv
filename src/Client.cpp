@@ -49,8 +49,7 @@ int	Client::retrieve( const std::string & buf )
 {
 	if (buf.empty())
 		return 0;
-	int status = _request->create(buf);
-	if (status != 0)
+	if (_request->create(buf) != 0)
 		return 0;
 	if (_request->getMethod().find("-") == std::string::npos)
 	{
@@ -92,7 +91,7 @@ ssize_t	Client::dispatch( int fd, const char * buffer, size_t size )
 
 ssize_t	Client::writing( void )
 {
-	ssize_t n;
+	ssize_t	n;
 
 	if (_svWrite >= 0 && isCgiSending())
 	{
@@ -136,7 +135,12 @@ Server *	Client::select_server( const std::vector<Server *> & servers )
 		std::string portStr = host.substr(pos + 1);
 		host = host.substr(0, pos);
 		if (!portStr.empty())
-			port = std::atoi(portStr.c_str());
+		{
+			std::istringstream iss(portStr);
+			iss >> port;
+			if (iss.fail())
+				port = -1;
+		}
 	}
 	if (port == -1)
 	{

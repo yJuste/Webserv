@@ -103,12 +103,12 @@ void	Supervisor::execution( void )
 		for (size_t i = 0; i < _size; ++i)
 		{
 			short revents = _fds[i].revents;
-			if (_fds[i].revents == 0)
+			if (revents == 0)
 				continue ;
 			int fd = _fds[i].fd;
 			if (fd == STDIN_FILENO && (revents & POLLIN))
 			{
-				if (_supervise_stdin(last_print))
+				if (_stdin(last_print))
 					return ;
 			}
 			else if (i < _server_size && (revents & POLLIN))
@@ -117,9 +117,9 @@ void	Supervisor::execution( void )
 			if (!client)
 				continue ;
 			else if (revents & POLLIN)
-				_reading(client, fd, i);
+				_reading(client, i, fd);
 			else if (revents & POLLOUT)
-				_writing(client, fd, i);
+				_writing(client, i, fd);
 		}
 	}
 }
@@ -130,7 +130,7 @@ void	Supervisor::execution( void )
  *	STDIN
  */
 
-bool	Supervisor::_supervise_stdin( bool & last_print )
+bool	Supervisor::_stdin( bool & last_print )
 {
 	std::string input;
 	std::getline(std::cin, input);
@@ -164,7 +164,7 @@ void	Supervisor::_new_client( int fd )
  *	READING
  */
 
-void	Supervisor::_reading( Client * client, int fd, int idx )
+void	Supervisor::_reading( Client * client, size_t idx, int fd )
 {
 	char buffer[BUFFER_SIZE];
 	if (fd == client->getSocket())
@@ -237,11 +237,12 @@ void	Supervisor::_reading( Client * client, int fd, int idx )
  *	WRITING
  */
 
-void	Supervisor::_writing( Client * client, int fd, int idx )
+void	Supervisor::_writing( Client * client, size_t idx,  int fd )
 {
+	ssize_t n;
 	if (fd == client->getSvWrite())
 	{
-		ssize_t n = client->writing();
+		n = client->writing();
 		if (n < 0)
 		{
 			close(fd);
@@ -257,8 +258,8 @@ void	Supervisor::_writing( Client * client, int fd, int idx )
 		}
 		return;
 	}
-	ssize_t n = client->writing();
-	if (n <= 0)
+	n = client->writing();
+	if (n < 0)
 	{
 		_supClient(fd);
 		_fds[idx] = _fds[_size - 1];
@@ -288,7 +289,7 @@ Client * Supervisor::_supClient( int fd )
 {
 	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
-		if ((*it)->getSocket() == fd)
+		if ((*it)->getSocket() == fd || (*it)->getSvRead() == fd || (*it)->getSvWrite() == fd)
 		{
 			delete *it;
 			_clients.erase(it);

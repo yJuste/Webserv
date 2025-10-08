@@ -57,10 +57,10 @@ class	Supervisor
 
 		// Methods
 
-		bool _supervise_stdin( bool & );
+		bool _stdin( bool & );
 		void _new_client( int );
-		void _reading( Client *, int, int );
-		void _writing( Client *, int, int );
+		void _reading( Client *, size_t, int );
+		void _writing( Client *, size_t, int );
 
 		// utils
 
