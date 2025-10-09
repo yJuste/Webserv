@@ -59,7 +59,7 @@ class	Response
 		// Methods
 
 		int _preparation();
-		void _reconstitution( const std::string & );
+		void _reconstitution( const std::string &, const std::string & );
 		void _handleGet( const std::string & );
 		void _handlePost( const std::string & );
 		void _handleUpload( std::string &, std::string & );

@@ -51,10 +51,7 @@ void	Response::build( void )
 	if (code == 300)
 		return ;
 	if (code)
-	{
-		std::string path = concatPaths(my_getcwd() + "/" + _loc->getRoot(), remove_sub_string(_req->getPath(), _loc->getPath()));
-		_reconstitution(_extract_cgi(path));
-	}
+		return _reconstitution(_extract_cgi(concatPaths(my_getcwd() + "/" + _loc->getRoot(), remove_sub_string(_req->getPath(), _loc->getPath()))), _loc->getPath());
 }
 
 std::string	Response::string( void ) const
@@ -82,45 +79,29 @@ int	Response::_preparation( void )
 {
 	_loc = _findLocation(_req->getPath());
 	if (!_loc)
-	{
-		std::string filePath;
-		if (_req->getPath() == "/")
-			filePath = concatPaths(my_getcwd() + "/", _server->getIndex()[0]);
-		else
-			filePath = concatPaths(my_getcwd() + "/" + _server->getRoot(), _req->getPath());
-		if (_req->getMethod() == "DELETE")
-			return _handleDelete(filePath, _req->getPath()), 0;
-		if (_req->getMethod() == "GET")
-		{
-			if (_server->getLocations().empty())
-				return _handleGet(filePath), 0;
-			else
-				return _response("404\nNot Found\n\n\nNot found."), 0;
-		}
-		return _response("500\nInternal Server Error\n\n\nReconstitution failed."), 0;
-	}
+		return _reconstitution(_req->getPath() == "/" ? concatPaths(my_getcwd() + "/", _server->getIndex()[0]) : concatPaths(my_getcwd() + "/" + _server->getRoot(), _req->getPath()), _req->getPath()), 0;
 	const std::map<int, std::string> & redir = _loc->getReturn();
 	if (!redir.empty())
 	{
 		int code = redir.begin()->first;
 		std::string locationUrl = redir.begin()->second;
-		std::string statusMessage;
+		std::string message;
 		if (code == 301)
-			statusMessage = "Moved Permanently";
+			message = "Moved Permanently";
 		else if (code == 302)
-			statusMessage = "Found";
+			message = "Found";
 		else if (code == 303)
-			statusMessage = "See Other";
+			message = "See Other";
 		else if (code == 307)
-			statusMessage = "Temporary Redirect";
+			message = "Temporary Redirect";
 		else if (code == 308)
-			statusMessage = "Permanent Redirect";
+			message = "Permanent Redirect";
 		else
 			return _response("500\nInternal Server Error\n\n\nRedirect code does not exist."), 300;
-		_status = std::make_pair(code, statusMessage);
+		_status = std::make_pair(code, message);
 		_headers["Location"] = locationUrl;
 		_headers["Content-Type"] = "text/html";
-		_body = "<html><body><h1>" + statusMessage + "</h1><p>Redirecting to <a href=\"" + locationUrl + "\">" + locationUrl + "</a></p></body></html>";
+		_body = "<html><body><h1>" + message + "</h1><p>Redirecting to <a href=\"" + locationUrl + "\">" + locationUrl + "</a></p></body></html>";
 		return 300;
 	}
 	if (!_allowsMethod(_req->getMethod()))
@@ -142,14 +123,14 @@ int	Response::_preparation( void )
 	return 200;
 }
 
-void	Response::_reconstitution( const std::string & filePath )
+void	Response::_reconstitution( const std::string & filePath, const std::string & path )
 {
-	if (_req->getMethod() == "DELETE")
-		return _handleDelete(filePath, _loc->getPath());
-	if (_req->getMethod() == "POST")
-		return _handlePost(filePath);
 	if (_req->getMethod() == "GET")
 		return _handleGet(filePath);
+	if (_req->getMethod() == "POST")
+		return _handlePost(filePath);
+	if (_req->getMethod() == "DELETE")
+		return _handleDelete(filePath, path);
 	return _response("500\nInternal Server Error\n\n\nReconstitution failed.");
 }
 
@@ -193,7 +174,11 @@ void	Response::_handleGet( const std::string & path )
 void	Response::_handlePost( const std::string & path )
 {
 	std::string cl = _req->getHeader("Content-Length");
-	size_t maxSize = _loc->getMaxSize() == 1048576 ? _server->getMaxSize() : _loc->getMaxSize();
+	size_t maxSize;
+	if (_loc)
+		maxSize = _loc->getMaxSize() == 1048576 ? _server->getMaxSize() : _loc->getMaxSize();
+	else
+		maxSize = _server->getMaxSize();
 	std::stringstream css(cl);
 	size_t nb;
 	css >> nb;
@@ -203,20 +188,23 @@ void	Response::_handlePost( const std::string & path )
 		ss << "POST request has a content too large: > " << rounded(maxSize);
 		return _response("413\nPayload Too Large\n\n\n" + ss.str());
 	}
-	const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
-	std::map<std::string, std::string>::const_iterator it = cgiMap.find(getExtension(path));
-	if (it != cgiMap.end())
-		return _executeCGI(path);
-	std::string filePath = path;
-	std::string contentType = _req->getHeader("Content-Type");
-	if (contentType.find("multipart/form-data") != std::string::npos
-		|| contentType.find("application/octet-stream") != std::string::npos
-		|| contentType.find("text/plain") != std::string::npos
-		|| contentType.find("plain/text") != std::string::npos
-		|| _req->getHeader("Transfer-Encoding") == "chunked")
-		return _handleUpload(filePath, contentType);
-	if (contentType.find("application/x-www-form-urlencoded") != std::string::npos)
-		return _registry(contentType);
+	if (_loc)
+	{
+		const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
+		std::map<std::string, std::string>::const_iterator it = cgiMap.find(getExtension(path));
+		if (it != cgiMap.end())
+			return _executeCGI(path);
+		std::string filePath = path;
+		std::string contentType = _req->getHeader("Content-Type");
+		if (contentType.find("multipart/form-data") != std::string::npos
+			|| contentType.find("application/octet-stream") != std::string::npos
+			|| contentType.find("text/plain") != std::string::npos
+			|| contentType.find("plain/text") != std::string::npos
+			|| _req->getHeader("Transfer-Encoding") == "chunked")
+			return _handleUpload(filePath, contentType);
+		if (contentType.find("application/x-www-form-urlencoded") != std::string::npos)
+			return _registry(contentType);
+	}
 	return _response("404\nNot Found\n\n\nPost route not found.");
 }
 
