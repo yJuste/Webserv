@@ -116,6 +116,8 @@ void	init_return( std::vector<std::string>::const_iterator & it, Location & loca
 	int code;
 	if (!(ss >> code))
 		throw InvalidParameterReturn(it->c_str());
+	if (code != 301 && code && 302 && code != 303 && code != 307 && code != 308)
+		throw InvalidParameterReturnCode(it->c_str());
 	std::string str = *(++it);
 	if (str.empty() || str[str.size() - 1] != ';')
 		throw NoEndingSemicolon();

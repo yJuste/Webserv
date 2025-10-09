@@ -100,6 +100,9 @@ extern "C" void	on_stop( int );
  *			-d "name=Alice&email=alice@example.com" \
  *			"http://localhost:8090/cgi/test.py/test.py"
  *
+ * -- Test redirection: [301, 302, 303, 307, 308]
+ *	curl -v -L http://localhost:8090/redirect
+ *
  *
  */
 

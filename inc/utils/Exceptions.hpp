@@ -92,6 +92,8 @@ class	OverwrittenParameterLocation : public std::exception { private: char _msg[
 
 class	InvalidParameterReturn : public std::exception { private: char _msg[MSG_SIZE]; public: InvalidParameterReturn( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: The first argument has to be a number.", s); } const char * what() const throw() { return _msg; } };
 
+class	InvalidParameterReturnCode : public std::exception { private: char _msg[MSG_SIZE]; public: InvalidParameterReturnCode( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: This code is not working for redirect -> 30X [1, 2, 3, 7, 8] acceptable.", s); } const char * what() const throw() { return _msg; } };
+
 class	NotExtension : public std::exception { private: char _msg[MSG_SIZE]; public: NotExtension( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: Extension should be '.[extension]'.", s); } const char * what() const throw() { return _msg; } };
 
 #endif

@@ -48,10 +48,8 @@ void	Response::build( void )
 		return ;
 
 	int code = _preparation();
-	if (code == 301)
-		return _response("301\nMoved Permanently\n\n\n");
-	else if (code == 300)
-		return _response("302\nFound\n\n\n");
+	if (code == 300)
+		return ;
 	if (code)
 	{
 		std::string path = concatPaths(my_getcwd() + "/" + _loc->getRoot(), remove_sub_string(_req->getPath(), _loc->getPath()));
@@ -101,20 +99,29 @@ int	Response::_preparation( void )
 		}
 		return _response("500\nInternal Server Error\n\n\nReconstitution failed."), 0;
 	}
-
 	const std::map<int, std::string> & redir = _loc->getReturn();
 	if (!redir.empty())
 	{
+		int code = redir.begin()->first;
 		std::string locationUrl = redir.begin()->second;
-		_loc = _findLocation(locationUrl);
-		if (_loc)
-		{
-			_headers["Location"] = locationUrl;
-			if (redir.begin()->first == 301)
-				return 301;
-			return 300;
-		}
-		return _response("404\nNot Found\n\n\nRedirect not found."), 0;
+		std::string statusMessage;
+		if (code == 301)
+			statusMessage = "Moved Permanently";
+		else if (code == 302)
+			statusMessage = "Found";
+		else if (code == 303)
+			statusMessage = "See Other";
+		else if (code == 307)
+			statusMessage = "Temporary Redirect";
+		else if (code == 308)
+			statusMessage = "Permanent Redirect";
+		else
+			return _response("500\nInternal Server Error\n\n\nRedirect code does not exist."), 300;
+		_status = std::make_pair(code, statusMessage);
+		_headers["Location"] = locationUrl;
+		_headers["Content-Type"] = "text/html";
+		_body = "<html><body><h1>" + statusMessage + "</h1><p>Redirecting to <a href=\"" + locationUrl + "\">" + locationUrl + "</a></p></body></html>";
+		return 300;
 	}
 	if (!_allowsMethod(_req->getMethod()))
 	{
