@@ -43,6 +43,7 @@ class	Location
 		std::vector<std::string>		_index;
 		std::map<std::string, std::string>	_cgi;
 		std::vector<std::string>		_cgi_paths;
+		size_t					_maxSize;
 		std::map<std::string, int>		_overwritten;
 
 	public:
@@ -64,6 +65,7 @@ class	Location
 		const std::vector<std::string> & getIndex() const;
 		const std::map<std::string, std::string> & getCgi() const;
 		const std::vector<std::string> & getCgiPaths() const;
+		size_t getMaxSize() const;
 		const std::map<std::string, int> & getOverwritten() const;
 
 		// Setters
@@ -79,6 +81,7 @@ class	Location
 		void addCgi( const std::string &, const std::string & );
 		void addCgiExt( const std::string & );
 		void addCgiPath( const std::string & );
+		void setMaxSize( size_t );
 		void setOverwritten( const std::string & );
 };
 

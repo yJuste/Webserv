@@ -97,34 +97,38 @@ void	Server::myConfig( void ) const
 	Print::header("SERVER CONFIGURATION", BLUE);
 	Print::enval(BROWN, "Host", BEIGE, getHost() == "127.0.0.1" ? "localhost" : getHost() );
 	Print::enval(BROWN, "Port", BEIGE, getPort());
-	Print::enval(BROWN, "Root", BEIGE, getRoot());
+	const std::string & s_root = getRoot();
+	Print::enval(BROWN, "Root", BEIGE, s_root);
 	Print::entry(BROWN, "Index");
-	for (std::vector<std::string>::const_iterator it = getIndex().begin(); it != getIndex().end(); ++it)
+	const std::vector<std::string> & s_index = getIndex();
+	for (std::vector<std::string>::const_iterator it = s_index.begin(); it != s_index.end(); ++it)
 	{
-		if (it + 1 != getIndex().end())
-			Print::value(BEIGE, *it + ", ");
+		if (it + 1 != s_index.end())
+			Print::value(BEIGE, to_clean(s_root, *it) + ", ");
 		else
-			Print::value(BEIGE, *it);
+			Print::value(BEIGE, to_clean(s_root, *it));
 	}
 	Print::endl();
 	Print::enval(BROWN, "Default Server", BEIGE, getDefault() ? APPLE_GREEN "Yes" RESET : RED "No" RESET);
-	Print::enval(BROWN, "Max Body Server", BEIGE, rounded(getMaxSize())); Print::endl();
+	Print::enval(BROWN, "Max Body Server", BEIGE, rounded(getMaxSize()));
 	Print::entry(BROWN, "Server Names(s)");
-	for (std::vector<std::string>::const_iterator it = getNames().begin(); it != getNames().end(); ++it)
+	const std::vector<std::string> & s_names = getNames();
+	for (std::vector<std::string>::const_iterator it = s_names.begin(); it != s_names.end(); ++it)
 	{
-		if (it + 1 != getNames().end())
+		if (it + 1 != s_names.end())
 			Print::value(BEIGE, *it + ", ");
 		else
 			Print::value(BEIGE, *it);
 	}
 	Print::endl();
 	Print::entry(BROWN, "Error Page(s)");
-	if (getErrorPages().empty())
+	const std::map<int, std::string> & s_errorPages = getErrorPages();
+	if (s_errorPages.empty())
 		{ Print::value(YELLOW, "No specified."); Print::endl(); }
 	else
 	{
 		Print::endl();
-		for (std::map<int, std::string>::const_iterator it = getErrorPages().begin(); it != getErrorPages().end(); ++it)
+		for (std::map<int, std::string>::const_iterator it = s_errorPages.begin(); it != s_errorPages.end(); ++it)
 		{
 			Print::value(BROWN, "   [");
 			std::cout << BLUE << std::right << std::setw(3) << it->first;
@@ -137,43 +141,69 @@ void	Server::myConfig( void ) const
 		const Location & loc = _locations[i];
 		Print::endl();
 		Print::enval(BLUE, "Location Path", YELLOW, "   " + loc.getPath()); Print::endl();
-		Print::enval(BROWN, "\tRoot", BEIGE, loc.getRoot());
-		Print::entry(BROWN, "\tMethod(s)");
-		for (std::vector<std::string>::const_iterator mit = loc.getMethods().begin(); mit != loc.getMethods().end(); ++mit)
-			Print::value(BLUE, *mit + " ");
-		Print::endl();
 		std::map<int, std::string>::const_iterator rit = loc.getReturn().begin();
 		if (rit != loc.getReturn().end())
 		{
 			Print::entry(BROWN, "\tRedirection");
-			Print::value(BLUE, rit->first);
+			Print::value(APPLE_GREEN, rit->first);
 			Print::value(BEIGE, " " + rit->second);
-		}
-		Print::endl();
-		Print::entry(BROWN, "\tDefault File(s)");
-		for (std::vector<std::string>::const_iterator it = loc.getIndex().begin(); it != loc.getIndex().end(); ++it)
-			Print::value(BEIGE, *it + " ");
-		Print::endl();
-		if (loc.getUpload() != loc.getRoot())
-			Print::enval(BROWN, "\tUpload Folder", BEIGE, loc.getUpload());
-		std::map<std::string, std::string> cgi = loc.getCgi();
-		if (!cgi.empty())
-		{
-			Print::entry(BROWN, "\tAvailable CGI");
 			Print::endl();
-			for (std::map<std::string, std::string>::const_iterator cit = cgi.begin(); cit != cgi.end(); ++cit)
-				if (!cit->second.empty())
-					std::cout << "\t\t" << BLUE << cit->first << BEIGE << " => " << YELLOW << cit->second << RESET << std::endl;
+		}
+		else
+		{
+			const std::string & l_root = loc.getRoot();
+			Print::enval(BROWN, "\tRoot", BEIGE, to_clean(s_root, l_root));
+			Print::entry(BROWN, "\tDefault File(s)");
+			const std::vector<std::string> & l_index = loc.getIndex();
+			for (std::vector<std::string>::const_iterator it = l_index.begin(); it != l_index.end(); ++it)
+			{
+				if (it + 1 != l_index.end())
+					Print::value(BEIGE, to_clean(l_root, *it) + ", ");
+				else
+					Print::value(BEIGE, to_clean(l_root, *it));
+			}
+			Print::endl();
+			const std::string & l_upload = loc.getUpload();
+			if (l_upload != l_root)
+				Print::enval(BROWN, "\tUpload Folder", BEIGE, to_clean(l_root, l_upload));
+			size_t l_maxSize = loc.getMaxSize();
+			if (l_maxSize != 1048576)
+				Print::enval(BROWN, "\tMax Body Server", BEIGE, rounded(l_maxSize));
+			Print::entry(BROWN, "\tMethod(s)");
+			const std::vector<std::string> & l_methods = loc.getMethods();
+			if (l_methods.size() != 3)
+			{
+				for (std::vector<std::string>::const_iterator mit = l_methods.begin(); mit != l_methods.end(); ++mit)
+				{
+					if (mit + 1 != l_methods.end())
+						Print::value(BLUE, *mit + " ");
+					else
+						Print::value(BLUE, *mit);
+				}
+			}
+			else
+				Print::value(BLUE, "all");
+			Print::endl();
+			const std::map<std::string, std::string> & l_cgi = loc.getCgi();
+			if (!l_cgi.empty())
+			{
+				Print::entry(BROWN, "\tAvailable CGI");
+				Print::endl();
+				for (std::map<std::string, std::string>::const_iterator cit = l_cgi.begin(); cit != l_cgi.end(); ++cit)
+					if (!cit->second.empty())
+						std::cout << "\t\t" << BLUE << cit->first << BEIGE << " => " << YELLOW << cit->second << RESET << std::endl;
+			}
 		}
 	}
 	Print::subPart("WARNING", BLUE); Print::endl();
-	if (getWarnings().empty())
+	const std::vector<std::string> & s_warnings = getWarnings();
+	if (s_warnings.empty())
 	{
 		Print::value(APPLE_GREEN, " ➤ This server configuration is now ready.");
 		Print::endl();
 	}
 	else
-		for (std::vector<std::string>::const_iterator wit = getWarnings().begin(); wit != getWarnings().end(); ++wit)
+		for (std::vector<std::string>::const_iterator wit = s_warnings.begin(); wit != s_warnings.end(); ++wit)
 			std::cerr << " " << *wit << std::endl;
 	Print::subPart("", BLUE);
 }
@@ -212,7 +242,7 @@ void Server::setDefault( bool def ) { _default = def; }
 void Server::setIndex( const std::vector<std::string> & index ) { _index = index; }
 void Server::setNames( const std::vector<std::string> & names ) { _names = names; }
 void Server::addErrorPage( int code, const std::string & path ) { _errorPages[code] = path; }
-void Server::setMaxSize( int size ) { _maxSize = size; }
+void Server::setMaxSize( size_t size ) { _maxSize = size; }
 void Server::addLocation( const Location & location ) { _locations.push_back(location); }
 void Server::setOverwritten( const std::string & parameter ) { _overwritten[parameter] += 1; }
 void Server::addWarning( const std::string & warning ) { _warnings.push_back(warning); }

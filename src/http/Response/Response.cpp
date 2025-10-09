@@ -193,7 +193,7 @@ void	Response::_handleGet( const std::string & path )
 void	Response::_handlePost( const std::string & path )
 {
 	std::string cl = _req->getHeader("Content-Length");
-	size_t maxSize = _server->getMaxSize();
+	size_t maxSize = _loc->getMaxSize() == 1048576 ? _server->getMaxSize() : _loc->getMaxSize();
 	std::stringstream css(cl);
 	size_t nb;
 	css >> nb;

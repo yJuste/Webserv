@@ -78,3 +78,23 @@ void	finish_cgi( std::string & buf )
 		buf.insert(sep + 2, newType);
 	}
 }
+
+std::string	to_clean( const std::string & root, const std::string & fullPath )
+{
+	std::string cleanRoot = root;
+	std::string cleanPath = fullPath;
+	if (cleanRoot.substr(0, 2) == "./")
+		cleanRoot = cleanRoot.substr(2);
+	if (cleanPath.substr(0, 2) == "./")
+		cleanPath = cleanPath.substr(2);
+	if (!cleanRoot.empty() && cleanRoot[cleanRoot.size() - 1] != '/')
+		cleanRoot += "/";
+	if (cleanPath.substr(0, cleanRoot.size()) == cleanRoot)
+	{
+		std::string stripped = cleanPath.substr(cleanRoot.size());
+		if (stripped.empty())
+			return "./";
+		return stripped;
+	}
+	return cleanPath;
+}

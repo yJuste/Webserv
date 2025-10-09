@@ -101,7 +101,7 @@ class	Server
 		void setIndex( const std::vector<std::string> & );
 		void setNames( const std::vector<std::string> & );
 		void addErrorPage( int, const std::string & );
-		void setMaxSize( int );
+		void setMaxSize( size_t );
 		void addLocation( const Location & );
 		void setOverwritten( const std::string & );
 		void addWarning( const std::string & );

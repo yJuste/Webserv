@@ -9,7 +9,7 @@
 
 # include "Location.hpp"
 
-Location::Location() : _path(""), _root(""), _upload(""), _autoindex(false)
+Location::Location() : _path(""), _root(""), _upload(""), _autoindex(false), _maxSize(1048576)
 {
 	for (int i = 0; g_methods[i]; ++i)
 		_methods.push_back(g_methods[i]);
@@ -19,6 +19,7 @@ Location::Location() : _path(""), _root(""), _upload(""), _autoindex(false)
 	_overwritten["methods"] = 0;
 	_overwritten["redirect"] = 0;
 	_overwritten["autoindex"] = 0;
+	_overwritten["client_max_body_size"] = 0;
 }
 Location::~Location() {}
 
@@ -38,6 +39,7 @@ Location	&Location::operator = ( const Location & l )
 		_cgi = l._cgi;
 		_cgi_paths = l._cgi_paths;
 		_overwritten = l._overwritten;
+		_maxSize = l._maxSize;
 	}
 	return *this;
 }
@@ -53,6 +55,7 @@ bool Location::getAutoindex() const { return _autoindex; }
 const std::vector<std::string> & Location::getIndex() const { return _index; }
 const std::map<std::string, std::string> & Location::getCgi() const { return _cgi; }
 const std::vector<std::string> & Location::getCgiPaths() const { return _cgi_paths; }
+size_t Location::getMaxSize() const { return _maxSize; }
 const std::map<std::string, int> & Location::getOverwritten() const { return _overwritten; }
 
 // Setters
@@ -68,4 +71,5 @@ void Location::setCgi( const std::map<std::string, std::string> & cgi ) { _cgi =
 void Location::addCgi( const std::string & extension, const std::string & program ) { _cgi[extension] = program; }
 void Location::addCgiExt( const std::string & extension ) { _cgi[extension] = ""; }
 void Location::addCgiPath( const std::string & path ) { _cgi_paths.push_back(path); }
+void Location::setMaxSize( size_t size ) { _maxSize = size; }
 void Location::setOverwritten( const std::string & parameter ) { _overwritten[parameter] += 1; }

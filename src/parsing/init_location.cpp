@@ -13,6 +13,45 @@
 
 const char * g_methods[] = { "GET", "POST", "DELETE", NULL };
 
+void	init_max_size( std::string str, Location & location )
+{
+	if (str.empty() || str[str.size() - 1] != ';')
+		throw NoEndingSemicolon();
+	str.erase(str.size() - 1);
+
+	char suff = str[str.size() - 1];
+	std::string number = str;
+	size_t mult = 1;
+	if (!std::isdigit(suff))
+	{
+		switch (suff)
+		{
+			case 'K' : case 'k' : mult = 1024;
+				break ;
+			case 'M' : case 'm' : mult = 1048576;
+				break ;
+			case 'G' : case 'g' : mult = 1073741824;
+				break ;
+			default :
+				throw MaxSizeNotGiven();
+		}
+		number = str.substr(0, str.size() - 1);
+	}
+
+	std::stringstream ss(number);
+	long long nb_signed;
+	if (!(ss >> nb_signed) || !ss.eof())
+		throw MaxSizeNotGiven();
+	if (nb_signed < 0)
+		throw MaxSizeNegative();
+
+	size_t nb = static_cast<size_t>(nb_signed);
+	if (nb > SIZE_MAX / mult)
+		throw Overflow();
+	location.setMaxSize(nb * mult);
+	location.setOverwritten("client_max_body_size");
+}
+
 void	init_cgi_path( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Location & location )
 {
 	while (it != words.end())
@@ -197,6 +236,8 @@ void	init_location( const std::vector<std::string> & words, std::vector<std::str
 		init_cgi_ext(words, ++it, location);
 	else if (*it == "cgi_path")
 		init_cgi_path(words, ++it, location);
+	else if (*it == "client_max_body_size")
+		init_max_size(*(++it), location);
 	else
 		throw InvalidParameter(it->c_str());
 }
