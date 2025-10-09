@@ -100,11 +100,12 @@ int	Response::_preparation( void )
 			message = "Forbidden";
 		else
 			return _response("500\nInternal Server Error\n\n\nRedirect code does not exist."), 300;
-		_status = std::make_pair(code, message);
 		_headers["Location"] = locationUrl;
 		_headers["Content-Type"] = "text/html";
-		_body = "<html><body><h1>" + message + "</h1><p>Redirecting to <a href=\"" + locationUrl + "\">" + locationUrl + "</a></p></body></html>";
-		return 300;
+		std::string body = "<html><body><h1>" + message + "</h1><p>Redirecting to <a href=\"" + locationUrl + "\">" + locationUrl + "</a></p></body></html>";
+		std::stringstream ss;
+		ss << code;
+		return _response(ss.str() + "\n" + message + "\n\n\n" + body), 300;
 	}
 	if (!_allowsMethod(_req->getMethod()))
 	{

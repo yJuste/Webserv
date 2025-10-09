@@ -78,7 +78,6 @@ void	init_error_pages( const std::vector<std::string> & words, std::vector<std::
 	}
 	if (it == words.end())
 		throw NoEndingSemicolon();
-	server.setOverwritten("error_page");
 }
 
 void	init_names( const std::vector<std::string> & words, std::vector<std::string>::const_iterator & it, Server & server )

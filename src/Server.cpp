@@ -15,7 +15,6 @@ Server::Server() : _socket(-1), _host(""), _root(""), _default(true), _maxSize(1
 	_index.push_back("index.html");
 	_overwritten["host"] = 0;
 	_overwritten["index"] = 0;
-	_overwritten["error_page"] = 0;
 	_overwritten["client_max_body_size"] = 0;
 }
 Server::~Server() { shutdown(); }
@@ -132,7 +131,8 @@ void	Server::myConfig( void ) const
 		{
 			Print::value(BROWN, "   [");
 			std::cout << BLUE << std::right << std::setw(3) << it->first;
-			Print::value(BROWN, "] => "); Print::value(YELLOW, it->second); Print::endl();
+			Print::value(BROWN, "] => "); Print::value(YELLOW, to_clean(s_root, it->second));
+			Print::endl();
 		}
 	}
 	Print::subPart("LOCATION", BLUE);
