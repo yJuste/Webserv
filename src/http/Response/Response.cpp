@@ -281,7 +281,10 @@ void	Response::_handleDelete( const std::string & path, const std::string & locP
 	if (status == 1)
 	{
 		if (std::remove(path.c_str()) == 0)
-			return _response("200\nOK\nContent-Type\napplication/json\n{\"status\":\"deleted\",\"path\":\"" + remove_sub_string(path, my_getcwd() + "/") + "\"}");
+		{
+			std::string rem = _loc ? remove_sub_string(remove_sub_string(path, my_getcwd() + "/"), _loc->getRoot()) : remove_sub_string(path, my_getcwd() + "/");
+			return _response("200\nOK\nContent-Type\napplication/json\n{\"status\":\"deleted\",\"path\":\"" + rem + "\"}");
+		}
 		return _response("500\nInternal Server Error\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Failed to delete file\"}");
 	}
 	else if (status == 2)
