@@ -96,6 +96,8 @@ int	Response::_preparation( void )
 			message = "Temporary Redirect";
 		else if (code == 308)
 			message = "Permanent Redirect";
+		else if (code == 403)
+			message = "Forbidden";
 		else
 			return _response("500\nInternal Server Error\n\n\nRedirect code does not exist."), 300;
 		_status = std::make_pair(code, message);
