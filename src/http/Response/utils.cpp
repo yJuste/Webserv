@@ -250,20 +250,41 @@ bool	Response::_checkUser( const std::string & username, const std::string & pas
 
 std::vector<std::string>	Response::_buildCgiEnv( const std::string & filePath )
 {
+	std::string locationPath = _loc->getPath();
+	std::string fullPath = _req->getPath();
+	std::string scriptName;
+	std::string pathInfo;
+	if (fullPath.find(locationPath) == 0)
+	{
+		std::string relative = fullPath.substr(locationPath.size());
+		size_t scriptEnd = relative.find('/', 1);
+		if (scriptEnd != std::string::npos)
+		{
+			scriptName = locationPath + relative.substr(0, scriptEnd);
+			pathInfo = relative.substr(scriptEnd);
+		}
+		else
+		{
+			scriptName = fullPath;
+			pathInfo = "";
+		}
+	}
 	std::vector<std::string> env;
+	env.push_back("SCRIPT_NAME=" + scriptName);
+	env.push_back("PATH_INFO=" + pathInfo);
+	env.push_back("SCRIPT_FILENAME=" + filePath);
 	env.push_back("GATEWAY_INTERFACE=CGI/1.1");
 	env.push_back("SERVER_PROTOCOL=HTTP/1.1");
 	env.push_back("REQUEST_METHOD=" + _req->getMethod());
-	env.push_back("SCRIPT_FILENAME=" + filePath);
-	env.push_back("SCRIPT_NAME=" + _req->getPath());
 	env.push_back("QUERY_STRING=" + _req->getQuery());
-
 	std::ostringstream oss;
 	oss << _req->getBody().size();
-	env.push_back("CONTENT_LENGTH=" + oss.str()); 
-	env.push_back("CONTENT_TYPE=" + _req->getHeader("Content-Type"));
+	env.push_back("CONTENT_LENGTH=" + oss.str());
+	std::string contentType = _req->getHeader("Content-Type");
+	if (contentType.empty())
+		contentType = "text/html; charset=utf-8";
+	env.push_back("CONTENT_TYPE=" + contentType);
 	env.push_back("SERVER_NAME=" + _req->getHeader("Host"));
-
 	const std::vector<int> & ports = _server->getEveryPort();
 	std::ostringstream ss;
 	for (size_t i = 0; i < ports.size(); ++i)
@@ -274,4 +295,32 @@ std::vector<std::string>	Response::_buildCgiEnv( const std::string & filePath )
 	}
 	env.push_back("SERVER_PORT=" + ss.str());
 	return env;
+}
+
+std::string	Response::_extract_cgi( const std::string & fullPath )
+{
+	const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
+	size_t bestPos = std::string::npos;
+	size_t bestLen = 0;
+	for (std::map<std::string, std::string>::const_iterator it = cgiMap.begin(); it != cgiMap.end(); ++it)
+	{
+		const std::string & ext = it->first;
+		size_t extPos = fullPath.find(ext);
+		if (extPos != std::string::npos && (bestPos == std::string::npos || extPos < bestPos))
+		{
+			bestPos = extPos;
+			bestLen = ext.size();
+		}
+	}
+	if (bestPos != std::string::npos)
+		return fullPath.substr(0, bestPos + bestLen);
+	return fullPath;
+}
+
+void	Response::_apply_session_parameter( void )
+{
+	replaceAll(_body, "{{session_set_background_color}}", _session->getBgColor());
+	std::ostringstream oss;
+	oss << _session->getCounter();
+	replaceAll(_body, "{{session_set_counter}}", oss.str());
 }

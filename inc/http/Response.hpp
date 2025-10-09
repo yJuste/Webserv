@@ -79,6 +79,7 @@ class	Response
 		bool _saveUser( const std::string &, const std::string &, const std::string & );
 		bool _checkUser( const std::string &, const std::string & ) const;
 		std::vector<std::string> _buildCgiEnv( const std::string & );
+		std::string _extract_cgi( const std::string & fullPath );
 		void _apply_session_parameter();
 
 		// ~Structor

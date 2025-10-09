@@ -48,10 +48,15 @@ void	Response::build( void )
 		return ;
 
 	int code = _preparation();
-	if (code)
-		_reconstitution(concatPaths(my_getcwd() + "/" + _loc->getRoot(), remove_sub_string(_req->getPath(), _loc->getPath())));
 	if (code == 301)
-		_response("301\nMoved Permanently\n\n\n");
+		return _response("301\nMoved Permanently\n\n\n");
+	else if (code == 300)
+		return _response("302\nFound\n\n\n");
+	if (code)
+	{
+		std::string path = concatPaths(my_getcwd() + "/" + _loc->getRoot(), remove_sub_string(_req->getPath(), _loc->getPath()));
+		_reconstitution(_extract_cgi(path));
+	}
 }
 
 std::string	Response::string( void ) const
@@ -107,6 +112,7 @@ int	Response::_preparation( void )
 			_headers["Location"] = locationUrl;
 			if (redir.begin()->first == 301)
 				return 301;
+			return 300;
 		}
 		return _response("404\nNot Found\n\n\nRedirect not found."), 0;
 	}
@@ -199,6 +205,7 @@ void	Response::_handlePost( const std::string & path )
 	if (contentType.find("multipart/form-data") != std::string::npos
 		|| contentType.find("application/octet-stream") != std::string::npos
 		|| contentType.find("text/plain") != std::string::npos
+		|| contentType.find("plain/text") != std::string::npos
 		|| _req->getHeader("Transfer-Encoding") == "chunked")
 		return _handleUpload(filePath, contentType);
 	if (contentType.find("application/x-www-form-urlencoded") != std::string::npos)
@@ -221,6 +228,7 @@ void	Response::_handleUpload( std::string & filePath, std::string & contentType 
 	}
 	else if (contentType.find("application/octet-stream") != std::string::npos
 		|| contentType.find("text/plain") != std::string::npos
+		|| contentType.find("plain/text") != std::string::npos
 		|| _req->getHeader("Transfer-Encoding") == "chunked")
 	{
 		const std::vector<char> & data = _req->getBody();
@@ -365,14 +373,6 @@ int	Response::_session_management( void )
 	if (_req->getPath() == "/")
 		_session->incrementCounter();
 	return 0;
-}
-
-void	Response::_apply_session_parameter( void )
-{
-	replaceAll(_body, "{{session_set_background_color}}", _session->getBgColor());
-	std::ostringstream oss;
-	oss << _session->getCounter();
-	replaceAll(_body, "{{session_set_counter}}", oss.str());
 }
 
 /*

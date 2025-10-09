@@ -8,7 +8,6 @@ import html
 cgitb.enable()
 form = cgi.FieldStorage()
 
-# valeur passée (FieldStorage décode %XX automatiquement)
 post_name = form.getvalue("name", "")
 
 found_in_db = False
@@ -52,11 +51,11 @@ else:
     if found_in_db:
         uname = html.escape(found_entry[0])
         extra = html.escape(found_entry[1])
-        print("<p style='color:green;'>Name '{}' found in .users.db ✅</p>".format(uname))
+        print("<p style='color:green;'>Name '{}' found in .users.db</p>".format(uname))
         if extra:
             print("<p>Second field: {}</p>".format(extra))
     else:
-        print("<p style='color:red;'>Name '{}' NOT found in .users.db ❌</p>".format(html.escape(post_name)))
+        print("<p style='color:red;'>Name '{}' NOT found in .users.db</p>".format(html.escape(post_name)))
 
 print("<h2>POST parameters</h2>")
 print("<ul>")

@@ -79,6 +79,13 @@ extern "C" void	on_stop( int );
  *	head -c 2000000 /dev/zero | curl -X POST \
  *	-H "Content-Type: text/plain" \
  *	--data-binary @- http://127.0.0.1:8090/login
+ *
+ *	curl -X POST http://localhost:8090/uplaod \
+ *	-H "Content-Type: plain/text" --data "hey"
+ *
+ * -- Delete a file:
+ *	curl -v -X DELETE http://localhost:8090/upload/.upload.bin
+ *
  * -- Test Cgi :
  *		with POST:
  *			curl -X POST \
@@ -87,6 +94,11 @@ extern "C" void	on_stop( int );
  *		with GET:
  *			curl -X GET \
  *			http://localhost:8090/cgi/test.py
+ *
+ *		tester avec le hub:
+ *			curl -X POST \
+ *			-d "name=Alice&email=alice@example.com" \
+ *			"http://localhost:8090/cgi/test.py/test.py"
  *
  *
  */
