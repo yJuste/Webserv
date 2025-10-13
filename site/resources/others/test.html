@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webserv Test Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+
+<link rel="icon" href="/images/alien.png" type="image/png">
+<link rel="apple-touch-icon" href="/images/alien.png">
+<link rel="apple-touch-icon-precomposed" href="/images/alien.png">
+
+<style>
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Lato', sans-serif;
+    scroll-behavior: smooth;
+    /background-color: #f7f7ef; *
+}
+
+/* Navbar */
+.navbar {
+    width: 100%;
+    background-color: #6e7c7c;
+    padding: 15px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+.navbar .btn-home {
+    background-color: #a3c7c9;
+    color: #333;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 15px;
+    cursor: pointer;
+}
+.navbar .btn-home:hover {
+    background-color: #9db7d3;
+    color: #000;
+}
+
+/* Hero Section */
+.hero-section {
+    height: 60vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(120deg, #a8edea, #fed6e3);
+    flex-direction: column;
+    text-align: center;
+}
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #556b6b;
+    text-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+}
+.hero-subtitle {
+    font-size: 1.2rem;
+    margin-top: 15px;
+    color: #333;
+}
+
+/* Scroll indicator */
+.scroll-indicator {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 50px;
+    border: 2px solid #556b6b;
+    border-radius: 25px;
+}
+.scroll-indicator::after {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    margin: 5px auto;
+    background: #556b6b;
+    border-radius: 50%;
+    animation: scroll 1.5s infinite;
+}
+@keyframes scroll {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(20px); }
+    100% { transform: translateY(0); }
+}
+
+/* Test Module Section */
+.section {
+    padding: 50px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+.card {
+    background-color: #d8a39d; /* 默认 Morandi 色，可按顺序调整 */
+    width: 300px;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #4b4b4b;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+input, textarea, button {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    width: 100%;
+    font-size: 1rem;
+}
+button {
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+}
+.btn-primary { background-color: #6495ED; color: #fff; }
+.btn-primary:hover { background-color: #bfc7c2; color: #000; }
+.btn-danger { background-color: #d98989; color: #fff; }
+.btn-danger:hover { background-color: #FF4500; color: #000; }
+.btn-secondary { background-color: #778899; color: #fff; }
+.btn-secondary:hover { background-color: #bfc7c2; color: #000; }
+.btn-success { background-color: #32CD32; color: #fff; }
+.btn-success:hover { background-color: #9db7d3; color: #000; }
+
+/* Morandi colors for 9 cards */
+.section > .card:nth-child(1) { background-color: #d8a39d; }
+.section > .card:nth-child(2) { background-color: #e0b998; }
+.section > .card:nth-child(3) { background-color: #e7d5a3; }
+.section > .card:nth-child(4) { background-color: #b8c9a9; }
+.section > .card:nth-child(5) { background-color: #a3c7c9; }
+.section > .card:nth-child(6) { background-color: #9db7d3; }
+.section > .card:nth-child(7) { background-color: #c0a3d3; }
+.section > .card:nth-child(8) { background-color: #d9a3c3; }
+.section > .card:nth-child(9) { background-color: #c0c9d3; }
+
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="navbar">
+    <a href="#">Test Mode</a>
+</div>
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <h1 class="hero-title">Webserv Test Dashboard</h1>
+  <button class="hero-subtitle-btn" onclick="window.location.href='/'">
+      Homapage
+  </button>
+  
+  <div class="scroll-indicator"></div>
+</section>
+
+<style>
+.hero-subtitle-btn {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  padding: 10px 20px;
+  color: #fff;
+  background-color: rgba(0,0,0,0.2);
+  border: 2px solid #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+.hero-subtitle-btn:hover {
+  background-color: rgba(255,255,255,0.2);
+  transform: scale(1.05);
+}
+</style>
+
+<!-- Test Modules -->
+<section class="section">
+
+    <!-- Login -->
+    <div class="card">
+        <h5 class="card-title">Login</h5>
+        <form action="/login" method="POST">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit" id="loginBtn" class="btn-primary">Login</button>
+        </form>
+    </div>
+
+    <!-- Register -->
+    <div class="card">
+        <h5 class="card-title">Register</h5>
+        <form action="/register" method="POST">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <input type="email" name="email" placeholder="Email" required>
+            <button type="submit" id="registerBtn" class="btn-primary">Register</button>
+        </form>
+    </div>
+
+    <!-- Upload -->
+    <div class="card">
+        <h5 class="card-title">Upload File</h5>
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" id="uploadFile" required>
+            <button type="submit" class="btn-primary">Upload</button>
+        </form>
+    </div>
+
+    <!-- Delete -->
+    <div class="card">
+        <h5 class="card-title">Delete File</h5>
+        <input type="text" id="deletePath" placeholder="File path (e.g. /upload/test.txt)">
+        <button class="btn-danger" onclick="sendDelete()">Delete</button>
+        <p id="deleteResult"></p>
+    </div>
+
+    <!-- Autoindex Test Button -->
+    <div class="card">
+        <h2>Test Autoindex</h2>
+        <button onclick="goAutoindex()">Go to /files</button>
+    </div>
+
+    <script>
+        function goAutoindex() { window.location.href = "/files"; }
+    </script>
+
+    <!-- CGI Test Form -->
+    <div class="card">
+        <h2>Test CGI Scripts</h2>
+        <input type="text" id="cgiName" placeholder="Enter name (e.g. go123)" required><br>
+        <div>
+            <button onclick="goCgi('/cgi/hub.py/others/test.py')">Test Python CGI (.py)</button>
+            <button onclick="goCgi('/cgi/hub.py/others/test.pl')">Test Perl CGI (.pl)</button>
+            <button onclick="goCgi('/cgi/hub.py/others/test.sh')">Test Bash CGI (.sh)</button>
+        </div>
+
+        <script>
+        function goCgi(scriptPath) {
+            var name = encodeURIComponent(document.getElementById('cgiName').value);
+            window.location.href = scriptPath + '?name=' + name;
+        }
+        </script>
+    </div>
+
+    <!-- Chunked Upload -->
+    <div class="card">
+        <h5 class="card-title">Chunked Upload</h5>
+        <textarea rows="3" readonly id="chunkedText">curl -v -X POST http://localhost:8090/upload \
+        -H "Transfer-Encoding: chunked" \
+        -H "Content-Type: text/plain" \
+        --data-binary @<(printf '5\r\nHello\r\n6\r\n World\r\n0\r\n\r\n')</textarea>
+        <button class="btn-primary" onclick="showChunkedFile()">Show File</button>
+        <pre id="chunkedResult"></pre>
+    </div>
+
+    <!-- Virtual Server -->
+    <div class="card">
+        <h5 class="card-title">Virtual Server</h5>
+        <textarea rows="2" readonly>curl -v http://127.0.0.1:8090/ -H "Host: hello"</textarea>
+    </div>
+
+    <!-- View GIF -->
+    <div class="card">
+        <h5 class="card-title">View GIF</h5>
+        <button class="btn-success" onclick="window.location.href='/resources/gif_view.html'">Open GIF</button>
+    </div>
+
+</section>
+
+<script>
+
+    // Delete
+    function sendDelete() {
+        const path = document.getElementById('deletePath').value.trim();
+        if (!path) { alert('Enter file path'); return; }
+        fetch(path, { method: "DELETE" })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.status === "deleted" ? data.path + " deleted" : data.message);
+                document.getElementById("deleteResult").innerText = data.status;
+            })
+            .catch(err => alert(err));
+    }
+
+    // CGI Test
+    function goCgi(script) {
+        const name = encodeURIComponent(document.getElementById('cgiName').value);
+        window.location.href = script + '?name=' + name;
+    }
+    
+    // Chunked Upload
+    function showChunkedFile() {
+        fetch("/upload/.upload.bin")
+            .then(res => res.text())
+            .then(text => document.getElementById("chunkedResult").innerText = text)
+            .catch(err => alert(err));
+    }
+</script>
+  
+
+</body>
+</html>
