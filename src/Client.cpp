@@ -14,9 +14,9 @@ Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout()
 
 Client::Client( int server_socket, SessionManager * smanager ) : _socket(-1), _server(NULL), _smanager(smanager), _wbuf(""), _original(0), _total(0), _svRead(-1), _svWrite(-1), _cgiSent(0), _cgiSending(false)
 {
+	_request = new Request(this);
 	_unit(server_socket);
 	_color = Print::getColor(_socket);
-	_request = new Request(this);
 	Print::debug(_color, getSocket(), "Logged in.");
 }
 

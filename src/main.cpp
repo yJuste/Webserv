@@ -27,7 +27,7 @@ int	main( int argc, char ** argv )
 		for (size_t i = 0; i < servers.size(); ++i)
 			servers[i]->myConfig();
 	}
-	catch (std::exception & e)
+	catch (const std::exception & e)
 	{
 		std::cerr << e.what() << std::endl;
 		for (size_t i = 0; i < servers.size(); ++i)
@@ -44,10 +44,15 @@ int	main( int argc, char ** argv )
 		supervisor.hold(servers);
 		supervisor.execution();
 	}
-	catch (std::exception & e)
+	catch (const std::exception & e)
 	{
+		if (dynamic_cast<const std::bad_alloc *>(&e))
+		{
+			std::cerr << "     | " << std::string(APPLE_GREEN) << "Supervisor" << std::string(RESET) << ": Allocation Failed" << std::endl;
+			return 2;
+		}
 		std::cerr << e.what() << std::endl;
-		return 2;
+		return 3;
 	}
 	return 0;
 }

@@ -92,7 +92,7 @@ void	Supervisor::execution( void )
 		if (ret <= -1)
 		{
 			if (errno == EINTR)
-				return (void)(std::cout << std::string(APPLE_GREEN) << "Quit with Ctrl+C." << std::string(RESET) << std::endl);
+				return (void)(std::cout << std::string(APPLE_GREEN) << "Quit with a signal." << std::string(RESET) << std::endl);
 			throw FailedPoll();
 		}
 		else if (ret == 0)
@@ -152,12 +152,16 @@ void	Supervisor::_new_client( int fd )
 {
 	if (_size >= FDS_SIZE - 1)
 		_removeFirstClient();
-	Client * client = new Client(fd, _smanager);
-	_clients.push_back(client);
-	_fds[_size].fd = client->getSocket();
-	_fds[_size].events = POLLIN;
-	_fds[_size].revents = 0;
-	++_size;
+	try
+	{
+		Client * client = new Client(fd, _smanager);
+		_clients.push_back(client);
+		_fds[_size].fd = client->getSocket();
+		_fds[_size].events = POLLIN;
+		_fds[_size].revents = 0;
+		++_size;
+	}
+	catch (const std::bad_alloc & e) { std::cerr << "     | " << std::string(APPLE_GREEN) << "Client" << std::string(RESET) << ": Allocation fail" << std::endl; }
 }
 
 /*

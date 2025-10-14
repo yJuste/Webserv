@@ -96,4 +96,6 @@ class	InvalidParameterReturnCode : public std::exception { private: char _msg[MS
 
 class	NotExtension : public std::exception { private: char _msg[MSG_SIZE]; public: NotExtension( const char * s ) { std::snprintf(_msg, sizeof(_msg), "\033[31merror\033[0m: `%s`: Extension should be '.[extension]'.", s); } const char * what() const throw() { return _msg; } };
 
+class	ServerBadAlloc : public std::bad_alloc { public : const char * what() const throw() { return "\033[31merror\033[0m: Server: Memory allocation failed."; } };
+
 #endif
