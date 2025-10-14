@@ -53,8 +53,8 @@ int	Client::retrieve( const std::string & buf )
 		return 0;
 	if (_request->getMethod().find("-") == std::string::npos)
 	{
-		Print::debug(_color, getSocket(), "New request.");
-		Print::debug(_color, getSocket(), "Request :");
+		Print::debug(_color, getSocket(), "New request." + std::string(_color) + "                                    .......");
+		Print::debug(_color, getSocket(), "Request :" + std::string(_color) + "                                             .");
 		Print::enval(_color, "     | Method", RESET, _request->getMethod());
 		Print::enval(_color, "     | Path", RESET, _request->getPath());
 	}
@@ -118,7 +118,8 @@ ssize_t	Client::writing( void )
 
 void	Client::sent( void )
 {
-	Print::enval(_color, "     | Sent", RESET, "[" + std::string(APPLE_GREEN) + rounded(_total) + "/" + rounded(_original) + std::string(RESET) + "]");
+	Print::enval(_color, "     | Page", RESET, "[" + std::string(APPLE_GREEN) + rounded(_total) + "/" + rounded(_original) + std::string(RESET) + "]");
+	Print::enval(_color, "     | Sent", _color, "                                         .");
 	_wbuf.clear();
 }
 
