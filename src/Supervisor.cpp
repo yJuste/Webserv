@@ -175,12 +175,7 @@ void	Supervisor::_reading( Client * client, size_t idx, int fd )
 	{
 		int rc = client->receive(fd, buffer, sizeof(buffer));
 		if (rc <= 0)
-		{
-			_supClient(fd);
-			_fds[idx] = _fds[_size - 1];
-			--_size;
-			return ;
-		}
+			return _supClient(fd);
 		if (client->retrieve(std::string(buffer, rc)) != 1)
 			return ;
 		client->setServer(client->select_server(_servers));
@@ -264,12 +259,7 @@ void	Supervisor::_writing( Client * client, size_t idx,  int fd )
 	}
 	n = client->writing();
 	if (n < 0)
-	{
-		_supClient(fd);
-		_fds[idx] = _fds[_size - 1];
-		--_size;
-		return ;
-	}
+		return _supClient(fd);
 	if (client->wbuf().empty())
 	{
 		_fds[idx].events = POLLIN;
@@ -289,57 +279,60 @@ Client * Supervisor::_getClient( int fd )
 	return NULL;
 }
 
-Client * Supervisor::_supClient( int fd )
+void	Supervisor::_supClient( int fd )
 {
 	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		if ((*it)->getSocket() == fd || (*it)->getSvRead() == fd || (*it)->getSvWrite() == fd)
 		{
-			delete *it;
+			_removeClient(*it);
 			_clients.erase(it);
-			return *it;
+			return ;
 		}
 	}
-	return NULL;
 }
 
 void	Supervisor::_removeFirstClient( void )
 {
 	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
-		Client * client = *it;
-		if (!client)
+		_removeClient(*it);
+		_clients.erase(it);
+		return;
+	}
+}
+
+void	Supervisor::_removeClient( Client * client )
+{
+	if (!client)
+		return;
+	int sv_fds[2] = { client->getSvRead(), client->getSvWrite() };
+	for (size_t i = 0; i < 2; ++i)
+	{
+		int fd = sv_fds[i];
+		if (fd < 0)
 			continue;
-		int sv_fds[2] = { client->getSvRead(), client->getSvWrite() };
-		for (int i = 0; i < 2; ++i)
-		{
-			int fd = sv_fds[i];
-			if (fd < 0)
-				continue;
-			close(fd);
-			for (size_t j = 0; j < _size; ++j)
-			{
-				if (_fds[j].fd == fd)
-				{
-					_fds[j] = _fds[_size - 1];
-					--_size;
-					break;
-				}
-			}
-		}
+		close(fd);
 		for (size_t j = 0; j < _size; ++j)
 		{
-			if (_fds[j].fd == client->getSocket())
+			if (_fds[j].fd == fd)
 			{
 				_fds[j] = _fds[_size - 1];
 				--_size;
 				break;
 			}
 		}
-		delete client;
-		_clients.erase(it);
-		return;
 	}
+	for (size_t j = 0; j < _size; ++j)
+	{
+		if (_fds[j].fd == client->getSocket())
+		{
+			_fds[j] = _fds[_size - 1];
+			--_size;
+			break;
+		}
+	}
+	delete client;
 }
 
 void	Supervisor::_clock( bool & last_print, time_t & lastHelp )
