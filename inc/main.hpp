@@ -90,15 +90,10 @@ extern "C" void	on_stop( int );
  *		with POST:
  *			curl -X POST \
  *			-d "name=Alice&email=alice@example.com" \
- *			http://localhost:8090/cgi/process.py
+ *			http://localhost:8090/cgi/hub.py/others/process.py
  *		with GET:
  *			curl -X GET \
- *			http://localhost:8090/cgi/test.py
- *
- *		tester avec le hub:
- *			curl -X POST \
- *			-d "name=Alice&email=alice@example.com" \
- *			"http://localhost:8090/cgi/test.py/test.py"
+ *			http://localhost:8090/cgi/hub.py/others/test.py
  *
  * -- Test redirection: [301, 302, 303, 307, 308]
  *	curl -v -L http://localhost:8090/redirect
