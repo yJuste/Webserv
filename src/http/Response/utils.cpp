@@ -109,6 +109,8 @@ bool	Response::_allowsMethod( const std::string & method ) const
 
 bool	Response::_autoIndex( const std::string & path )
 {
+	if (!_loc)
+		return _response("404\nNot Found\n\n\nFile not found."), true;
 	if (_loc->getAutoindex())
 	{
 		std::string reducedPath = path;
@@ -121,7 +123,7 @@ bool	Response::_autoIndex( const std::string & path )
 			_response("200\nOK\nContent-Type\ntext/html\n" + generate);
 		return true;
 	}
-	return _response("404\nNot Found\n\n\nFile not found."), false;
+	return false;
 }
 
 bool	Response::_saveUploadedFile( void )

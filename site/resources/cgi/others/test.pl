@@ -2,12 +2,6 @@
 
 use strict;
 use warnings;
-use CGI;
-use POSIX qw(strftime);
-
-my $q    = CGI->new;
-my $name = $q->param('name') || 'inconnu';
-my $time = strftime "%H:%M:%S", localtime;
 
 print <<HTML;
 <!DOCTYPE html>
@@ -38,9 +32,8 @@ print <<HTML;
     </style>
 </head>
 <body>
-<h1>Salut, $name ! 👋</h1>
-<p>Il est actuellement $time</p>
-<p>Bienvenue sur notre page CGI dynamique ✨</p>
+<h1>Salut, Mister ! 👋</h1>
+<p>How are you doing ?</p>
 </body>
 </html>
 HTML
