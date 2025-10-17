@@ -98,3 +98,27 @@ std::string	to_clean( const std::string & root, const std::string & fullPath )
 	}
 	return cleanPath;
 }
+
+void	print_status_cgi( const std::string & response, const std::string & color, int socket )
+{
+	std::string line;
+	std::istringstream iss(response);
+	std::getline(iss, line);
+	std::istringstream words(line);
+	std::string word1, word2;
+	words >> word1 >> word2;
+	std::string rest;
+	std::getline(words, rest);
+	rest.erase(std::remove(rest.begin(), rest.end(), '\r'), rest.end());
+	rest.erase(std::remove(rest.begin(), rest.end(), '\n'), rest.end());
+	size_t start = 0;
+	while (start < rest.size() && (rest[start] == ' ' || rest[start] == '\t')) ++start;
+	rest = rest.substr(start);
+	std::string statusLine = "[" + std::string(APPLE_GREEN);
+	statusLine += word2;
+	if (!rest.empty())
+		statusLine += " " + rest;
+	statusLine += std::string(RESET) + "]";
+	Print::debug(color, socket, "Response :");
+	Print::enval(color, "     | Status", RESET, statusLine);
+}

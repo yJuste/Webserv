@@ -302,6 +302,12 @@ void	Response::_executeCGI( const std::string & filePath )
 	int sv[2];
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) < 0)
 		return _response("500\nInternal Server Error\n\n\nFailed to create socketpair CGI");
+	if (acstat(filePath.c_str(), X_OK) != 1)
+	{
+		close(sv[0]);
+		close(sv[1]);
+		return _response("403\nForbidden\n\n\nYou don't have access right.");
+	}
 	pid_t pid = fork();
 	if (pid < 0)
 	{

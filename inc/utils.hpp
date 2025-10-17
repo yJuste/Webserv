@@ -55,5 +55,6 @@ std::string	to_clean( const std::string &, const std::string & );
 // ----- Clients -----
 
 void		finish_cgi( std::string & );
+void		print_status_cgi( const std::string &, const std::string &, int );
 
 #endif
