@@ -218,6 +218,7 @@ void	Supervisor::_reading( Client * client, size_t idx, int fd )
 			client->getRequest()->reset();
 			client->setSvRead(-1);
 			client->setSvWrite(-1);
+			client->setCgiPid(-1);
 			for (size_t j = 0; j < _size; ++j)
 			{
 				if (_fds[j].fd == client->getSocket())
@@ -227,6 +228,7 @@ void	Supervisor::_reading( Client * client, size_t idx, int fd )
 				}
 			}
 			client->setOriginal(client->wbuf().size());
+			return ;
 		}
 		client->wbuf().append(buffer, rc);
 	}

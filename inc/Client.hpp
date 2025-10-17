@@ -50,6 +50,8 @@ class	Client
 		std::vector<char>	_cgiBody;
 		size_t			_cgiSent;
 		bool			_cgiSending;
+		pid_t			_cgiPid;
+		time_t			_cgiStart;
 
 		// Methods
 
@@ -90,6 +92,8 @@ class	Client
 		int getSvWrite() const;
 		const std::vector<char> & getCgiBody() const;
 		bool isCgiSending() const;
+		pid_t getCgiPid() const;
+		time_t getCgiStart() const;
 
 		// Setters
 
@@ -98,6 +102,8 @@ class	Client
 		void setSvRead( int );
 		void setSvWrite( int );
 		void setCgiBody( const std::vector<char> & body );
+		void setCgiPid( pid_t );
+		void setCgiStart( time_t );
 };
 
 #endif

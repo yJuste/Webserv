@@ -315,6 +315,7 @@ void	Response::_executeCGI( const std::string & filePath )
 		close(sv[0]);
 		dup2(sv[1], STDIN_FILENO);
 		dup2(sv[1], STDOUT_FILENO);
+		dup2(sv[1], STDERR_FILENO);
 		close(sv[1]);
 
 		std::string ext;
@@ -325,7 +326,7 @@ void	Response::_executeCGI( const std::string & filePath )
 		const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
 		std::map<std::string, std::string>::const_iterator it = cgiMap.find(ext);
 		if (it == cgiMap.end())
-			kill(getpid(), SIGTERM);
+			_exit(127);
 
 		const char * cgiPath = it->second.c_str();
 		const char * scriptPath = filePath.c_str();
@@ -337,12 +338,15 @@ void	Response::_executeCGI( const std::string & filePath )
 			envp.push_back(const_cast<char *>(env[i].c_str()));
 		envp.push_back(NULL);
 		execve(cgiPath, (char * const *)argv, &envp[0]);
-		kill(getpid(), SIGTERM);
+		_exit(126);
 	}
 	close(sv[1]);
 	int sv_read = dup(sv[0]);
 	_client->setSvWrite(sv[0]);
 	_client->setSvRead(sv_read);
+	fcntl(sv[0], F_SETFL, O_NONBLOCK | FD_CLOEXEC);
+	_client->setCgiPid(pid);
+	_client->setCgiStart(std::time(NULL));
 	if (_req->getMethod() == "POST")
 		_client->setCgiBody(_req->getBody());
 }

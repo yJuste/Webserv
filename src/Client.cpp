@@ -9,10 +9,10 @@
 
 # include "Client.hpp"
 
-Client::Client() : _socket(-1), _server(NULL), _smanager(NULL), _color(Print::getColor(-1)), _wbuf(""), _request(NULL), _original(0), _total(0), _svRead(-1), _svWrite(-1), _cgiSent(0), _cgiSending(false) {}
+Client::Client() : _socket(-1), _server(NULL), _smanager(NULL), _color(Print::getColor(-1)), _wbuf(""), _request(NULL), _original(0), _total(0), _svRead(-1), _svWrite(-1), _cgiSent(0), _cgiSending(false), _cgiPid(-1), _cgiStart(-1) {}
 Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
-Client::Client( int server_socket, SessionManager * smanager ) : _socket(-1), _server(NULL), _smanager(smanager), _wbuf(""), _original(0), _total(0), _svRead(-1), _svWrite(-1), _cgiSent(0), _cgiSending(false)
+Client::Client( int server_socket, SessionManager * smanager ) : _socket(-1), _server(NULL), _smanager(smanager), _wbuf(""), _original(0), _total(0), _svRead(-1), _svWrite(-1), _cgiSent(0), _cgiSending(false), _cgiPid(-1), _cgiStart(-1)
 {
 	_request = new Request(this);
 	_unit(server_socket);
@@ -210,6 +210,8 @@ int Client::getSvRead() const { return _svRead; }
 int Client::getSvWrite() const { return _svWrite; }
 const std::vector<char> & Client::getCgiBody() const { return _cgiBody; }
 bool Client::isCgiSending() const { return _cgiSending && _cgiSent < _cgiBody.size(); }
+pid_t Client::getCgiPid() const { return _cgiPid; }
+time_t Client::getCgiStart() const { return _cgiStart; }
 
 // Setters
 
@@ -218,3 +220,5 @@ void Client::setOriginal( ssize_t original ) { _original = original; }
 void Client::setSvWrite( int fd ) { _svWrite = fd; }
 void Client::setSvRead( int fd ) { _svRead = fd; }
 void Client::setCgiBody( const std::vector<char> & body ) { _cgiBody = body; _cgiSent = 0; _cgiSending = true; }
+void Client::setCgiPid( pid_t pid ) { _cgiPid = pid; }
+void Client::setCgiStart( time_t start ) { _cgiStart = start; }
