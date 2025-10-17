@@ -70,7 +70,9 @@ extern "C" void	on_stop( int );
  *	curl -v -X [method] http://IPv4:Port
  *
  * -- Tests virtual hosts (give server_name = lan):
- *	curl -X GET --resolve lan:8090:127.0.0.1 http://lan:8090
+ *	curl -X GET --resolve juste:8090:127.0.0.1 http://juste:8090
+ *	should be different than :
+ *	curl -X GET --resolve hollow:8090:127.0.0.1 http://hollow:8090
  *
  * -- Autoindex:
  *	curl -v http://127.0.0.1:8080 -H "Connection: close"
