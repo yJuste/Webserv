@@ -357,7 +357,7 @@ void	Supervisor::_clock( bool & last_print, time_t & lastHelp )
 			lastHelp = now;
 	}
 }
-
+/*
 bool	Supervisor::_finalizeCgi( Client * client )
 {
 	if (client->getCgiPid() == -1)
@@ -415,6 +415,79 @@ bool	Supervisor::_finalizeCgi( Client * client )
 		}
 	}
 	return false;
+}*/
+
+bool Supervisor::_finalizeCgi(Client * client)
+{
+    if (client->getCgiPid() == -1) return false;
+
+    const int CGI_TIMEOUT = 1;
+    time_t now = std::time(NULL);
+    ssize_t original = client->wbuf().size();
+
+    if (client->getCgiStart() != -1 && now - client->getCgiStart() > CGI_TIMEOUT)
+    {
+        pid_t pid = client->getCgiPid();
+        kill(pid, SIGKILL);
+        client->setCgiPid(-1);
+        client->setCgiStart(-1);
+        setBadGateway(client->wbuf(), original, "CGI timeout exceeded");
+        client->setOriginal(original);
+        return true;
+    }
+
+    int status;
+    pid_t pid = client->getCgiPid();
+    pid_t r = waitpid(pid, &status, WNOHANG);
+    if (r > 0)
+    {
+        // fermer les fd du socketpair sans tenter de lire (lecture gérée par votre poll/_reading)
+        int fd_read = client->getSvRead();
+        int fd_write = client->getSvWrite();
+        if (fd_read != -1) { close(fd_read); client->setSvRead(-1); }
+        if (fd_write != -1) { close(fd_write); client->setSvWrite(-1); }
+
+        client->setCgiPid(-1);
+        client->setCgiStart(-1);
+
+        if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+        {
+            std::ostringstream reason;
+            reason << "CGI exited with code " << WEXITSTATUS(status);
+            setBadGateway(client->wbuf(), original, reason.str());
+        }
+        else if (WIFSIGNALED(status))
+        {
+            std::ostringstream reason;
+            reason << "CGI killed by signal " << WTERMSIG(status);
+            setBadGateway(client->wbuf(), original, reason.str());
+        }
+
+        client->setOriginal(original);
+        return true;
+    }
+
+    // analyser le tampon déjà reçu (si vous avez lu du fd précédemment via poll/_reading)
+    std::string & buf = client->wbuf();
+    std::istringstream iss(buf);
+    std::string line;
+    while (std::getline(iss, line))
+    {
+        if (line.find("syntax error") != std::string::npos
+            || line.find("command not found") != std::string::npos
+            || line.find("No such file") != std::string::npos
+            || line.find("permission denied") != std::string::npos
+            || line.find("runtime error") != std::string::npos
+            || line.find("cgi: Error") != std::string::npos)
+        {
+            Print::enval(client->getColor(), "     | Cgi Error", client->getColor(), line);
+            setBadGateway(client->wbuf(), original, "CGI execution failed");
+            client->setOriginal(original);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void	Supervisor::_clean( void )

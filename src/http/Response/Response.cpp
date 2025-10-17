@@ -339,6 +339,7 @@ void	Response::_handleDelete( const std::string & path, const std::string & locP
  *	CGI
  */
 
+/*
 void	Response::_executeCGI( const std::string & filePath )
 {
 	int sv[2];
@@ -397,6 +398,79 @@ void	Response::_executeCGI( const std::string & filePath )
 	_client->setCgiStart(std::time(NULL));
 	if (_req->getMethod() == "POST")
 		_client->setCgiBody(_req->getBody());
+}*/
+
+void Response::_executeCGI(const std::string & filePath)
+{
+    int sv[2];
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) < 0)
+        return _response("500\nInternal Server Error\n\n\nFailed to create socketpair CGI");
+
+    if (acstat(filePath.c_str(), X_OK) != 1)
+    {
+        close(sv[0]);
+        close(sv[1]);
+        return _response("403\nForbidden\n\n\nYou don't have access right.");
+    }
+
+    pid_t pid = fork();
+    if (pid < 0)
+    {
+        close(sv[0]);
+        close(sv[1]);
+        return _response("500\nInternal Server Error\n\n\nFailed to fork() CGI process.");
+    }
+
+    if (pid == 0)
+    {
+        signal(SIGPIPE, SIG_IGN);
+        close(sv[0]); // enfant n'a pas besoin du côté parent
+
+        if (dup2(sv[1], STDIN_FILENO) < 0) _exit(126);
+        if (dup2(sv[1], STDOUT_FILENO) < 0) _exit(126);
+        if (dup2(sv[1], STDERR_FILENO) < 0) _exit(126);
+        close(sv[1]);
+
+        std::string ext;
+        size_t dotPos = filePath.rfind('.');
+        if (dotPos != std::string::npos) ext = filePath.substr(dotPos);
+
+        const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
+        std::map<std::string, std::string>::const_iterator it = cgiMap.find(ext);
+        if (it == cgiMap.end()) _exit(127);
+
+        const char * cgiPath = it->second.c_str();
+        const char * scriptPath = filePath.c_str();
+        const char * argv[] = { cgiPath, scriptPath, NULL };
+        std::vector<std::string> env = _buildCgiEnv(filePath);
+        std::vector<char*> envp;
+        for (size_t i = 0; i < env.size(); ++i) envp.push_back(const_cast<char*>(env[i].c_str()));
+        envp.push_back(NULL);
+        execve(cgiPath, (char * const *)argv, &envp[0]);
+        _exit(126);
+    }
+
+    // parent
+    close(sv[1]); // garder le côté opposé pour l'enfant
+    // dup nécessaire pour séparer polling lecture/écriture dans votre logique
+    int sv_read = dup(sv[0]);
+    if (sv_read < 0)
+    {
+        close(sv[0]);
+        // on ignore l'erreur détaillée ici selon vos restrictions
+        return _response("500\nInternal Server Error\n\n\nFailed to dup() CGI socket");
+    }
+
+    // Mettre en non-bloquant les deux fd (autorisé : F_SETFL + O_NONBLOCK)
+    fcntl(sv[0], F_SETFL, O_NONBLOCK);
+    fcntl(sv_read, F_SETFL, O_NONBLOCK);
+
+    _client->setSvWrite(sv[0]);  // fd utilisé pour écrire vers le CGI (POST)
+    _client->setSvRead(sv_read); // fd utilisé pour lire la réponse CGI
+    _client->setCgiPid(pid);
+    _client->setCgiStart(std::time(NULL));
+    if (_req->getMethod() == "POST")
+        _client->setCgiBody(_req->getBody());
 }
 
 /*
