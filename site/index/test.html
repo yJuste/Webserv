@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Webserv Test Dashboard</title>
+<title>Webserv Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
 
 <link rel="icon" href="/images/alien.png" type="image/png">
@@ -107,7 +107,7 @@ body, html {
     gap: 20px;
 }
 .card {
-    background-color: #d8a39d; /* 默认 Morandi 色，可按顺序调整 */
+    background-color: #d8a39d;
     width: 300px;
     border-radius: 12px;
     padding: 20px;
@@ -167,12 +167,12 @@ button {
 
 <!-- Navbar -->
 <div class="navbar">
-    <a href="#">Test Mode</a>
+    <a href="#">Webserv by Jules and Lan</a>
 </div>
 
 <!-- Hero Section -->
 <section class="hero-section">
-  <h1 class="hero-title">Webserv Test Dashboard</h1>
+  <h1 class="hero-title">Webserv Dashboard</h1>
   <button class="hero-subtitle-btn" onclick="window.location.href='/'">
       Homapage
   </button>
@@ -254,9 +254,9 @@ button {
         <h2>Test CGI Scripts</h2>
         <input type="text" id="cgiName" placeholder="Enter name (e.g. go123)" required><br>
         <div>
-            <button onclick="goCgi('/cgi/hub.py/others/test.py')">Test Python CGI (.py)</button>
-            <button onclick="goCgi('/cgi/hub.py/others/test.pl')">Test Perl CGI (.pl)</button>
-            <button onclick="goCgi('/cgi/hub.py/others/test.sh')">Test Bash CGI (.sh)</button>
+            <button onclick="goCgi('/cgi/others/test.py')">Test Python CGI (.py)</button>
+            <button onclick="goCgi('/cgi/others/test.pl')">Test Perl CGI (.pl)</button>
+            <button onclick="goCgi('/cgi/others/test.sh')">Test Bash CGI (.sh)</button>
         </div>
 
         <script>

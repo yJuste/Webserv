@@ -112,9 +112,15 @@ int	Response::_preparation( void )
 		std::string allowHeader;
 		const std::vector<std::string> & methods = _loc->getMethods();
 		if (_req->getMethod() == "DELETE")
-			_response("405\nMethod Not Allowed\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
-		else
-			_response("405\nMethod Not Allowed\n\n\nMethod Not Allowed");
+		{
+			std::string accept = _req->getHeader("Accept");
+			for (size_t i = 0; i < accept.size(); ++i)
+				accept[i] = std::tolower(accept[i]);
+			if (accept.find("application/json") != std::string::npos)
+				_response("405\nMethod Not Allowed\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
+			else
+				_response("405\nMethod Not Allowed\n\n\nMethod Not Allowed");
+		}
 		for (size_t i = 0; i < methods.size(); ++i)
 		{
 			allowHeader += methods[i];
@@ -275,8 +281,30 @@ void	Response::_registry( std::string & contentType )
 
 void	Response::_handleDelete( const std::string & path, const std::string & locPath )
 {
+	bool want_json = false;
+	std::string accept;
+	if (_req)
+		accept = _req->getHeader("Accept");
+	for (size_t i = 0; i < accept.size(); ++i)
+		accept[i] = std::tolower(accept[i]);
+	if (accept.find("application/json") != std::string::npos)
+		want_json = true;
+	else if (accept.find("*/*") != std::string::npos || accept.empty())
+		want_json = false;
 	if (locPath.find("upload") == std::string::npos)
-		return _response("403\nForbidden\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"DELETE allowed only in /upload\"}");
+	{
+		if (want_json)
+			return _response("403\nForbidden\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Delete allowed only in /upload\"}");
+		else
+			return _response("403\nForbidden\nContent-Type\ntext/html\nDelete allowed only in /upload");
+	}
+	if (locPath.find("..") != std::string::npos)
+	{
+		if (want_json)
+			return _response("403\nForbidden\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"It's dangerous, oh my godness.\"}");
+		else
+			return _response("403\nForbidden\nContent-Type\ntext/html\nIt's dangerous, oh my godness.");
+	}
 
 	int status = acstat(path.c_str(), F_OK | R_OK);
 	if (status == 1)
@@ -284,13 +312,27 @@ void	Response::_handleDelete( const std::string & path, const std::string & locP
 		if (std::remove(path.c_str()) == 0)
 		{
 			std::string rem = _loc ? remove_sub_string(remove_sub_string(path, my_getcwd() + "/"), _loc->getRoot()) : remove_sub_string(path, my_getcwd() + "/");
-			return _response("200\nOK\nContent-Type\napplication/json\n{\"status\":\"deleted\",\"path\":\"" + rem + "\"}");
+			if (want_json)
+				return _response("200\nOK\nContent-Type\napplication/json\n{\"status\":\"deleted\",\"path\":\"" + rem + "\"}");
+			else
+				return _response("200\nOK\nContent-Type\ntext/html\ndeleted. path:" + rem);
 		}
-		return _response("500\nInternal Server Error\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Failed to delete file\"}");
+		if (want_json)
+			return _response("500\nInternal Server Error\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Failed to delete file\"}");
+		else
+			return _response("500\nInternal Server Error\nContent-Type\ntext/html\nFailed to delete file");
 	}
 	else if (status == 2)
-		return _response("405\nMethod Not Allowed\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Cannot delete directory\"}");
-	return _response("404\nDELETE found nothing.\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"File not found\"}");
+	{
+		if (want_json)
+			return _response("405\nMethod Not Allowed\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Cannot delete directory\"}");
+		else
+			return _response("405\nMethod Not Allowed\nContent-Type\ntext/html\nCannot delete a directory");
+	}
+	if (want_json)
+		return _response("404\nFile Not Found\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"File not found\"}");
+	else
+		return _response("404\nFile not found\nContent-Type\ntext/html\nCannot find the file. ( maybe it does not exist.)");
 }
 
 /*
