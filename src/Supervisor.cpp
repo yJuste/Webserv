@@ -181,6 +181,8 @@ void	Supervisor::_reading( Client * client, size_t idx, int fd )
 		client->setServer(client->select_server(_servers));
 		if (client->response() == 1)
 		{
+			if (!client->isAwaitingCgi())
+				return ;
 			if (_size >= FDS_SIZE - 1)
 				_removeFirstClient();
 			_fds[_size].fd = client->getSvRead();
@@ -220,6 +222,7 @@ void	Supervisor::_reading( Client * client, size_t idx, int fd )
 			client->setSvRead(-1);
 			client->setSvWrite(-1);
 			client->setCgiPid(-1);
+			client->setAwaitingCgi(false);
 			for (size_t j = 0; j < _size; ++j)
 			{
 				if (_fds[j].fd == client->getSocket())
@@ -381,6 +384,7 @@ bool	Supervisor::_finalizeCgi( Client * client )
 	{
 		client->setCgiPid(-1);
 		client->setCgiStart(-1);
+		client->setAwaitingCgi(false);
 		if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
 		{
 			std::ostringstream reason;

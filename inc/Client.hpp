@@ -52,6 +52,7 @@ class	Client
 		bool			_cgiSending;
 		pid_t			_cgiPid;
 		time_t			_cgiStart;
+		bool			_awaitingCgi;
 
 		// Methods
 
@@ -94,6 +95,7 @@ class	Client
 		bool isCgiSending() const;
 		pid_t getCgiPid() const;
 		time_t getCgiStart() const;
+		bool isAwaitingCgi() const { return _awaitingCgi; }
 
 		// Setters
 
@@ -104,6 +106,7 @@ class	Client
 		void setCgiBody( const std::vector<char> & body );
 		void setCgiPid( pid_t );
 		void setCgiStart( time_t );
+		void setAwaitingCgi(bool b) { _awaitingCgi = b; }
 };
 
 #endif

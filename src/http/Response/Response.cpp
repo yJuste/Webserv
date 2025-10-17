@@ -395,6 +395,7 @@ void	Response::_executeCGI( const std::string & filePath )
 	fcntl(sv[0], F_SETFL, O_NONBLOCK | FD_CLOEXEC);
 	_client->setCgiPid(pid);
 	_client->setCgiStart(std::time(NULL));
+	_client->setAwaitingCgi(true);
 	if (_req->getMethod() == "POST")
 		_client->setCgiBody(_req->getBody());
 }

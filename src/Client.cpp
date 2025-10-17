@@ -12,7 +12,7 @@
 Client::Client() : _socket(-1), _server(NULL), _smanager(NULL), _color(Print::getColor(-1)), _wbuf(""), _request(NULL), _original(0), _total(0), _svRead(-1), _svWrite(-1), _cgiSent(0), _cgiSending(false), _cgiPid(-1), _cgiStart(-1) {}
 Client::~Client() { Print::debug(_color, getSocket(), "Logged out."); _backout(); }
 
-Client::Client( int server_socket, SessionManager * smanager ) : _socket(-1), _server(NULL), _smanager(smanager), _wbuf(""), _original(0), _total(0), _svRead(-1), _svWrite(-1), _cgiSent(0), _cgiSending(false), _cgiPid(-1), _cgiStart(-1)
+Client::Client( int server_socket, SessionManager * smanager ) : _socket(-1), _server(NULL), _smanager(smanager), _wbuf(""), _original(0), _total(0), _svRead(-1), _svWrite(-1), _cgiSent(0), _cgiSending(false), _cgiPid(-1), _cgiStart(-1), _awaitingCgi(false)
 {
 	_request = new Request(this);
 	_unit(server_socket);
