@@ -39,6 +39,8 @@ Client	& Client::operator = ( const Client & c )
 		_cgiBody = c._cgiBody;
 		_cgiSent = c._cgiSent;
 		_cgiSending = c._cgiSending;
+		_cgiPid = c._cgiPid;
+		_cgiStart = c._cgiStart;
 	}
 	return *this;
 }
@@ -71,8 +73,8 @@ int	Client::response( void )
 	if (_svWrite >= 0 || _svRead >= 0)
 		return 1;
 
-	std::ostringstream oss;
 	Print::debug(_color, getSocket(), "Response :");
+	std::ostringstream oss;
 	oss << response.getStatus().first << " " << response.getStatus().second;
 	Print::enval(_color, "     | Status", RESET, "[" + std::string(APPLE_GREEN) + oss.str() + std::string(RESET) + "]");
 	_request->reset();

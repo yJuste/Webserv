@@ -69,6 +69,7 @@ class	Supervisor
 		void _removeFirstClient();
 		void _removeClient( Client * );
 		void _clock( bool &, time_t & );
+		bool _finalizeCgi( Client * );
 		void _clean();
 
 		// ~Structors

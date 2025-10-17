@@ -2,6 +2,8 @@
 
 # Le contenu HTML
 cat <<EOF
+Content-Type: text/html;
+
 <html>
 <head><title>CGI Test: SHELL</title></head>
 <body>

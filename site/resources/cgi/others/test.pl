@@ -4,6 +4,8 @@ use strict;
 use warnings;
 
 print <<HTML;
+Content-Type: text/html;
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>

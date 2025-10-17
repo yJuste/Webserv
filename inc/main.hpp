@@ -94,6 +94,9 @@ extern "C" void	on_stop( int );
  *		with GET:
  *			curl -X GET \
  *			http://localhost:8090/cgi/hub.py/others/test.py
+ *		loop.sh:
+ *			curl -X GET \
+ *			http://localhost:8090/cgi/others/loop.sh
  *
  * -- Test redirection: [301, 302, 303, 307, 308]
  *	curl -v -L http://localhost:8090/redirect

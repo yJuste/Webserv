@@ -56,5 +56,6 @@ std::string	to_clean( const std::string &, const std::string & );
 
 void		finish_cgi( std::string & );
 void		print_status_cgi( const std::string &, const std::string &, int );
+bool		setBadGateway( std::string &, ssize_t &, const std::string & );
 
 #endif

@@ -8,6 +8,8 @@ form = cgi.FieldStorage()
 name = form.getvalue("name")
 email = form.getvalue("email")
 
+print(f"Content-Type: text/html;")
+print(f"")
 print(f"<html><body>")
 print(f"<h2>Received POST Data</h2>")
 print(f"<p>Name: {name}</p>")
