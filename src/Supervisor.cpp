@@ -99,6 +99,8 @@ void	Supervisor::execution( void )
 		}
 		else if (ret == 0)
 			continue ;
+		for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+			_finalizeCgi(*it);
 		for (size_t i = 0; i < _size; ++i)
 		{
 			short revents = _fds[i].revents;
@@ -203,14 +205,13 @@ void	Supervisor::_reading( Client * client, size_t & idx, int fd )
 	else if (fd == client->getSvRead())
 	{
 		int rc = client->receive(fd, buffer, sizeof(buffer));
-		if (rc <= 0)
+		if (rc < 0)
+			return _supClient(fd);
+		if (rc == 0)
 		{
 			int fd_read = client->getSvRead();
-			int fd_write = client->getSvWrite();
 			if (fd_read != -1)
 				close(fd_read);
-			if (fd_write != -1)
-				close(fd_write);
 			_fds[idx] = _fds[_size - 1];
 			--_size;
 			--idx;
@@ -218,7 +219,6 @@ void	Supervisor::_reading( Client * client, size_t & idx, int fd )
 			print_status_cgi(client->wbuf(), client->getColor(), client->getSocket());
 			client->getRequest()->reset();
 			client->setSvRead(-1);
-			client->setSvWrite(-1);
 			client->setCgiPid(-1);
 			for (size_t j = 0; j < _size; ++j)
 			{
@@ -245,24 +245,23 @@ void	Supervisor::_writing( Client * client, size_t idx,  int fd )
 	if (fd == client->getSvWrite())
 	{
 		n = client->writing();
-		if (n < 0)
+		if (n < 0 || (!client->isCgiSending() || client->getSvWrite() < 0))
 		{
-			close(fd);
+			if (fd != -1)
+				close(fd);
 			_fds[idx] = _fds[_size - 1];
 			--_size;
 			client->setSvWrite(-1);
-			return;
 		}
-		if (!client->isCgiSending() || client->getSvWrite() < 0)
-		{
-			_fds[idx] = _fds[_size - 1];
-			--_size;
-		}
+		if (n == 0)
+			return ;
 		return;
 	}
 	n = client->writing();
 	if (n < 0)
 		return _supClient(fd);
+	if (n == 0)
+		return ;
 	if (client->wbuf().empty())
 	{
 		_fds[idx].events = POLLIN;
@@ -362,10 +361,9 @@ bool	Supervisor::_finalizeCgi( Client * client )
 {
 	if (client->getCgiPid() == -1)
 		return false;
-	const int CGI_TIMEOUT = 1;
 	time_t now = std::time(NULL);
 	ssize_t original = client->wbuf().size();
-	if (client->getCgiStart() != -1 && now - client->getCgiStart() > CGI_TIMEOUT)
+	if (client->getCgiStart() != -1 && now - client->getCgiStart() > 2)
 	{
 		pid_t pid = client->getCgiPid();
 		kill(pid, SIGKILL);
@@ -381,22 +379,12 @@ bool	Supervisor::_finalizeCgi( Client * client )
 	{
 		client->setCgiPid(-1);
 		client->setCgiStart(-1);
-		if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
-		{
-			std::ostringstream reason;
-			reason << "CGI exited with code " << WEXITSTATUS(status);
-			setBadGateway(client->wbuf(), original, reason.str());
-		}
-		else if (WIFSIGNALED(status))
-		{
-			std::ostringstream reason;
-			reason << "CGI killed by signal " << WTERMSIG(status);
-			setBadGateway(client->wbuf(), original, reason.str());
-		}
+		if ((WIFEXITED(status) && WEXITSTATUS(status) != 0) || WIFSIGNALED(status))
+			setBadGateway(client->wbuf(), original, "CGI execution failed.");
 		client->setOriginal(original);
 		return true;
 	}
-	std::string& buf = client->wbuf();
+	std::string & buf = client->wbuf();
 	std::istringstream iss(buf);
 	std::string line;
 	while (std::getline(iss, line))
@@ -409,7 +397,7 @@ bool	Supervisor::_finalizeCgi( Client * client )
 			|| line.find("cgi: Error") != std::string::npos)
 		{
 			Print::enval(client->getColor(), "     | Cgi Error", client->getColor(), line);
-			setBadGateway(client->wbuf(), original, "CGI execution failed");
+			setBadGateway(client->wbuf(), original, "CGI execution failed.");
 			client->setOriginal(original);
 			return true;
 		}
