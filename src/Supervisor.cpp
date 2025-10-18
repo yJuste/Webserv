@@ -88,6 +88,8 @@ void	Supervisor::execution( void )
 		if (g_stop)
 			return ;
 		_clock(last_print, lastHelp);
+		for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+			_finalizeCgi(*it);
 		int ret = poll(_fds, _size, 3000);
 		if (ret <= -1)
 		{
@@ -97,9 +99,6 @@ void	Supervisor::execution( void )
 		}
 		else if (ret == 0)
 			continue ;
-		for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); ++it)
-			if (_finalizeCgi(*it) == true)
-				break ;
 		for (size_t i = 0; i < _size; ++i)
 		{
 			short revents = _fds[i].revents;
@@ -168,7 +167,7 @@ void	Supervisor::_new_client( int fd )
  *	READING
  */
 
-void	Supervisor::_reading( Client * client, size_t idx, int fd )
+void	Supervisor::_reading( Client * client, size_t & idx, int fd )
 {
 	char buffer[BUFFER_SIZE];
 	if (fd == client->getSocket())
@@ -214,6 +213,7 @@ void	Supervisor::_reading( Client * client, size_t idx, int fd )
 				close(fd_write);
 			_fds[idx] = _fds[_size - 1];
 			--_size;
+			--idx;
 			finish_cgi(client->wbuf());
 			print_status_cgi(client->wbuf(), client->getColor(), client->getSocket());
 			client->getRequest()->reset();
@@ -394,6 +394,7 @@ bool	Supervisor::_finalizeCgi( Client * client )
 			setBadGateway(client->wbuf(), original, reason.str());
 		}
 		client->setOriginal(original);
+		std::cout << "there" << std::endl;
 		return true;
 	}
 	std::string& buf = client->wbuf();
