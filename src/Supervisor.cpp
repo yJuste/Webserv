@@ -394,7 +394,6 @@ bool	Supervisor::_finalizeCgi( Client * client )
 			setBadGateway(client->wbuf(), original, reason.str());
 		}
 		client->setOriginal(original);
-		std::cout << "there" << std::endl;
 		return true;
 	}
 	std::string& buf = client->wbuf();
