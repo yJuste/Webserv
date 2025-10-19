@@ -112,15 +112,7 @@ int	Response::_preparation( void )
 		std::string allowHeader;
 		const std::vector<std::string> & methods = _loc->getMethods();
 		if (_req->getMethod() == "DELETE")
-		{
-			std::string accept = _req->getHeader("Accept");
-			for (size_t i = 0; i < accept.size(); ++i)
-				accept[i] = std::tolower(accept[i]);
-			if (accept.find("application/json") != std::string::npos)
-				_response("405\nMethod Not Allowed\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
-			else
-				_response("405\nMethod Not Allowed\n\n\nMethod Not Allowed");
-		}
+			_response("405\nMethod Not Allowed\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Method Not Allowed\"}");
 		for (size_t i = 0; i < methods.size(); ++i)
 		{
 			allowHeader += methods[i];
@@ -173,7 +165,7 @@ void	Response::_handleGet( const std::string & path )
 		return _apply_session_parameter();
 	}
 	else
-		return _response("404\nNot Found\n\n\nFile not found.");
+		return _response("404\nNot Found\n\n\nPath not found.\n");
 }
 
 /*
@@ -290,7 +282,7 @@ void	Response::_handleDelete( const std::string & path, const std::string & locP
 	if (accept.find("application/json") != std::string::npos)
 		want_json = true;
 	else if (accept.find("*/*") != std::string::npos || accept.empty())
-		want_json = false;
+		want_json = true;
 	if (locPath.find("upload") == std::string::npos)
 	{
 		if (want_json)
@@ -298,7 +290,7 @@ void	Response::_handleDelete( const std::string & path, const std::string & locP
 		else
 			return _response("403\nForbidden\nContent-Type\ntext/html\nDelete allowed only in /upload");
 	}
-	if (locPath.find("..") != std::string::npos)
+	if (path.find("..") != std::string::npos)
 	{
 		if (want_json)
 			return _response("403\nForbidden\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"It's dangerous, oh my godness.\"}");
