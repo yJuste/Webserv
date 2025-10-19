@@ -266,7 +266,7 @@ void	Supervisor::_writing( Client * client, size_t & idx,  int fd )
 	if (n < 0)
 		return _supClient(fd);
 	if (n == 0)
-		return ;
+		;
 	if (client->wbuf().empty())
 	{
 		_fds[idx].events = POLLIN;
