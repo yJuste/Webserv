@@ -123,6 +123,7 @@ void	Client::sent( void )
 	Print::enval(_color, "     | Page", RESET, "[" + std::string(APPLE_GREEN) + rounded(_total) + "/" + rounded(_original) + std::string(RESET) + "]");
 	Print::enval(_color, "     | Sent", _color, "                                         .");
 	_wbuf.clear();
+	_cgiBody.clear();
 }
 
 Server *	Client::select_server( const std::vector<Server *> & servers )

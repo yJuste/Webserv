@@ -212,6 +212,9 @@ void	Supervisor::_reading( Client * client, size_t & idx, int fd )
 			int fd_read = client->getSvRead();
 			if (fd_read != -1)
 				close(fd_read);
+			int fd_write = client->getSvWrite();
+			if (fd_write != -1)
+				close(fd_write);
 			_fds[idx] = _fds[_size - 1];
 			--_size;
 			--idx;
@@ -219,6 +222,7 @@ void	Supervisor::_reading( Client * client, size_t & idx, int fd )
 			print_status_cgi(client->wbuf(), client->getColor(), client->getSocket());
 			client->getRequest()->reset();
 			client->setSvRead(-1);
+			client->setSvWrite(-1);
 			client->setCgiPid(-1);
 			for (size_t j = 0; j < _size; ++j)
 			{

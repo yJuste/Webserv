@@ -1,7 +1,5 @@
 #!/bin/bash
 
-while (1)
-
 # Le contenu HTML
 cat <<EOF
 Content-Type: text/html;
