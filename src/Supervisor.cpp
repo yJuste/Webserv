@@ -239,7 +239,7 @@ void	Supervisor::_reading( Client * client, size_t & idx, int fd )
  *	WRITING
  */
 
-void	Supervisor::_writing( Client * client, size_t idx,  int fd )
+void	Supervisor::_writing( Client * client, size_t & idx,  int fd )
 {
 	ssize_t n;
 	if (fd == client->getSvWrite())
@@ -251,6 +251,7 @@ void	Supervisor::_writing( Client * client, size_t idx,  int fd )
 				close(fd);
 			_fds[idx] = _fds[_size - 1];
 			--_size;
+			--idx;
 			client->setSvWrite(-1);
 		}
 		if (n == 0)
@@ -300,14 +301,14 @@ void	Supervisor::_removeFirstClient( void )
 	{
 		_removeClient(*it);
 		_clients.erase(it);
-		return;
+		return ;
 	}
 }
 
 void	Supervisor::_removeClient( Client * client )
 {
 	if (!client)
-		return;
+		return ;
 	int sv_fds[2] = { client->getSvRead(), client->getSvWrite() };
 	for (size_t i = 0; i < 2; ++i)
 	{
@@ -389,12 +390,13 @@ bool	Supervisor::_finalizeCgi( Client * client )
 	std::string line;
 	while (std::getline(iss, line))
 	{
-		if (line.find("syntax error") != std::string::npos
-			|| line.find("command not found") != std::string::npos
-			|| line.find("No such file") != std::string::npos
-			|| line.find("permission denied") != std::string::npos
-			|| line.find("runtime error") != std::string::npos
-			|| line.find("cgi: Error") != std::string::npos)
+		std::string lline = toLower(line);
+		if (lline.find("syntax error") != std::string::npos
+			|| lline.find("command not found") != std::string::npos
+			|| lline.find("no such file") != std::string::npos
+			|| lline.find("permission denied") != std::string::npos
+			|| lline.find("runtime error") != std::string::npos
+			|| lline.find("cgi: error") != std::string::npos)
 		{
 			Print::enval(client->getColor(), "     | Cgi Error", client->getColor(), line);
 			setBadGateway(client->wbuf(), original, "CGI execution failed.");

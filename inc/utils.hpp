@@ -50,8 +50,10 @@ void		replaceAll( std::string &, const std::string &, const std::string & );
 
 std::string	rounded( size_t );
 std::string	getExtension( const std::string & );
+std::string	toLower( const std::string & );
 std::string	url_decode( const std::string & );
 std::string	to_clean( const std::string &, const std::string & );
+
 
 // ----- Clients -----
 

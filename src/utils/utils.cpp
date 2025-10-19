@@ -36,6 +36,14 @@ std::string	getExtension( const std::string & file )
 	return ext;
 }
 
+std::string	toLower( const std::string & input )
+{
+	std::string result = input;
+	for (std::string::size_type i = 0; i < result.size(); ++i)
+		result[i] = std::tolower(result[i]);
+	return result;
+}
+
 std::string	to_clean( const std::string & root, const std::string & fullPath )
 {
 	std::string cleanRoot = root;

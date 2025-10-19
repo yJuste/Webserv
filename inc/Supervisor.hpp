@@ -60,7 +60,7 @@ class	Supervisor
 		bool _stdin( bool & );
 		void _new_client( int );
 		void _reading( Client *, size_t &, int );
-		void _writing( Client *, size_t, int );
+		void _writing( Client *, size_t &, int );
 
 		// utils
 
