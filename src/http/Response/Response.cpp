@@ -10,6 +10,7 @@
 # include "Response.hpp"
 # include "Request.hpp"
 # include "Client.hpp"
+# include "Location.hpp"
 
 Response::Response() : _req(NULL), _server(NULL), _client(NULL), _loc(NULL), _smanager(NULL), _status(200, "OK"), _body("") {}
 Response::~Response() {}
@@ -119,7 +120,11 @@ int	Response::_preparation( void )
 			if (i != methods.size() - 1)
 				allowHeader += ", ";
 		}
-		return _headers["Allow"] = allowHeader, _response("501\nNot Implemented\n\n\nUnknown http method.\n"), 0;
+		_headers["Allow"] = allowHeader;
+		for (int i = 0; g_methods[i] != NULL; ++i)
+			if (_req->getMethod() == g_methods[i])
+				return _response("405\nMethod Not Allowed\n\n\nMethod not allowed on this location.\n"), 0;
+		return _response("501\nNot Implemented\n\n\nUnknown http method.\n"), 0;
 	}
 	return 200;
 }
@@ -132,7 +137,7 @@ void	Response::_reconstitution( const std::string & filePath, const std::string 
 		return _handlePost(filePath);
 	if (_req->getMethod() == "DELETE")
 		return _handleDelete(filePath, path);
-	return _headers["Allow"] = "GET", _response("501\nNot Implemented\n\n\nUnknown http method.\n");
+	return _response("501\nNot Implemented\n\n\nUnknown http method.\n");
 }
 
 /*
