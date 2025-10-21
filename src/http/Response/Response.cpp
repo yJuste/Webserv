@@ -213,7 +213,9 @@ void	Response::_handlePost( const std::string & path )
 		if (contentType.find("application/x-www-form-urlencoded") != std::string::npos)
 			return _registry(contentType);
 	}
-	return _response("200\nOK\n\n\nNo data was provided.\n");
+	if (_loc)
+		return _response("400\nBad Request\n\n\nInvalid data.\n");
+	return _response("404\nNot Found\n\n\nLocation not found.\n");
 }
 
 void	Response::_handleUpload( std::string & filePath, std::string & contentType )
