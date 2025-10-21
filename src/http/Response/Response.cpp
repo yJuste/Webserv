@@ -99,7 +99,7 @@ int	Response::_preparation( void )
 		else if (code == 403)
 			message = "Forbidden";
 		else
-			return _response("500\nInternal Server Error\n\n\nRedirect code does not exist."), 300;
+			return _response("500\nInternal Server Error\n\n\nRedirect code does not exist.\n"), 300;
 		_headers["Location"] = locationUrl;
 		_headers["Content-Type"] = "text/html";
 		std::string body = "<html><body><h1>" + message + "</h1><p>Redirecting to <a href=\"" + locationUrl + "\">" + locationUrl + "</a></p></body></html>";
@@ -119,7 +119,7 @@ int	Response::_preparation( void )
 			if (i != methods.size() - 1)
 				allowHeader += ", ";
 		}
-		return _headers["Allow"] = allowHeader, 0;
+		return _headers["Allow"] = allowHeader, _response("501\nNot Implemented\n\n\nUnknown http method.\n"), 0;
 	}
 	return 200;
 }
@@ -132,7 +132,7 @@ void	Response::_reconstitution( const std::string & filePath, const std::string 
 		return _handlePost(filePath);
 	if (_req->getMethod() == "DELETE")
 		return _handleDelete(filePath, path);
-	return _response("500\nInternal Server Error\n\n\nReconstitution failed.");
+	return _headers["Allow"] = "GET", _response("501\nNot Implemented\n\n\nUnknown http method.\n");
 }
 
 /*
@@ -187,7 +187,7 @@ void	Response::_handlePost( const std::string & path )
 	{
 		std::stringstream ss;
 		ss << "POST request has a content too large: > " << rounded(maxSize);
-		return _response("413\nPayload Too Large\n\n\n" + ss.str());
+		return _response("413\nPayload Too Large\n\n\n" + ss.str() + "\n");
 	}
 	if (_loc)
 	{
@@ -206,7 +206,7 @@ void	Response::_handlePost( const std::string & path )
 		if (contentType.find("application/x-www-form-urlencoded") != std::string::npos)
 			return _registry(contentType);
 	}
-	return _response("404\nNot Found\n\n\nPost route not found.");
+	return _response("200\nOK\n\n\nNo data was provided.\n");
 }
 
 void	Response::_handleUpload( std::string & filePath, std::string & contentType )
@@ -218,9 +218,9 @@ void	Response::_handleUpload( std::string & filePath, std::string & contentType 
 		{
 			if (_autoIndex(filePath))
 				return ;
-			return _response("201\nCreated\n\n\nFile uploaded successfully.");
+			return _response("201\nCreated\n\n\nFile uploaded successfully.\n");
 		}
-		return _response("500\nInternal Server Error\n\n\nFailed to save uploaded file");
+		return _response("500\nInternal Server Error\n\n\nFailed to save uploaded file\n");
 	}
 	else if (contentType.find("application/octet-stream") != std::string::npos
 		|| contentType.find("text/plain") != std::string::npos
@@ -236,11 +236,11 @@ void	Response::_handleUpload( std::string & filePath, std::string & contentType 
 			out.close();
 			if (_autoIndex(filePath))
 				return ;
-			return _response("201\nCreated\n\n\nRaw file uploaded successfully.");
+			return _response("201\nCreated\n\n\nRaw file uploaded successfully.\n");
 		}
-		return _response("500\nInternal Server Error\n\n\nFailed to write file.");
+		return _response("500\nInternal Server Error\n\n\nFailed to write file.\n");
 	}
-	return _response("415\nUnsupported Media Type\n\n\nContent-Type not supported for upload.");
+	return _response("415\nUnsupported Media Type\n\n\nContent-Type not supported for upload.\n");
 }
 
 void	Response::_registry( std::string & contentType )
@@ -255,16 +255,16 @@ void	Response::_registry( std::string & contentType )
 	{
 		bool success = _saveUser(username, password, email);
 		if (success)
-			return _response("201\nCreated\n\n\nAccount created successfully.");
-		return _response("400\nBad Request\n\n\nUsername already exists or failed to save.");
+			return _response("201\nCreated\n\n\nAccount created successfully.\n");
+		return _response("400\nBad Request\n\n\nUsername already exists or failed to save.\n");
 	}
 	if (contentType.find("application/x-www-form-urlencoded") != std::string::npos)
 	{
 		if (_checkUser(username, password))
-			return _response("200\nOK\n\n\nLogin successful.");
-		return _response("401\nUnauthorized\n\n\nInvalid username or password.");
+			return _response("200\nOK\n\n\nLogin successful.\n");
+		return _response("401\nUnauthorized\n\n\nInvalid username or password.\n");
 	}
-	return _response("404\nNot Found\n\n\nPost route not found.");
+	return _response("501\nNot Implemented\n\n\nPost route doesn't work with these parameters\n");
 }
 
 /*
@@ -288,14 +288,14 @@ void	Response::_handleDelete( const std::string & path, const std::string & locP
 		if (want_json)
 			return _response("403\nForbidden\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Delete allowed only in /upload\"}");
 		else
-			return _response("403\nForbidden\nContent-Type\ntext/html\nDelete allowed only in /upload");
+			return _response("403\nForbidden\nContent-Type\ntext/html\nDelete allowed only in /upload\n");
 	}
 	if (path.find("..") != std::string::npos)
 	{
 		if (want_json)
 			return _response("403\nForbidden\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"It's dangerous, oh my godness.\"}");
 		else
-			return _response("403\nForbidden\nContent-Type\ntext/html\nIt's dangerous, oh my godness.");
+			return _response("403\nForbidden\nContent-Type\ntext/html\nIt's dangerous, oh my godness.\n");
 	}
 
 	int status = acstat(path.c_str(), F_OK | R_OK);
@@ -307,24 +307,24 @@ void	Response::_handleDelete( const std::string & path, const std::string & locP
 			if (want_json)
 				return _response("200\nOK\nContent-Type\napplication/json\n{\"status\":\"deleted\",\"path\":\"" + rem + "\"}");
 			else
-				return _response("200\nOK\nContent-Type\ntext/html\ndeleted. path:" + rem);
+				return _response("200\nOK\nContent-Type\ntext/html\ndeleted. path:" + rem + "\n");
 		}
 		if (want_json)
 			return _response("500\nInternal Server Error\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Failed to delete file\"}");
 		else
-			return _response("500\nInternal Server Error\nContent-Type\ntext/html\nFailed to delete file");
+			return _response("500\nInternal Server Error\nContent-Type\ntext/html\nFailed to delete file\n");
 	}
 	else if (status == 2)
 	{
 		if (want_json)
 			return _response("405\nMethod Not Allowed\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Cannot delete directory\"}");
 		else
-			return _response("405\nMethod Not Allowed\nContent-Type\ntext/html\nCannot delete a directory");
+			return _response("405\nMethod Not Allowed\nContent-Type\ntext/html\nCannot delete a directory\n");
 	}
 	if (want_json)
 		return _response("404\nFile Not Found\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"File not found\"}");
 	else
-		return _response("404\nFile not found\nContent-Type\ntext/html\nCannot find the file. ( maybe it does not exist.)");
+		return _response("404\nFile not found\nContent-Type\ntext/html\nCannot find the file. ( maybe it does not exist.)\n");
 }
 
 /*
@@ -335,19 +335,19 @@ void	Response::_executeCGI( const std::string & filePath )
 {
 	int sv[2];
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sv) < 0)
-		return _response("500\nInternal Server Error\n\n\nFailed to create socketpair CGI");
+		return _response("500\nInternal Server Error\n\n\nFailed to create socketpair CGI\n");
 	if (acstat(filePath.c_str(), X_OK) != 1)
 	{
 		close(sv[0]);
 		close(sv[1]);
-		return _response("403\nForbidden\n\n\nYou don't have access right.");
+		return _response("403\nForbidden\n\n\nYou don't have access right.\n");
 	}
 	pid_t pid = fork();
 	if (pid < 0)
 	{
 		close(sv[0]);
 		close(sv[1]);
-		return _response("500\nInternal Server Error\n\n\nFailed to fork() CGI process.");
+		return _response("500\nInternal Server Error\n\n\nFailed to fork() CGI process.\n");
 	}
 	if (pid == 0)
 	{
@@ -412,7 +412,7 @@ int	Response::_session_management( void )
 		const std::vector<char> & body = _req->getBody();
 		std::string data(body.begin(), body.end());
 		_session->setBgColor(url_decode(data.substr(6)));
-		_response("200\nOK\nContent-Type\ntext/plain\nColor has changed.");
+		_response("200\nOK\nContent-Type\ntext/plain\nColor has changed.\n");
 		return 1;
 	}
 	if (_req->getPath() == "/")
