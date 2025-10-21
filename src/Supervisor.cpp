@@ -257,16 +257,14 @@ void	Supervisor::_writing( Client * client, size_t & idx,  int fd )
 			--_size;
 			--idx;
 			client->setSvWrite(-1);
-		}
-		if (n == 0)
 			return ;
-		return;
+		}
+		if (n >= 0)
+			return ;
 	}
 	n = client->writing();
-	if (n < 0)
+	if (n <= 0)
 		return _supClient(fd);
-	if (n == 0)
-		;
 	if (client->wbuf().empty())
 	{
 		_fds[idx].events = POLLIN;

@@ -112,7 +112,7 @@ extern "C" void	on_stop( int );
 
 // ----- Main --------
 
-void	create_unique_program();
+int	create_unique_program();
 
 // ----- Parsing -----
 

@@ -14,12 +14,13 @@ extern "C" void			on_stop( int ) { g_stop = 1; }
 
 int	main( int argc, char ** argv )
 {
+	int unique_socket = -1;
 	std::vector<Server *> servers;
 	try
 	{
 		if (argc != 2)
 			throw FailedMainParameter();
-		create_unique_program();
+		unique_socket = create_unique_program();
 		std::srand(std::time(NULL));
 		Print::newPalette();
 
@@ -33,6 +34,8 @@ int	main( int argc, char ** argv )
 		for (size_t i = 0; i < servers.size(); ++i)
 			delete servers[i];
 		servers.clear();
+		if (unique_socket != -1)
+			close(unique_socket);
 		return 1;
 	}
 	try
@@ -52,8 +55,12 @@ int	main( int argc, char ** argv )
 			return 2;
 		}
 		std::cerr << e.what() << std::endl;
+		if (unique_socket != -1)
+			close(unique_socket);
 		return 3;
 	}
+	if (unique_socket != -1)
+		close(unique_socket);
 	return 0;
 }
 
@@ -61,7 +68,7 @@ int	main( int argc, char ** argv )
  *	By default, the program is running with the port '62034'.
  */
 
-void	create_unique_program( void )
+int	create_unique_program( void )
 {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == -1)
@@ -72,5 +79,9 @@ void	create_unique_program( void )
 	addr.sin_port = htons(62034);
 	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	if (bind(sock, (sockaddr *)&addr, sizeof(addr)) == -1)
+	{
+		close(sock);
 		throw NotUniqueProcessus();
+	}
+	return sock;
 }
