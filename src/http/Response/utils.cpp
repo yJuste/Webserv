@@ -110,7 +110,7 @@ bool	Response::_allowsMethod( const std::string & method ) const
 bool	Response::_autoIndex( const std::string & path )
 {
 	if (!_loc)
-		return _response("404\nNot Found\n\n\nFile not found."), true;
+		return _response("404\nNot Found\n\n\nFile not found.\n"), true;
 	if (_loc->getAutoindex())
 	{
 		std::string reducedPath = path;

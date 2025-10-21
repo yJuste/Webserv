@@ -91,7 +91,7 @@ void	print_status_cgi( const std::string & response, const std::string & color, 
 bool	setBadGateway( std::string & wbuf, ssize_t & original, const std::string & reason )
 {
 	std::ostringstream oss;
-	oss << "HTTP/1.1 502 Bad Gateway\r\nContent-Type: text/html\r\n\r\n<html><body><h1>502 Bad Gateway</h1><p>" << reason << "</p></body></html>";
+	oss << "HTTP/1.1 502 Bad Gateway\r\nContent-Type: text/html\r\n\r\n<html><body><h1>502 Bad Gateway</h1><p>" << reason << "</p></body></html>" << std::endl;
 	wbuf = oss.str();
 	original = static_cast<ssize_t>(wbuf.size());
 	return true;
