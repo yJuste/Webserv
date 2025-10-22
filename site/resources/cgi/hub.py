@@ -10,6 +10,10 @@ real_base_path = os.path.realpath(base_path)
 
 relative_path = os.path.relpath(real_file_path, real_base_path)
 
+if not os.path.exists(real_file_path):
+    print(f"cgi: Error: '{relative_path}' not found.")
+    exit()
+
 if not real_file_path.startswith(real_base_path):
     print("cgi: Error: Access denied.")
     exit()
