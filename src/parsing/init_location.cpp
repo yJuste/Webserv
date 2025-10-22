@@ -107,7 +107,7 @@ void	init_cgi( std::vector<std::string>::const_iterator & it, Location & locatio
 	if (program.empty() || program[program.size() - 1] != ';')
 		throw NoEndingSemicolon();
 	program.erase(program.size() - 1);
-	if (acstat(program.c_str(), F_OK | X_OK) != 1)
+	if (acstat(program.c_str(), F_OK | X_OK) < 0)
 		throw ProgramCgi(program.c_str());
 	location.addCgi(extension, program.c_str());
 }

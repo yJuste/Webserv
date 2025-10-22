@@ -242,7 +242,7 @@ void	create_paths( Server & server )
 		int i = relative(str);
 		std::string page = server.getRoot() + str.substr(i);
 		server.addErrorPage(it->first, page);
-		if (acstat(page.c_str(), F_OK | R_OK) != 1)
+		if (acstat(page.c_str(), F_OK | R_OK) < 0)
 			throw FailedAcstat(page.c_str());
 	}
 

@@ -14,16 +14,28 @@ int	acstat( const char * path, int mode )
 {
 	struct stat buf;
 	if (stat(path, &buf) == -1)
+	{
+		if (errno == EACCES)
+			return -2;
 		return -1;
+	}
 	if (access(path, mode) == -1)
+	{
+		if (errno == EACCES)
+			return -2;
 		return -1;
+	}
 	if (S_ISREG(buf.st_mode))
 		return 1;
 	if (S_ISDIR(buf.st_mode))
 	{
 		DIR *dir = opendir(path);
 		if (!dir)
+		{
+			if (errno == EACCES)
+				return -2;
 			return -1;
+		}
 		closedir(dir);
 		return 2;
 	}

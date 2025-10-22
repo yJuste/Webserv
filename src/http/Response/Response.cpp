@@ -166,13 +166,17 @@ void	Response::_handleGet( const std::string & path )
 		std::string index = concatPaths(path, _loc ? _loc->getIndex()[0] : _server->getIndex()[0]);
 		if (_autoIndex(index))
 			return ;
-		if (acstat(index.c_str(), F_OK) == -1)
+		int dir = acstat(index.c_str(), F_OK | R_OK);
+		if (dir == -2)
+			return _response("403\nForbidden\n\n\nYou don't have access right.\n");
+		if (dir == -1)
 			return _response("404\nNot Found\n\n\nFile not found (you should add a default file, like 'index.html')\n");
 		_response("200\nOK\nContent-Type\n" + getContentType(index) + "\n" + readFile(index));
 		return _apply_session_parameter();
 	}
-	else
-		return _response("404\nNot Found\n\n\nPath not found.\n");
+	if (status == -2)
+		return _response("403\nForbidden\n\n\nYou don't have access right.\n");
+	return _response("404\nNot Found\n\n\nPath not found.\n");
 }
 
 /*
@@ -329,6 +333,13 @@ void	Response::_handleDelete( const std::string & path, const std::string & locP
 			return _response("405\nMethod Not Allowed\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"Cannot delete directory\"}\n");
 		else
 			return _response("405\nMethod Not Allowed\nContent-Type\ntext/html\nCannot delete a directory\n");
+	}
+	else if (status == -2)
+	{
+		if (want_json)
+			return _response("403\nForbidden\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"You don't have access right.\"}\n");
+		else
+			return _response("403\nForbidden\n\n\nYou don't have access right.\n");
 	}
 	if (want_json)
 		return _response("404\nFile Not Found\nContent-Type\napplication/json\n{\"status\":\"error\",\"message\":\"File not found\"}\n");
