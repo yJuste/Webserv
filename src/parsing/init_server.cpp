@@ -167,9 +167,11 @@ void	init_listen( const std::vector<std::string> & words, std::vector<std::strin
 			port = str;
 
 		std::stringstream ss(port);
-		int nb;
+		size_t nb;
 		if (!(ss >> nb))
 			throw InvalidListen();
+		if (nb < 0 || nb > 65535)
+			throw InvalidPortRange();
 		ports.push_back(nb);
 		if (semicolon)
 			break ;

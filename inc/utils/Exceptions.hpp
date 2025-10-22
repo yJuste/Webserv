@@ -64,6 +64,8 @@ class	InvalidParameter : public std::exception { private: char _msg[MSG_SIZE]; p
 
 class	InvalidListen : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: The 'port' has to be a number."; } };
 
+class	InvalidPortRange : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: The 'port' has to be within [ 0;65535 ]."; } };
+
 class	NoExistingPort : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No port was defined."; } };
 
 class	LocationNotGiven : public std::exception { public : const char * what() const throw() { return "\033[31merror\033[0m: No given value for the parameter 'location'."; } };
