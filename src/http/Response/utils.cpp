@@ -299,6 +299,15 @@ std::vector<std::string>	Response::_buildCgiEnv( const std::string & filePath )
 	return env;
 }
 
+static size_t	find_char( const char * str, char c )
+{
+	size_t count = 0;
+	for (size_t i = 0; str[i]; ++i)
+		if (str[i] == c)
+			++count;
+	return count;
+}
+
 std::string	Response::_extract_cgi( const std::string & fullPath )
 {
 	const std::map<std::string, std::string> & cgiMap = _loc->getCgi();
@@ -315,7 +324,11 @@ std::string	Response::_extract_cgi( const std::string & fullPath )
 		}
 	}
 	if (bestPos != std::string::npos)
+	{
+		if (find_char(fullPath.c_str(), '.') <= 2)
+			return fullPath;
 		return fullPath.substr(0, bestPos + bestLen);
+	}
 	return fullPath;
 }
 
