@@ -4,3 +4,4 @@ webserv
 obj/*
 .*
 Dockerfile
+compile_commands.json
